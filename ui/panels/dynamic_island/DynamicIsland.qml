@@ -197,7 +197,10 @@ PanelWindow {
                 if (islandState === 3) return theme.islandNotifW;
                 if (islandState === 2) return theme.islandMaxW;
                 if (islandState === 1) return theme.islandHoverW;
-                return theme.islandMinW;
+                
+                var hasM = islandWindow.mprisPlayer && islandWindow.mprisPlayer.isPlaying;
+                var hasN = State.GlobalStates.notificationHistory.count > 0;
+                return (hasM || hasN) ? theme.islandMinW : 120;
             }
             height: {
                 var targetH = theme.islandMinH;
