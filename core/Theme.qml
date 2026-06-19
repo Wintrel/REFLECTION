@@ -11,6 +11,7 @@ Item {
     // Status Colors
     property color colorNotification: '#710cee' // Purple/Indigo
     property color colorMusic: '#5611f8' // indigo
+    property color accentWorkspace: '#5611f8' // Indigo purple for workspace dots
     
     // Fonts
     property string fontMain: "Inter" // Fallback main font
@@ -37,4 +38,11 @@ Item {
     
     // Animation Durations
     property int animDuration: 600
+    
+    // Taskbar Sizing
+    property int taskbarRadius: 16
+    property int taskbarHeight: 52
+    property real taskbarWidthPercent: 0.97 // 85% width
+    property int taskbarBottomMargin: 0
+    property int taskbarBorderWidth: 4
 }

@@ -7,26 +7,38 @@ Item {
     id: root
     
     property real brightness: 1.0
-    signal osdTriggered()
     
     property bool _initialized: false
     
     Process {
-        id: brightnessPoller
-        command: ["bash", "-c", "while true; do max=$(brightnessctl max 2>/dev/null); cur=$(brightnessctl get 2>/dev/null); if [ ! -z \"$max\" ] && [ \"$max\" -ne 0 ]; then awk \"BEGIN {print $cur/$max}\"; fi; sleep 0.1; done"]
-        running: true
+        id: brightProcess
+        command: ["brightnessctl", "-m"]
         stdout: SplitParser {
             onRead: data => {
-                var val = parseFloat(data.trim());
-                if (!isNaN(val)) {
-                    var changed = Math.abs(root.brightness - val) > 0.005;
-                    root.brightness = val;
-                    if (root._initialized && changed) {
-                        root.osdTriggered();
+                var raw = data.trim();
+                var parts = raw.split(",");
+                if (parts.length >= 5) {
+                    var cur = parseInt(parts[2]);
+                    var max = parseInt(parts[4]);
+                    if (max > 0) {
+                        var val = cur / max;
+                        var changed = Math.abs(root.brightness - val) > 0.005;
+                        root.brightness = val;
+                        if (root._initialized && changed) {
+                            OsdService.showOsd(1, 1, "", "", "");
+                        }
                     }
                 }
                 root._initialized = true;
             }
         }
+    }
+    
+    Timer {
+        running: true
+        repeat: true
+        interval: 50
+        onTriggered: brightProcess.running = true
+        Component.onCompleted: brightProcess.running = true
     }
 }

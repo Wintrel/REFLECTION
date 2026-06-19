@@ -8,6 +8,10 @@ Item {
     
     property int islandState: 0
     property int osdMode: 0
+    property int osdPriority: 1
+    property string osdIcon: ""
+    property string osdText: ""
+    property string osdColor: ""
     property var theme: null
     property real islandHoverW: 230
     property real islandHoverH: 50
@@ -22,11 +26,13 @@ Item {
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: root.theme ? root.theme.animDuration : 250 } }
     
+    // Bar Layout (Mode 0 & 1)
     Row {
         anchors.fill: parent
         anchors.leftMargin: 12
         anchors.rightMargin: 16
         spacing: 12
+        visible: root.osdMode !== 2
         
         // Icon
         Text {
@@ -39,7 +45,7 @@ Item {
                     if (System.VolumeService.isMuted) return "volume_off";
                     if (System.VolumeService.volume > 0.6) return "volume_up";
                     if (System.VolumeService.volume > 0.3) return "volume_down";
-                    return "volume_mute"; // Used for low volume
+                    return "volume_mute";
                 }
             }
             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
@@ -50,7 +56,7 @@ Item {
         // Progress Bar
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - 32 - 12 // total width minus icon and spacing
+            width: parent.width - 32 - 12
             height: 6
             radius: 3
             color: root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.2) : "#30A6ADC8"
@@ -65,6 +71,30 @@ Item {
                 
                 Behavior on width { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
             }
+        }
+    }
+    
+    // Text Layout (Mode 2)
+    Row {
+        anchors.centerIn: parent
+        spacing: 8
+        visible: root.osdMode === 2
+        
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            text: root.osdIcon
+            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+            font.pixelSize: 20
+            color: root.osdColor !== "" ? root.osdColor : (root.theme ? root.theme.textMain : "#FFF")
+        }
+        
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            text: root.osdText
+            font.family: root.theme ? root.theme.fontMain : "Inter"
+            font.pixelSize: 14
+            font.bold: root.osdPriority >= 2
+            color: root.osdColor !== "" ? root.osdColor : (root.theme ? root.theme.textMain : "#FFF")
         }
     }
 }

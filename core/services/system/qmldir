@@ -1,3 +1,8 @@
 singleton BatteryService BatteryService.qml
 singleton VolumeService VolumeService.qml
 singleton BrightnessService BrightnessService.qml
+singleton OsdService OsdService.qml
+singleton NetworkService NetworkService.qml
+singleton BluetoothService BluetoothService.qml
+singleton HyprlandService HyprlandService.qml
+singleton WallpaperService WallpaperService.qml

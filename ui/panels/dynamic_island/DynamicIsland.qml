@@ -36,13 +36,22 @@ PanelWindow {
     mask: Region {
         item: islandContainer
     }
-    
     // State machine for the island: 0 = Minimized, 1 = Hovered, 2 = Expanded, 3 = Notification, 4 = History, 5 = OSD
     property int islandState: 0
     property int previousState: 0
     
-    // OSD Mode: 0 = Volume, 1 = Brightness
+    // OSD Properties
     property int osdMode: 0
+    property int osdPriority: 1
+    property string osdIcon: ""
+    property string osdText: ""
+    property string osdColor: ""
+    
+    // Force instantiate singletons so they run in the background
+    property var _vol: VolumeService
+    property var _bri: BrightnessService
+    property var _net: NetworkService
+    property var _bt: BluetoothService
     
     // Auto-dismiss timer for notifications
     Timer {
@@ -77,29 +86,25 @@ PanelWindow {
     }
     
     Connections {
-        target: VolumeService
-        function onOsdTriggered() {
+        target: OsdService
+        function onOsdRequested(mode, priority, icon, text, color) {
+            islandWindow.osdMode = mode;
+            islandWindow.osdPriority = priority;
+            islandWindow.osdIcon = icon;
+            islandWindow.osdText = text;
+            islandWindow.osdColor = color;
+            
+            var duration = 2000;
+            if (priority === 2) duration = 4000;
+            if (priority === 3) duration = 8000;
+            osdTimer.interval = duration;
+            
             if (islandWindow.islandState !== 5 && islandWindow.islandState !== 3) {
                 islandWindow.previousState = islandWindow.islandState;
             }
-            if (islandWindow.islandState !== 3) {
-                // Don't override an active notification with a volume OSD
-                islandWindow.osdMode = 0;
-                islandWindow.islandState = 5;
-                osdTimer.restart();
-            }
-        }
-    }
-    
-    Connections {
-        target: BrightnessService
-        function onOsdTriggered() {
-            if (islandWindow.islandState !== 5 && islandWindow.islandState !== 3) {
-                islandWindow.previousState = islandWindow.islandState;
-            }
-            if (islandWindow.islandState !== 3) {
-                // Don't override an active notification with a brightness OSD
-                islandWindow.osdMode = 1;
+            
+            // Only interrupt notifications for Tier 2 and Tier 3 events
+            if (islandWindow.islandState !== 3 || priority >= 2) {
                 islandWindow.islandState = 5;
                 osdTimer.restart();
             }
@@ -331,6 +336,10 @@ PanelWindow {
                 IslandComponents.OsdContent {
                     islandState: islandWindow.islandState
                     osdMode: islandWindow.osdMode
+                    osdPriority: islandWindow.osdPriority
+                    osdIcon: islandWindow.osdIcon
+                    osdText: islandWindow.osdText
+                    osdColor: islandWindow.osdColor
                     theme: theme
                     islandHoverW: theme.islandHoverW
                     islandHoverH: theme.islandHoverH

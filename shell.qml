@@ -1,13 +1,16 @@
 import QtQuick
 import Quickshell
 
+import "core/services/system"
 import Quickshell.Services.Notifications
+
+import "ui/panels/dynamic_island"
+import "ui/panels/taskbar"
 
 ShellRoot {
     id: root
     
-    // Load the Dynamic Island
-    Loader {
-        source: "ui/panels/dynamic_island/DynamicIsland.qml"
-    }
+    DynamicIsland {}
+    Taskbar {}
+    Component.onCompleted: WallpaperService
 }

@@ -8,7 +8,6 @@ Item {
     
     property real volume: 0.0
     property bool isMuted: false
-    signal osdTriggered()
     
     // Internal flag to track initialization to prevent firing on load
     property bool _initialized: false
@@ -34,7 +33,7 @@ Item {
                         root.volume = vol;
                         root.isMuted = newMuted;
                         if (root._initialized && changed) {
-                            root.osdTriggered();
+                            OsdService.showOsd(0, 1, "", "", "");
                         }
                     }
                 }

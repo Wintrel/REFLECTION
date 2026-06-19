@@ -20,11 +20,9 @@ QtObject {
                 var val = parseInt(data.trim());
                 if (!isNaN(val)) {
                     if (root._hasInitPercent && val <= 20 && root._lastNotifiedBattery > 20) {
-                        var p1 = Qt.createQmlObject('import Quickshell.Io; Process { command: ["notify-send", "-a", "Power", "--icon=battery-caution", "Low Battery", "Battery is at 20%"] }', root);
-                        p1.running = true;
+                        OsdService.showOsd(2, 2, "battery_alert", "Battery 20% Remaining", "#E5C07B");
                     } else if (root._hasInitPercent && val <= 10 && root._lastNotifiedBattery > 10) {
-                        var p2 = Qt.createQmlObject('import Quickshell.Io; Process { command: ["notify-send", "-u", "critical", "-a", "Power", "--icon=battery-empty", "Critical Battery", "Battery is at 10%"] }', root);
-                        p2.running = true;
+                        OsdService.showOsd(2, 3, "battery_alert", "⚠ Battery Critical – 10% Remaining", "#E06C75");
                     }
                     root._lastNotifiedBattery = val;
                     root.percentage = val;
@@ -41,10 +39,9 @@ QtObject {
                 var newCharging = (data.trim() !== "Discharging" && data.trim() !== "Unknown");
                 if (root.isCharging !== newCharging) {
                     if (root._hasInitCharge) {
-                        var icon = newCharging ? "battery-charging" : "battery";
-                        var text = newCharging ? "Plugged In" : "Unplugged";
-                        var p3 = Qt.createQmlObject('import Quickshell.Io; Process { command: ["notify-send", "-a", "Power", "--icon=' + icon + '", "Battery", "' + text + '"] }', root);
-                        p3.running = true;
+                        var icon = newCharging ? "battery_charging_full" : "battery_horiz_050";
+                        var text = newCharging ? "Charging" : "Unplugged";
+                        OsdService.showOsd(2, 1, icon, text, "");
                     }
                     root.isCharging = newCharging;
                 }
