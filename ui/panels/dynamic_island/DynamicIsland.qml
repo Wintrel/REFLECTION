@@ -37,9 +37,12 @@ PanelWindow {
         item: islandContainer
     }
     
-    // State machine for the island: 0 = Minimized, 1 = Hovered, 2 = Expanded, 3 = Notification, 4 = History
+    // State machine for the island: 0 = Minimized, 1 = Hovered, 2 = Expanded, 3 = Notification, 4 = History, 5 = OSD
     property int islandState: 0
     property int previousState: 0
+    
+    // OSD Mode: 0 = Volume, 1 = Brightness
+    property int osdMode: 0
     
     // Auto-dismiss timer for notifications
     Timer {
@@ -53,6 +56,52 @@ PanelWindow {
                     islandWindow.islandState = islandShape.mouseArea.containsMouse ? 1 : 0;
                 }
                 islandWindow.previousState = 0;
+            }
+        }
+    }
+    
+    // Auto-dismiss timer for OSD
+    Timer {
+        id: osdTimer
+        interval: 2000 // 2 seconds
+        onTriggered: {
+            if (islandWindow.islandState === 5) {
+                if (islandWindow.previousState === 2 || islandWindow.previousState === 4) {
+                    islandWindow.islandState = islandWindow.previousState;
+                } else {
+                    islandWindow.islandState = islandShape.mouseArea.containsMouse ? 1 : 0;
+                }
+                islandWindow.previousState = 0;
+            }
+        }
+    }
+    
+    Connections {
+        target: VolumeService
+        function onOsdTriggered() {
+            if (islandWindow.islandState !== 5 && islandWindow.islandState !== 3) {
+                islandWindow.previousState = islandWindow.islandState;
+            }
+            if (islandWindow.islandState !== 3) {
+                // Don't override an active notification with a volume OSD
+                islandWindow.osdMode = 0;
+                islandWindow.islandState = 5;
+                osdTimer.restart();
+            }
+        }
+    }
+    
+    Connections {
+        target: BrightnessService
+        function onOsdTriggered() {
+            if (islandWindow.islandState !== 5 && islandWindow.islandState !== 3) {
+                islandWindow.previousState = islandWindow.islandState;
+            }
+            if (islandWindow.islandState !== 3) {
+                // Don't override an active notification with a brightness OSD
+                islandWindow.osdMode = 1;
+                islandWindow.islandState = 5;
+                osdTimer.restart();
             }
         }
     }
@@ -153,10 +202,12 @@ PanelWindow {
                 
                 onEntered: {
                     if (islandWindow.islandState === 3) notifTimer.stop(); // Pause dismiss if hovering notification
+                    else if (islandWindow.islandState === 5) osdTimer.stop();
                     else if (islandWindow.islandState !== 2 && islandWindow.islandState !== 4) islandWindow.islandState = 1
                 }
                 onExited: {
                     if (islandWindow.islandState === 3) notifTimer.restart(); // Resume dismiss timer
+                    else if (islandWindow.islandState === 5) osdTimer.restart();
                     else if (islandWindow.islandState !== 2 && islandWindow.islandState !== 4) islandWindow.islandState = 0
                 }
                 onClicked: {
@@ -193,6 +244,7 @@ PanelWindow {
             
             // Smooth sizing based on state
             width: {
+                if (islandState === 5) return theme.islandHoverW;
                 if (islandState === 4) return theme.islandHistoryW;
                 if (islandState === 3) return theme.islandNotifW;
                 if (islandState === 2) return theme.islandMaxW;
@@ -204,7 +256,8 @@ PanelWindow {
             }
             height: {
                 var targetH = theme.islandMinH;
-                if (islandState === 4) targetH = historyContent.computedHeight;
+                if (islandState === 5) targetH = theme.islandHoverH;
+                else if (islandState === 4) targetH = historyContent.computedHeight;
                 else if (islandState === 3) targetH = theme.islandNotifH;
                 else if (islandState === 2) targetH = theme.islandMaxH;
                 else if (islandState === 1) targetH = theme.islandHoverH;
@@ -273,6 +326,14 @@ PanelWindow {
                     mprisPlayer: islandWindow.mprisPlayer
                     islandHistoryW: theme.islandHistoryW
                     islandHistoryH: theme.islandHistoryH
+                }
+                
+                IslandComponents.OsdContent {
+                    islandState: islandWindow.islandState
+                    osdMode: islandWindow.osdMode
+                    theme: theme
+                    islandHoverW: theme.islandHoverW
+                    islandHoverH: theme.islandHoverH
                 }
             }
         } // End of islandShape
