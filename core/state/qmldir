@@ -1,0 +1,4 @@
+module state
+singleton PopupManager PopupManager.qml
+PopupScrim 1.0 PopupScrim.qml
+singleton GlobalStates GlobalStates.qml
