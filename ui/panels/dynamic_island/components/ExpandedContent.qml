@@ -170,6 +170,54 @@ Item {
                 width: 250
                 elide: Text.ElideRight
             }
+            // Source Indicator
+            Item {
+                width: sourceRow.width
+                height: sourceRow.height
+                visible: root.mprisPlayer && root.mprisPlayer.identity
+                
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    hoverEnabled: true
+                    onClicked: {
+                        if (typeof islandWidget !== "undefined") {
+                            islandWidget.cyclePlayer();
+                        }
+                    }
+                    
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: -4
+                        radius: 4
+                        color: parent.containsMouse ? Qt.rgba(255,255,255,0.1) : "transparent"
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                    }
+                }
+
+                Row {
+                    id: sourceRow
+                    spacing: 4
+                    anchors.centerIn: parent
+                    
+                    Text {
+                        text: "cast"
+                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                        font.pixelSize: 10
+                        color: root.theme ? root.theme.accentPrimary : "#00FFCC"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    Text {
+                        text: root.mprisPlayer ? (root.mprisPlayer.identity || "Unknown Source").toUpperCase() : ""
+                        font.family: root.theme ? root.theme.fontMain : "Inter"
+                        font.pixelSize: 9
+                        font.bold: true
+                        font.letterSpacing: 0.5
+                        color: root.theme ? root.theme.accentPrimary : "#00FFCC"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+            }
         }
         
         Row {

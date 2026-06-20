@@ -1,10 +1,13 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import "../../../core" as Core
 
 PanelWindow {
     Core.Theme { id: theme }
     id: islandWindow
+
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
     
     // Anchor only to the top, so it centers horizontally by default
     anchors {

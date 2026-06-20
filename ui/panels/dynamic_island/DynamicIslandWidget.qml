@@ -153,18 +153,69 @@ Item {
     property int currentPlayerIndex: 0
     property var mprisPlayer: null
     
+    function cyclePlayer() {
+        if (playerInst) {
+            playerInst.cyclePlayer();
+        }
+    }
+    
     Instantiator {
         id: playerInst
         model: Mpris.players
-        delegate: QtObject { property var playerItem: modelData }
+        
+        delegate: Item {
+            visible: false
+            property var playerItem: modelData
+            
+            // Re-evaluate whenever playback state changes
+            Connections {
+                target: playerItem
+                function onIsPlayingChanged() { playerInst.updatePlayer(); }
+                function onLengthChanged() { playerInst.updatePlayer(); }
+            }
+        }
+        
         function updatePlayer() {
             if (playerInst.count === 0) {
                 islandWidget.mprisPlayer = null;
-            } else {
-                islandWidget.currentPlayerIndex = Math.min(islandWidget.currentPlayerIndex, playerInst.count - 1);
-                islandWidget.mprisPlayer = playerInst.objectAt(islandWidget.currentPlayerIndex).playerItem;
+                return;
             }
+            
+            var bestPlayer = null;
+            var bestScore = -1;
+            
+            for (var i = 0; i < playerInst.count; i++) {
+                var p = playerInst.objectAt(i).playerItem;
+                if (!p) continue;
+                
+                var score = 0;
+                // Priority 1: Actively playing
+                if (p.isPlaying) score = 10;
+                
+                // Priority 2: Has a track loaded (length > 0)
+                if (p.length > 0) score += 2;
+                
+                // Bias towards currently selected player to prevent jitter
+                if (islandWidget.mprisPlayer && islandWidget.mprisPlayer === p) {
+                    score += 0.5;
+                }
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestPlayer = p;
+                    islandWidget.currentPlayerIndex = i;
+                }
+            }
+            
+            islandWidget.mprisPlayer = bestPlayer;
         }
+        
+        function cyclePlayer() {
+            if (playerInst.count <= 1) return;
+            islandWidget.currentPlayerIndex = (islandWidget.currentPlayerIndex + 1) % playerInst.count;
+            islandWidget.mprisPlayer = playerInst.objectAt(islandWidget.currentPlayerIndex).playerItem;
+        }
+        
         onObjectAdded: updatePlayer()
         onObjectRemoved: updatePlayer()
     }
@@ -181,19 +232,19 @@ Item {
             hoverEnabled: true
             
             onEntered: {
-                if (islandWidget.isLocked) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 6) return;
                 if (islandWidget.islandState === 3) notifTimer.stop();
                 else if (islandWidget.islandState === 5) osdTimer.stop();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4) islandWidget.islandState = 1
             }
             onExited: {
-                if (islandWidget.isLocked) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 6) return;
                 if (islandWidget.islandState === 3) notifTimer.restart();
                 else if (islandWidget.islandState === 5) osdTimer.restart();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4) islandWidget.islandState = 0
             }
             onClicked: {
-                if (islandWidget.isLocked) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 6) return;
                 if (islandWidget.islandState === 3) {
                     if (islandWidget.previousState === 2 || islandWidget.previousState === 4) {
                         islandWidget.islandState = islandWidget.previousState;
@@ -222,6 +273,7 @@ Item {
         
         // Smooth sizing based on state
         width: {
+            if (islandState === 6) return theme.islandNotifW; // Same width as Notif
             if (islandState === 5) return theme.islandHoverW;
             if (islandState === 4) return theme.islandHistoryW;
             if (islandState === 3) return theme.islandNotifW;
@@ -234,7 +286,8 @@ Item {
         }
         height: {
             var targetH = theme.islandMinH;
-            if (islandState === 5) targetH = theme.islandHoverH;
+            if (islandState === 6) targetH = theme.islandNotifH; // Same height as Notif
+            else if (islandState === 5) targetH = theme.islandHoverH;
             else if (islandState === 4) targetH = historyContent.computedHeight;
             else if (islandState === 3) targetH = theme.islandNotifH;
             else if (islandState === 2) targetH = theme.islandMaxH;
@@ -309,6 +362,13 @@ Item {
                 theme: theme
                 islandHoverW: theme.islandHoverW
                 islandHoverH: theme.islandHoverH
+            }
+
+            IslandComponents.PromptContent {
+                islandState: islandWidget.islandState
+                theme: theme
+                islandNotifW: theme.islandNotifW
+                islandNotifH: theme.islandNotifH
             }
         }
     }

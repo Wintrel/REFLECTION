@@ -16,6 +16,93 @@ Item {
         volFetcher.running = true;
     }
     
+    // Throttling for slider drags
+    property real _pendingVolume: -1
+    property bool _isSetting: false
+
+    function setVolume(percent) {
+        // Clamp to 0-100 (or up to 150 for volume, but we'll stick to 100 for safety)
+        var p = Math.max(0, Math.min(100, percent));
+        _pendingVolume = p;
+        
+        if (!_isSetting) {
+            _applyVolume();
+        }
+    }
+    
+    function _applyVolume() {
+        if (_pendingVolume < 0) return;
+        
+        _isSetting = true;
+        var p = _pendingVolume;
+        _pendingVolume = -1;
+        
+        // Optimistically update UI
+        root.volume = p / 100.0;
+        
+        var volStr = (p / 100.0).toFixed(2);
+        var cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ " + volStr;
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        proc.exited.connect(function() {
+            proc.destroy();
+            _isSetting = false;
+            // If another change came in while we were setting, apply it now
+            if (_pendingVolume >= 0) {
+                _applyVolume();
+            }
+        });
+        proc.running = true;
+    }
+
+    property alias audioSinks: sinksModel
+    ListModel { id: sinksModel }
+
+    property bool _inSinks: false
+
+    function scanSinks() {
+        sinksModel.clear();
+        _inSinks = false;
+        wpctlStatusProcess.running = true;
+    }
+    
+    function setDefaultSink(id) {
+        // Optimistic update to prevent the UI from "blinking"
+        for (var i = 0; i < sinksModel.count; i++) {
+            sinksModel.setProperty(i, "isDefault", sinksModel.get(i).sinkId === id);
+        }
+
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["wpctl", "set-default", "' + id + '"] }', root);
+        proc.exited.connect(function() {
+            proc.destroy();
+        });
+        proc.running = true;
+    }
+
+    Process {
+        id: wpctlStatusProcess
+        command: ["wpctl", "status"]
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data;
+                if (line.includes("Sinks:")) { root._inSinks = true; return; }
+                if (line.includes("Sources:")) { root._inSinks = false; return; }
+                if (root._inSinks) {
+                    var match = line.match(/^[^0-9\*]*(\*)?[^0-9]*(\d+)\.\s+(.*?)(?:\s+\[vol:.*\])?$/);
+                    if (match) {
+                        var isDefault = match[1] === '*';
+                        var id = match[2];
+                        var name = match[3].trim();
+                        sinksModel.append({
+                            "sinkId": id,
+                            "name": name,
+                            "isDefault": isDefault
+                        });
+                    }
+                }
+            }
+        }
+    }
+    
     Process {
         id: volFetcher
         command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]

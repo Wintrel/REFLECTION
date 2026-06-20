@@ -12,6 +12,8 @@ Item {
     property color colorNotification: '#710cee' // Purple/Indigo
     property color colorMusic: '#5611f8' // indigo
     property color accentWorkspace: '#5611f8' // Indigo purple for workspace dots
+    property color accentPrimary: '#ff9900' // Orange accent for active states
+    property color bgBase: '#000000' // Base black
     
     // Fonts
     property string fontMain: "Inter" // Fallback main font

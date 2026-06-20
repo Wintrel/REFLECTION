@@ -6,3 +6,5 @@ singleton NetworkService NetworkService.qml
 singleton BluetoothService BluetoothService.qml
 singleton HyprlandService HyprlandService.qml
 singleton WallpaperService WallpaperService.qml
+singleton NightLightService NightLightService.qml
+singleton PromptService PromptService.qml

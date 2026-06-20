@@ -10,6 +10,43 @@ Item {
     
     property bool _initialized: false
     
+    // Throttling for slider drags
+    property real _pendingBrightness: -1
+    property bool _isSetting: false
+
+    function setBrightness(percent) {
+        // Clamp to 0-100
+        var p = Math.max(0, Math.min(100, percent));
+        _pendingBrightness = p;
+        
+        if (!_isSetting) {
+            _applyBrightness();
+        }
+    }
+    
+    function _applyBrightness() {
+        if (_pendingBrightness < 0) return;
+        
+        _isSetting = true;
+        var p = _pendingBrightness;
+        _pendingBrightness = -1;
+        
+        // Optimistically update UI
+        root.brightness = p / 100.0;
+        
+        var cmd = "brightnessctl set " + Math.round(p) + "%";
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        proc.exited.connect(function() {
+            proc.destroy();
+            _isSetting = false;
+            // If another change came in while we were setting, apply it now
+            if (_pendingBrightness >= 0) {
+                _applyBrightness();
+            }
+        });
+        proc.running = true;
+    }
+    
     Process {
         id: brightProcess
         command: ["brightnessctl", "-m"]

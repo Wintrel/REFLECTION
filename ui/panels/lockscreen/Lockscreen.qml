@@ -48,7 +48,7 @@ ShellRoot {
 
     WlSessionLock {
         id: lockManager
-        locked: true
+        locked: false
 
         // WlSessionLock expects a Component for its surface layout
         surface: Component {
