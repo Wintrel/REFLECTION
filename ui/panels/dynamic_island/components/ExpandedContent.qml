@@ -75,8 +75,8 @@ Item {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    if (typeof islandWindow !== "undefined") {
-                        islandWindow.islandState = 4;
+                    if (typeof islandWidget !== "undefined") {
+                        islandWidget.islandState = 4;
                     }
                 }
             }

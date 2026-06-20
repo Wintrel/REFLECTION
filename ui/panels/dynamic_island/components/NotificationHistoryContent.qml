@@ -84,8 +84,8 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        if (typeof islandWindow !== "undefined") {
-                            islandWindow.islandState = 2; // Return to expanded music state
+                        if (typeof islandWidget !== "undefined") {
+                            islandWidget.islandState = 2; // Return to expanded music state
                         }
                     }
                 }
@@ -115,8 +115,8 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         State.GlobalStates.notificationHistory.clear();
-                        if (typeof islandWindow !== "undefined") {
-                            islandWindow.islandState = 0;
+                        if (typeof islandWidget !== "undefined") {
+                            islandWidget.islandState = 0;
                         }
                     }
                 }

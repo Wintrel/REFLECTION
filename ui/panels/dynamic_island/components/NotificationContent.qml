@@ -19,6 +19,7 @@ Item {
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: root.theme ? root.theme.animDuration : 250 } }
     
+    property bool isLocked: false
     property var currentNotif: null
     onCurrentNotifChanged: {
         console.log("NotificationContent.qml: currentNotif changed to", currentNotif);
@@ -95,7 +96,11 @@ Item {
             }
             
             Text {
-                text: root.currentNotif ? root.currentNotif.summary : "No Notification"
+                text: {
+                    if (!root.currentNotif) return "No Notification";
+                    if (root.isLocked) return "New Notification";
+                    return root.currentNotif.summary;
+                }
                 font.family: root.theme ? root.theme.fontMain : "Inter"
                 font.pixelSize: 15
                 font.bold: true
@@ -105,7 +110,7 @@ Item {
             }
             
             Text {
-                text: root.currentNotif ? root.currentNotif.body : ""
+                text: root.isLocked ? "Content hidden for privacy" : (root.currentNotif ? root.currentNotif.body : "")
                 font.family: root.theme ? root.theme.fontMain : "Inter"
                 font.pixelSize: 13
                 color: root.theme ? root.theme.textSub : "#A6ADC8"
@@ -120,8 +125,9 @@ Item {
     // Interactive area to dismiss
     MouseArea {
         anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
+        cursorShape: root.isLocked ? Qt.ArrowCursor : Qt.PointingHandCursor
         onClicked: {
+            if (root.isLocked) return;
             if (root.currentNotif) {
                 // Close the notification in the Quickshell server
                 // Quickshell notification objects usually have a close() or dismiss() or similar method,
