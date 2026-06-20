@@ -13,6 +13,7 @@ Item {
 
     signal submitted(string text)
     signal canceled()
+    signal promptRequested()
 
     function requestWifiPassword(ssid) {
         promptType = "wifi";
@@ -21,16 +22,14 @@ Item {
         promptTarget = ssid;
         isPassword = true;
         
-        State.GlobalStates.islandState = 6;
+        promptRequested();
     }
 
     function submit(text) {
         submitted(text);
-        State.GlobalStates.islandState = 0;
     }
     
     function cancel() {
         canceled();
-        State.GlobalStates.islandState = 0;
     }
 }

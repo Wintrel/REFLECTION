@@ -7,7 +7,7 @@ PanelWindow {
     Core.Theme { id: theme }
     id: islandWindow
 
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    WlrLayershell.keyboardFocus: widget.islandState === 6 ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     
     // Anchor only to the top, so it centers horizontally by default
     anchors {

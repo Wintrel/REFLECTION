@@ -98,6 +98,26 @@ Item {
         }
     }
     
+    Connections {
+        target: PromptService
+        function onPromptRequested() {
+            if (islandWidget.islandState !== 6 && islandWidget.islandState !== 3) {
+                islandWidget.previousState = islandWidget.islandState;
+            }
+            islandWidget.islandState = 6;
+        }
+        function onCanceled() {
+            if (islandWidget.islandState === 6) {
+                islandWidget.islandState = islandWidget.previousState || 0;
+            }
+        }
+        function onSubmitted(text) {
+            if (islandWidget.islandState === 6) {
+                islandWidget.islandState = islandWidget.previousState || 0;
+            }
+        }
+    }
+
     // Play sound when a new notification arrives
     MediaPlayer {
         id: popSound
