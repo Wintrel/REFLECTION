@@ -40,20 +40,23 @@ Item {
     property var _net: NetworkService
     property var _bt: BluetoothService
     
+    function dismissNotification() {
+        if (islandWidget.islandState === 3) {
+            notifTimer.stop();
+            if (islandWidget.previousState === 2 || islandWidget.previousState === 4) {
+                islandWidget.islandState = islandWidget.previousState;
+            } else {
+                islandWidget.islandState = islandShape.mouseArea.containsMouse ? 1 : 0;
+            }
+            islandWidget.previousState = 0;
+        }
+    }
+
     // Auto-dismiss timer for notifications
     Timer {
         id: notifTimer
         interval: 5000 // 5 seconds
-        onTriggered: {
-            if (islandWidget.islandState === 3) {
-                if (islandWidget.previousState === 2 || islandWidget.previousState === 4) {
-                    islandWidget.islandState = islandWidget.previousState;
-                } else {
-                    islandWidget.islandState = islandShape.mouseArea.containsMouse ? 1 : 0;
-                }
-                islandWidget.previousState = 0;
-            }
-        }
+        onTriggered: islandWidget.dismissNotification()
     }
     
     // Auto-dismiss timer for OSD
@@ -397,6 +400,7 @@ Item {
                 islandNotifH: theme.islandNotifH
                 currentNotif: islandWidget.currentNotif
                 isLocked: islandWidget.isLocked
+                onDismissRequested: islandWidget.dismissNotification()
             }
             
             IslandComponents.NotificationHistoryContent {

@@ -4,6 +4,8 @@ import "../../../../core" as Core
 Item {
     id: root
     
+    signal dismissRequested()
+    
     property int islandState: 0
     property var theme: null
     property real islandNotifW: 400
@@ -133,7 +135,9 @@ Item {
                 // Quickshell notification objects usually have a close() or dismiss() or similar method,
                 // or we can just dismiss it by clearing our state (handled by root DynamicIsland)
                 root.currentNotif.invokeDefaultAction(); // Attempt to invoke action if they click
+                root.currentNotif.close(); // Ask the server to dismiss the notification
             }
+            root.dismissRequested();
         }
     }
 }
