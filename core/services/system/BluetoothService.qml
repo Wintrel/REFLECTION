@@ -14,7 +14,7 @@ Item {
         // Optimistic update for instant UI feedback
         isBluetoothEnabled = !isBluetoothEnabled;
         var cmd = isBluetoothEnabled ? "bluetoothctl power on" : "bluetoothctl power off";
-        var proc = Qt.createQmlObject('import Quickshell.Io
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
         proc.exited.connect(function() {
             proc.destroy();
         });

@@ -21,28 +21,7 @@ Item {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -4
         spacing: 16
-        
-        // Icon
-        Rectangle {
-            width: 44
-            height: 44
-            radius: 22
-            color: ActionProgressService.isResolving ? 
-                   (ActionProgressService.isSuccess ? (theme ? theme.accentWorkspace : "#5611f8") : "#f8113b") : 
-                   Qt.rgba(255,255,255,0.05)
-            
-            Text {
-                text: ActionProgressService.isResolving ? 
-                      (ActionProgressService.isSuccess ? "check" : "close") : 
-                      ActionProgressService.statusIcon
-                font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
-                font.pixelSize: 24
-                color: theme ? theme.textMain : "#FFF"
-                anchors.centerIn: parent
-            }
-            
-            Behavior on color { ColorAnimation { duration: 300 } }
-        }
+
         
         // Text
         Text {
