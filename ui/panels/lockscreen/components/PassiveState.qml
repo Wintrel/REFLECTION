@@ -27,13 +27,13 @@ Item {
     Column {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -100
-        spacing: 20
+        spacing: 8
         
         Text {
             id: timeText
             text: "00:00"
             font.family: root.theme ? root.theme.fontMain : "Inter"
-            font.pixelSize: 140
+            font.pixelSize: 120
             font.weight: Font.Light // Thinner, elegant font
             font.letterSpacing: -2 // Tighter tracking for large numbers
             color: root.theme ? root.theme.textMain : "#FFF"
@@ -46,7 +46,7 @@ Item {
             id: dateText
             text: "Monday, January 1"
             font.family: root.theme ? root.theme.fontMain : "Inter"
-            font.pixelSize: 22
+            font.pixelSize: 20
             font.weight: Font.Medium
             font.letterSpacing: 1 // Wider tracking for the date
             color: root.theme ? root.theme.textMain : "#FFF"
@@ -56,11 +56,4 @@ Item {
         }
     }
     
-    // The real Dynamic Island, heavily clamped for privacy
-    DI.DynamicIslandWidget {
-        isLocked: true
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: parent.top
-        // The Y offset logic is inside the island itself, so we just anchor top
-    }
 }

@@ -1,0 +1,4 @@
+module qs.ui.panels.screenshot
+RegionSelector 1.0 RegionSelector.qml
+RegionSelection 1.0 RegionSelection.qml
+singleton ScreenshotState 1.0 ScreenshotState.qml

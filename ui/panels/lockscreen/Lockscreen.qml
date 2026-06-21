@@ -9,6 +9,7 @@ ShellRoot {
     id: root
 
     property string pendingPassword: ""
+    property bool isUnlocking: false
     
     signal authSuccess()
     signal authFailed()
@@ -28,8 +29,9 @@ ShellRoot {
         
         onCompleted: (result) => {
             if (result === 0) { // Success
-                console.log("Authentication successful, unlocking...");
-                lockManager.locked = false;
+                console.log("Authentication successful, playing exit animation...");
+                root.isUnlocking = true;
+                unlockTimer.start();
                 root.authSuccess();
             } else {
                 console.log("Authentication failed: " + result);
@@ -50,7 +52,7 @@ ShellRoot {
         id: lockManager
         locked: false
 
-        // WlSessionLock expects a Component for its surface layout
+        // WlSessionLock expects a Component for its surface layoutt
         surface: Component {
             WlSessionLockSurface {
                 id: surfaceElement
@@ -63,6 +65,7 @@ ShellRoot {
                         id: ui
                         anchors.fill: parent
                         theme: Theme {}
+                        isUnlocking: root.isUnlocking
                         
                         Connections {
                             target: root
@@ -78,6 +81,16 @@ ShellRoot {
                     }
                 }
             }
+        }
+    }
+    
+    Timer {
+        id: unlockTimer
+        interval: 400
+        repeat: false
+        onTriggered: {
+            lockManager.locked = false;
+            root.isUnlocking = false;
         }
     }
 }
