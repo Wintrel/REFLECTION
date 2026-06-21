@@ -64,6 +64,8 @@ Item {
 
     function connectToWifi(ssid, password) {
         connectingSsid = ssid;
+        ActionProgressService.actionStarted("Connecting to " + ssid + "...", "wifi", "wifi");
+        
         var qmlStr = "";
         if (password === "") {
             // Known or open network
@@ -73,21 +75,35 @@ Item {
             qmlStr = 'import Quickshell.Io; Process { command: ["nmcli", "device", "wifi", "connect", ' + JSON.stringify(ssid) + ', "password", ' + JSON.stringify(password) + '] }';
         }
         var proc = Qt.createQmlObject(qmlStr, root);
-        proc.exited.connect(function() {
+        proc.exited.connect(function(code) {
             proc.destroy();
             connectingSsid = "";
             scanWifi(); // refresh status
+            
+            if (code === 0) {
+                ActionProgressService.actionFinished("Connected", "check", true);
+            } else {
+                ActionProgressService.actionFinished("Failed to Connect", "close", false);
+            }
         });
         proc.running = true;
     }
 
     function disconnectWifi(ssid) {
         connectingSsid = ssid;
+        ActionProgressService.actionStarted("Disconnecting...", "wifi_off", "wifi");
+        
         var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["nmcli", "connection", "down", "id", ' + JSON.stringify(ssid) + '] }', root);
-        proc.exited.connect(function() {
+        proc.exited.connect(function(code) {
             proc.destroy();
             connectingSsid = "";
             scanWifi(); // refresh status
+            
+            if (code === 0) {
+                ActionProgressService.actionFinished("Disconnected", "check", true);
+            } else {
+                ActionProgressService.actionFinished("Failed", "close", false);
+            }
         });
         proc.running = true;
     }
@@ -213,11 +229,15 @@ Item {
                 // If the state has actually changed from our known state
                 if (root.isConnected !== newConnected) {
                     if (root._initialized) {
-                        var icon = newConnected ? "wifi" : "wifi_off";
-                        var text = newConnected ? "Wi-Fi Connected" : "Connection Lost";
-                        var priority = newConnected ? 1 : 2; 
+                        var recentlyTriggered = (ActionProgressService.lastActionContext === "wifi" && (Date.now() - ActionProgressService.lastActionTime) < 10000);
                         
-                        OsdService.showOsd(2, priority, icon, text, "");
+                        if (!ActionProgressService.inProgress && !ActionProgressService.isResolving && !recentlyTriggered) {
+                            var icon = newConnected ? "wifi" : "wifi_off";
+                            var text = newConnected ? "Wi-Fi Connected" : "Connection Lost";
+                            var priority = newConnected ? 1 : 2; 
+                            
+                            OsdService.showOsd(2, priority, icon, text, "");
+                        }
                     }
                     root.isConnected = newConnected;
                 }

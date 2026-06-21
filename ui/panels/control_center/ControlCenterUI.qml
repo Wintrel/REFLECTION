@@ -118,6 +118,7 @@ Item {
                 onClicked: BluetoothService.toggleBluetooth()
                 onRightClicked: {
                     BluetoothService.scanBluetooth();
+                    BluetoothService.startActiveScan();
                     root.viewState = "bluetooth";
                 }
             }
@@ -263,9 +264,15 @@ Item {
                             NetworkService.connectToWifi(model.ssid, "");
                         } else {
                             PromptService.requestWifiPassword(model.ssid);
-                            root.viewState = "main";
-                            State.GlobalStates.controlCenterOpen = false;
                         }
+                        
+                        // Close the Control Center to let the Island take over
+                        root.viewState = "main";
+                        var w = root;
+                        while (w && !w.hasOwnProperty("closePanel")) {
+                            w = w.parent;
+                        }
+                        if (w) w.closePanel();
                     }
                 }
             }
@@ -343,21 +350,25 @@ Item {
                 id: maBt
                 anchors.fill: parent
                 hoverEnabled: true
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (model.connected) {
-                        BluetoothService.disconnectDevice(model.mac, model.name);
+                onClicked: (mouse) => {
+                    if (mouse.button === Qt.RightButton) {
+                        BluetoothService.forgetDevice(model.mac, model.name);
                     } else {
-                        BluetoothService.connectDevice(model.mac, model.trusted, model.name, model.icon);
+                        if (model.connected) {
+                            BluetoothService.disconnectDevice(model.mac, model.name);
+                        } else {
+                            BluetoothService.connectDevice(model.mac, model.trusted, model.name, model.icon);
+                        }
+                        // Close the Control Center to let the Island take over
+                        root.viewState = "main";
+                        var w = root;
+                        while (w && !w.hasOwnProperty("closePanel")) {
+                            w = w.parent;
+                        }
+                        if (w) w.closePanel();
                     }
-                    // Close the Control Center to let the Island take over
-                    root.viewState = "main";
-                    // Assuming root has a parent or method to close
-                    var w = root;
-                    while (w && !w.hasOwnProperty("closePanel")) {
-                        w = w.parent;
-                    }
-                    if (w) w.closePanel();
                 }
             }
         }

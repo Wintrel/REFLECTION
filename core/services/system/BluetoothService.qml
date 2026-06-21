@@ -91,6 +91,25 @@ Item {
         proc.running = true;
     }
 
+    function forgetDevice(mac, name) {
+        var cmd = "bluetoothctl remove " + mac;
+        
+        ActionProgressService.actionStarted("Forgetting " + (name || "Device") + "...", "bluetooth", "bluetooth");
+        
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        proc.exited.connect(function(code) {
+            proc.destroy();
+            scanBluetooth();
+            
+            if (code === 0) {
+                ActionProgressService.actionFinished("Forgot Device", "delete", true);
+            } else {
+                ActionProgressService.actionFinished("Failed to Forget", "close", false);
+            }
+        });
+        proc.running = true;
+    }
+
     Process {
         id: btScanProcess
         command: ["bash", "-c", "for dev in $(bluetoothctl devices | awk '{print $2}'); do echo \"DEV|$dev\"; bluetoothctl info $dev | grep -E 'Name:|Icon:|Paired:|Trusted:|Connected:|ServicesResolved:'; done"]
@@ -100,7 +119,7 @@ Item {
                 if (line === "") return;
 
                 if (line.startsWith("DEV|")) {
-                    if (root._currentDevice && (root._currentDevice.paired || root._currentDevice.connected)) {
+                    if (root._currentDevice) {
                         devicesModel.append(root._currentDevice);
                     }
                     var mac = line.substring(4);
@@ -134,10 +153,24 @@ Item {
             }
         }
         onExited: {
-            if (root._currentDevice && (root._currentDevice.paired || root._currentDevice.connected)) {
+            if (root._currentDevice) {
                 devicesModel.append(root._currentDevice);
             }
             root._currentDevice = null;
+        }
+    }
+    
+    // Active scanner to discover new unpaired devices
+    property bool isScanning: btActiveScanner.running
+    Process {
+        id: btActiveScanner
+        command: ["bluetoothctl", "--timeout", "10", "scan", "on"]
+        onExited: scanBluetooth() // Refresh list once the active scan finishes
+    }
+    
+    function startActiveScan() {
+        if (!btActiveScanner.running) {
+            btActiveScanner.running = true;
         }
     }
     
