@@ -8,3 +8,4 @@ singleton HyprlandService HyprlandService.qml
 singleton WallpaperService WallpaperService.qml
 singleton NightLightService NightLightService.qml
 singleton PromptService PromptService.qml
+singleton ActionProgressService ActionProgressService.qml

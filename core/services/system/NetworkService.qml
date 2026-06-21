@@ -51,6 +51,7 @@ Item {
     }
 
     property string connectingSsid: ""
+    property string connectedSsid: ""
 
     Connections {
         target: PromptService
@@ -145,6 +146,7 @@ Item {
                     var security = parts[2];
                     var inUse = parts[3] === "*";
                     var isKnown = root.knownNetworks.indexOf(ssid) !== -1;
+                    if (inUse) root.connectedSsid = ssid;
                     
                     // Prevent duplicates (nmcli sometimes returns multiple BSSIDs for same SSID)
                     var exists = false;
@@ -195,6 +197,7 @@ Item {
                 } 
                 else if (output === "disconnected" || output === "connecting") {
                     newConnected = false;
+                    if (output === "disconnected") root.connectedSsid = "";
                 }
                 // B. Parse the continuous monitor stream (from nmcli monitor)
                 else if (output.includes("state")) {

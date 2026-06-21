@@ -99,7 +99,7 @@ Item {
                 width: (parent.width - 16) / 2
                 height: 64
                 icon: "wifi"
-                label: "WiFi"
+                label: (NetworkService.isWifiEnabled && NetworkService.connectedSsid !== "") ? NetworkService.connectedSsid : "Wi-Fi"
                 theme: root.theme
                 isActive: NetworkService.isWifiEnabled
                 onClicked: NetworkService.toggleWifi()
@@ -183,53 +183,65 @@ Item {
         model: NetworkService.wifiNetworks
         delegate: Item {
             width: ListView.view ? ListView.view.width : (parent ? parent.width : 0)
-            height: 48
+            height: 52
             clip: true
 
-            Rectangle {
+            Item {
                 anchors.fill: parent
-                radius: 8
-                color: maWifi.pressed ? (root.theme ? root.theme.accentPrimary : "#ff9900")
-                     : (model.inUse ? (root.theme ? root.theme.accentWorkspace : "#5611f8")
-                                    : (root.theme ? Qt.rgba(255,255,255,0.05) : "#111"))
-                
-                border.width: 1
-                border.color: (maWifi.pressed || model.inUse) ? "transparent"
-                            : (maWifi.containsMouse ? (root.theme ? root.theme.accentPrimary : "#ff9900")
-                                                    : (root.theme ? Qt.rgba(255,255,255,0.05) : "#222"))
-                Behavior on color { ColorAnimation { duration: 250 } }
-                Behavior on border.color { ColorAnimation { duration: 250 } }
-            }
+                scale: maWifi.pressed ? 0.97 : 1
+                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
 
-            Row {
-                anchors.fill: parent
-                anchors.margins: 12
-                spacing: 12
-                Text {
-                    id: wifiIcon
-                    text: NetworkService.connectingSsid === model.ssid ? "autorenew" : (model.inUse ? "wifi" : (model.security === "" ? "network_wifi" : (model.isKnown ? "wifi_password" : "lock")))
-                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                    font.pixelSize: 20
-                    width: 20
-                    height: 20
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    color: root.theme ? root.theme.textMain : "#FFF"
-                    anchors.verticalCenter: parent.verticalCenter
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 12
+                    color: maWifi.pressed ? (root.theme ? root.theme.accentPrimary : "#ff9900")
+                         : (model.inUse ? (root.theme ? root.theme.accentWorkspace : "#5611f8")
+                                        : Qt.rgba(255,255,255,0.03))
                     
-                    RotationAnimator on rotation {
-                        running: NetworkService.connectingSsid === model.ssid
-                        from: 0; to: 360
-                        duration: 1000; loops: Animation.Infinite
-                        onRunningChanged: if (!running) wifiIcon.rotation = 0
-                    }
+                    border.width: 1
+                    border.color: (maWifi.pressed || model.inUse) ? "transparent"
+                                : (maWifi.containsMouse ? (root.theme ? root.theme.accentPrimary : "#ff9900")
+                                                        : "transparent")
+                    Behavior on color { ColorAnimation { duration: 250 } }
+                    Behavior on border.color { ColorAnimation { duration: 250 } }
                 }
-                Text {
-                    text: model.ssid
-                    font.family: root.theme ? root.theme.fontMain : "Inter"
-                    font.pixelSize: 14
-                    color: root.theme ? root.theme.textMain : "#FFF"
-                    anchors.verticalCenter: parent.verticalCenter
+
+                Row {
+                    anchors.fill: parent
+                    anchors.margins: 8
+                    spacing: 12
+                    
+                    Rectangle {
+                        width: 36
+                        height: 36
+                        radius: 18
+                        color: model.inUse ? Qt.rgba(255,255,255,0.1) : "transparent"
+                        anchors.verticalCenter: parent.verticalCenter
+                        
+                        Text {
+                            id: wifiIcon
+                            text: NetworkService.connectingSsid === model.ssid ? "autorenew" : (model.inUse ? "wifi" : (model.security === "" ? "network_wifi" : (model.isKnown ? "wifi_password" : "lock")))
+                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                            font.pixelSize: 20
+                            color: root.theme ? root.theme.textMain : "#FFF"
+                            anchors.centerIn: parent
+                            
+                            RotationAnimator on rotation {
+                                running: NetworkService.connectingSsid === model.ssid
+                                from: 0; to: 360
+                                duration: 1000; loops: Animation.Infinite
+                                onRunningChanged: if (!running) wifiIcon.rotation = 0
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: model.ssid
+                        font.family: root.theme ? root.theme.fontMain : "Inter"
+                        font.pixelSize: 14
+                        color: root.theme ? root.theme.textMain : "#FFF"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
             }
 
@@ -274,46 +286,78 @@ Item {
         model: BluetoothService.bluetoothDevices
         delegate: Item {
             width: parent.width
-            height: 48
-            Rectangle {
+            height: 52
+            
+            Item {
                 anchors.fill: parent
-                radius: 8
-                color: maBt.pressed ? (root.theme ? root.theme.accentPrimary : "#ff9900") 
-                     : (root.theme ? Qt.rgba(255,255,255,0.05) : "#111")
+                scale: maBt.pressed ? 0.97 : 1
+                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 12
+                    color: maBt.pressed ? (root.theme ? root.theme.accentPrimary : "#ff9900")
+                         : (model.connected ? (root.theme ? root.theme.accentWorkspace : "#5611f8")
+                                            : Qt.rgba(255,255,255,0.03))
+                    
+                    border.width: 1
+                    border.color: (maBt.pressed || model.connected) ? "transparent"
+                                : (maBt.containsMouse ? (root.theme ? root.theme.accentPrimary : "#ff9900")
+                                                      : "transparent")
+                    Behavior on color { ColorAnimation { duration: 250 } }
+                    Behavior on border.color { ColorAnimation { duration: 250 } }
+                }
                 
-                border.width: 1
-                border.color: maBt.pressed ? "transparent"
-                            : (maBt.containsMouse ? (root.theme ? root.theme.accentPrimary : "#ff9900")
-                                                  : (root.theme ? Qt.rgba(255,255,255,0.05) : "#222"))
-                Behavior on color { ColorAnimation { duration: 250 } }
-                Behavior on border.color { ColorAnimation { duration: 250 } }
-            }
-            Row {
-                anchors.fill: parent
-                anchors.margins: 12
-                spacing: 12
-                Text {
-                    text: "bluetooth"
-                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                    font.pixelSize: 20
-                    color: root.theme ? root.theme.textMain : "#FFF"
-                    anchors.verticalCenter: parent.verticalCenter
+                Row {
+                    anchors.fill: parent
+                    anchors.margins: 8
+                    spacing: 12
+                    
+                    Rectangle {
+                        width: 36
+                        height: 36
+                        radius: 18
+                        color: model.connected ? Qt.rgba(255,255,255,0.1) : "transparent"
+                        anchors.verticalCenter: parent.verticalCenter
+                        
+                        Text {
+                            text: model.icon === "audio-headset" ? "headphones" : (model.icon === "input-mouse" ? "mouse" : "bluetooth")
+                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                            font.pixelSize: 20
+                            color: root.theme ? root.theme.textMain : "#FFF"
+                            anchors.centerIn: parent
+                        }
+                    }
+
+                    Text {
+                        text: model.name || model.mac
+                        font.family: root.theme ? root.theme.fontMain : "Inter"
+                        font.pixelSize: 14
+                        color: root.theme ? root.theme.textMain : "#FFF"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
-                Text {
-                    text: model.name || model.mac
-                    font.family: root.theme ? root.theme.fontMain : "Inter"
-                    font.pixelSize: 14
-                    color: root.theme ? root.theme.textMain : "#FFF"
-                    anchors.verticalCenter: parent.verticalCenter
-                }
             }
+            
             MouseArea {
                 id: maBt
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    // Logic to connect to bluetooth could go here
+                    if (model.connected) {
+                        BluetoothService.disconnectDevice(model.mac, model.name);
+                    } else {
+                        BluetoothService.connectDevice(model.mac, model.trusted, model.name, model.icon);
+                    }
+                    // Close the Control Center to let the Island take over
+                    root.viewState = "main";
+                    // Assuming root has a parent or method to close
+                    var w = root;
+                    while (w && !w.hasOwnProperty("closePanel")) {
+                        w = w.parent;
+                    }
+                    if (w) w.closePanel();
                 }
             }
         }
@@ -333,42 +377,61 @@ Item {
         model: VolumeService.audioSinks
         delegate: Item {
             width: parent.width
-            height: 48
-            Rectangle {
+            height: 52
+
+            Item {
                 anchors.fill: parent
-                radius: 8
-                color: maAudio.pressed ? (root.theme ? root.theme.accentPrimary : "#ff9900")
-                     : (model.isDefault ? (root.theme ? root.theme.accentWorkspace : "#5611f8")
-                                        : (root.theme ? Qt.rgba(255,255,255,0.05) : "#111"))
-                
-                border.width: 1
-                border.color: (maAudio.pressed || model.isDefault) ? "transparent"
-                            : (maAudio.containsMouse ? (root.theme ? root.theme.accentPrimary : "#ff9900")
-                                                     : (root.theme ? Qt.rgba(255,255,255,0.05) : "#222"))
-                Behavior on color { ColorAnimation { duration: 250 } }
-                Behavior on border.color { ColorAnimation { duration: 250 } }
-            }
-            Row {
-                anchors.fill: parent
-                anchors.margins: 12
-                spacing: 12
-                Text {
-                    text: model.name.toLowerCase().includes("head") ? "headphones" : "speaker"
-                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                    font.pixelSize: 20
-                    color: root.theme ? root.theme.textMain : "#FFF"
-                    anchors.verticalCenter: parent.verticalCenter
+                scale: maAudio.pressed ? 0.97 : 1
+                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 12
+                    color: maAudio.pressed ? (root.theme ? root.theme.accentPrimary : "#ff9900")
+                         : (model.isDefault ? (root.theme ? root.theme.accentWorkspace : "#5611f8")
+                                            : Qt.rgba(255,255,255,0.03))
+                    
+                    border.width: 1
+                    border.color: (maAudio.pressed || model.isDefault) ? "transparent"
+                                : (maAudio.containsMouse ? (root.theme ? root.theme.accentPrimary : "#ff9900")
+                                                         : "transparent")
+                    Behavior on color { ColorAnimation { duration: 250 } }
+                    Behavior on border.color { ColorAnimation { duration: 250 } }
                 }
-                Text {
-                    text: model.name
-                    font.family: root.theme ? root.theme.fontMain : "Inter"
-                    font.pixelSize: 14
-                    color: root.theme ? root.theme.textMain : "#FFF"
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: parent.width - 44
-                    elide: Text.ElideRight
+
+                Row {
+                    anchors.fill: parent
+                    anchors.margins: 8
+                    spacing: 12
+
+                    Rectangle {
+                        width: 36
+                        height: 36
+                        radius: 18
+                        color: model.isDefault ? Qt.rgba(255,255,255,0.1) : "transparent"
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Text {
+                            text: model.name.toLowerCase().includes("head") ? "headphones" : "speaker"
+                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                            font.pixelSize: 20
+                            color: root.theme ? root.theme.textMain : "#FFF"
+                            anchors.centerIn: parent
+                        }
+                    }
+
+                    Text {
+                        text: model.name
+                        font.family: root.theme ? root.theme.fontMain : "Inter"
+                        font.pixelSize: 14
+                        color: root.theme ? root.theme.textMain : "#FFF"
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: parent.width - 52
+                        elide: Text.ElideRight
+                    }
                 }
             }
+
             MouseArea {
                 id: maAudio
                 anchors.fill: parent

@@ -118,6 +118,37 @@ Item {
         }
     }
 
+    Connections {
+        target: ActionProgressService
+        function onActionRequested() {
+            if (islandWidget.islandState !== 7 && islandWidget.islandState !== 6 && islandWidget.islandState !== 3) {
+                islandWidget.previousState = islandWidget.islandState;
+            }
+            islandWidget.islandState = 7;
+        }
+    }
+    
+    // Auto-dismiss timer for Action Progress success state
+    Timer {
+        id: actionSuccessTimer
+        interval: 2000
+        onTriggered: {
+            if (islandWidget.islandState === 7) {
+                islandWidget.islandState = islandWidget.previousState || 0;
+            }
+            ActionProgressService.reset();
+        }
+    }
+    
+    Connections {
+        target: ActionProgressService
+        function onIsResolvingChanged() {
+            if (ActionProgressService.isResolving) {
+                actionSuccessTimer.restart();
+            }
+        }
+    }
+
     // Play sound when a new notification arrives
     MediaPlayer {
         id: popSound
@@ -252,19 +283,19 @@ Item {
             hoverEnabled: true
             
             onEntered: {
-                if (islandWidget.isLocked || islandWidget.islandState === 6) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.stop();
                 else if (islandWidget.islandState === 5) osdTimer.stop();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4) islandWidget.islandState = 1
             }
             onExited: {
-                if (islandWidget.isLocked || islandWidget.islandState === 6) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.restart();
                 else if (islandWidget.islandState === 5) osdTimer.restart();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4) islandWidget.islandState = 0
             }
             onClicked: {
-                if (islandWidget.isLocked || islandWidget.islandState === 6) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) {
                     if (islandWidget.previousState === 2 || islandWidget.previousState === 4) {
                         islandWidget.islandState = islandWidget.previousState;
@@ -293,6 +324,7 @@ Item {
         
         // Smooth sizing based on state
         width: {
+            if (islandState === 7) return theme.islandNotifW; // Same width as Prompt
             if (islandState === 6) return theme.islandNotifW; // Same width as Notif
             if (islandState === 5) return theme.islandHoverW;
             if (islandState === 4) return theme.islandHistoryW;
@@ -306,7 +338,8 @@ Item {
         }
         height: {
             var targetH = theme.islandMinH;
-            if (islandState === 6) targetH = theme.islandNotifH; // Same height as Notif
+            if (islandState === 7) targetH = theme.islandNotifH; // Same height as Prompt
+            else if (islandState === 6) targetH = theme.islandNotifH; // Same height as Notif
             else if (islandState === 5) targetH = theme.islandHoverH;
             else if (islandState === 4) targetH = historyContent.computedHeight;
             else if (islandState === 3) targetH = theme.islandNotifH;
@@ -389,6 +422,11 @@ Item {
                 theme: theme
                 islandNotifW: theme.islandNotifW
                 islandNotifH: theme.islandNotifH
+            }
+            
+            IslandComponents.ActionProgressContent {
+                islandState: islandWidget.islandState
+                theme: theme
             }
         }
     }

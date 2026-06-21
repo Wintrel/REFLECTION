@@ -1,0 +1,109 @@
+import QtQuick
+import "../../../../core" as Core
+import "../../../../core/services/system"
+
+Item {
+    id: root
+    Component.onCompleted: console.log("ActionProgressContent loaded, inProgress:", ActionProgressService.inProgress, "text:", ActionProgressService.statusText)
+    
+    property int islandState: 0
+    property var theme: null
+    
+    width: theme ? theme.islandNotifW : 300
+    height: theme ? theme.islandNotifH : 100
+    
+    opacity: islandState === 7 ? 1 : 0
+    visible: opacity > 0
+    Behavior on opacity { NumberAnimation { duration: 250 } }
+    
+    // Main Content
+    Row {
+        anchors.centerIn: parent
+        anchors.verticalCenterOffset: -4
+        spacing: 16
+        
+        // Icon
+        Rectangle {
+            width: 44
+            height: 44
+            radius: 22
+            color: ActionProgressService.isResolving ? 
+                   (ActionProgressService.isSuccess ? (theme ? theme.accentWorkspace : "#5611f8") : "#f8113b") : 
+                   Qt.rgba(255,255,255,0.05)
+            
+            Text {
+                text: ActionProgressService.isResolving ? 
+                      (ActionProgressService.isSuccess ? "check" : "close") : 
+                      ActionProgressService.statusIcon
+                font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
+                font.pixelSize: 24
+                color: theme ? theme.textMain : "#FFF"
+                anchors.centerIn: parent
+            }
+            
+            Behavior on color { ColorAnimation { duration: 300 } }
+        }
+        
+        // Text
+        Text {
+            text: ActionProgressService.statusText
+            font.family: theme ? theme.fontMain : "Inter"
+            font.pixelSize: 15
+            color: theme ? theme.textMain : "#FFF"
+            anchors.verticalCenter: parent.verticalCenter
+        }
+    }
+    
+    // The Indeterminate Progress Bar
+    Item {
+        width: parent.width - 64
+        height: 3
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 16
+        anchors.horizontalCenter: parent.horizontalCenter
+        
+        clip: true
+        
+        // Track
+        Rectangle {
+            anchors.fill: parent
+            color: Qt.rgba(255,255,255,0.1)
+            radius: 1.5
+        }
+        
+        // Indeterminate loader (only visible when inProgress)
+        Rectangle {
+            id: progressIndicator
+            height: parent.height
+            radius: 1.5
+            color: theme ? theme.accentPrimary : "#ff9900"
+            
+            width: parent.width * 0.3
+            x: -width
+            
+            opacity: ActionProgressService.inProgress ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            
+            SequentialAnimation on x {
+                running: ActionProgressService.inProgress && root.visible
+                loops: Animation.Infinite
+                NumberAnimation {
+                    from: -progressIndicator.width
+                    to: progressIndicator.parent.width
+                    duration: 1200
+                    easing.type: Easing.InOutQuad
+                }
+            }
+        }
+        
+        // Resolved line (fills exactly when success/fail)
+        Rectangle {
+            anchors.fill: parent
+            radius: 1.5
+            color: ActionProgressService.isSuccess ? (theme ? theme.accentWorkspace : "#5611f8") : "#f8113b"
+            
+            opacity: ActionProgressService.isResolving ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 300 } }
+        }
+    }
+}
