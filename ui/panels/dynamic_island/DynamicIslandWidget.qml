@@ -121,6 +121,7 @@ Item {
     Connections {
         target: ActionProgressService
         function onActionRequested() {
+            actionSuccessTimer.stop();
             if (islandWidget.islandState !== 7 && islandWidget.islandState !== 6 && islandWidget.islandState !== 3) {
                 islandWidget.previousState = islandWidget.islandState;
             }
@@ -134,7 +135,9 @@ Item {
         interval: 2000
         onTriggered: {
             if (islandWidget.islandState === 7) {
-                islandWidget.islandState = islandWidget.previousState || 0;
+                // Always close the UI completely when an action fully completes.
+                // Using previousState here is risky because it might be a transient state like 6 or 7.
+                islandWidget.islandState = 0;
             }
             ActionProgressService.reset();
         }

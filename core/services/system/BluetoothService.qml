@@ -10,6 +10,15 @@ Item {
     property bool isBluetoothEnabled: false
     property bool _initialized: false
 
+    Connections {
+        target: PromptService
+        function onSubmitted(text) {
+            if (PromptService.promptType === "bluetooth_passkey" || PromptService.promptType === "bluetooth_pin") {
+                submitPairingResponse(PromptService.promptTarget, text);
+            }
+        }
+    }
+
     function toggleBluetooth() {
         // Optimistic update for instant UI feedback
         isBluetoothEnabled = !isBluetoothEnabled;
@@ -52,12 +61,43 @@ Item {
         btScanProcess.running = true;
     }
 
+    // Persistent background D-Bus Agent
+    Process {
+        id: btAgentProcess
+        command: ["python3", "/home/wintrel/Documents/REFLECTION/core/scripts/bt_agent.py"]
+        running: true
+        
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.trim();
+                if (line.startsWith("PROMPT|")) {
+                    var parts = line.split("|");
+                    var type = parts[1];
+                    var mac = parts[2];
+                    var payload = parts[3];
+                    
+                    if (type === "PASSKEY") {
+                        PromptService.requestBluetoothPasskey(mac, payload);
+                    } else if (type === "PIN") {
+                        PromptService.requestBluetoothPin(mac);
+                    } else if (type === "AUTHORIZE") {
+                        // For generic authorization, just use the passkey UI with a dummy code
+                        PromptService.requestBluetoothPasskey(mac, "Auth");
+                    }
+                }
+            }
+        }
+    }
+
+    property bool _lastPairingRejected: false
+
     function connectDevice(mac, trusted, name, icon) {
-        var cmd = trusted ? ("bluetoothctl connect " + mac) : ("bluetoothctl trust " + mac + " && bluetoothctl connect " + mac);
+        var cmd = "bluetoothctl pair " + mac + " && bluetoothctl connect " + mac;
         
         ActionProgressService.actionStarted("Connecting to " + (name || "Device") + "...", icon === "audio-headset" ? "headphones" : (icon === "input-mouse" ? "mouse" : "bluetooth"), "bluetooth");
         
         var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        
         proc.exited.connect(function(code) {
             proc.destroy();
             scanBluetooth();
@@ -66,10 +106,33 @@ Item {
             if (code === 0) {
                 ActionProgressService.actionFinished("Connected", "check", true);
             } else {
-                ActionProgressService.actionFinished("Failed to Connect", "close", false);
+                if (_lastPairingRejected) {
+                    ActionProgressService.actionFinished("Rejected", "close", false);
+                    _lastPairingRejected = false;
+                } else {
+                    ActionProgressService.actionFinished("Failed to Connect", "close", false);
+                }
             }
         });
         proc.running = true;
+    }
+    
+    function submitPairingResponse(mac, response) {
+        // Echo to the python agent named pipe
+        var pipePath = "/tmp/bt_agent_in";
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "echo \'' + response + '\' > ' + pipePath + '"] }', root);
+        p.exited.connect(function() { p.destroy(); });
+        p.running = true;
+        
+        if (response.toLowerCase() === "no") {
+            _lastPairingRejected = true;
+            ActionProgressService.actionStarted("Rejecting...", "bluetooth", "bluetooth");
+            ActionProgressService.actionFinished("Rejected", "close", false);
+        } else {
+            _lastPairingRejected = false;
+            ActionProgressService.actionStarted("Completing...", "bluetooth", "bluetooth");
+            ActionProgressService.actionFinished("Paired", "check", true);
+        }
     }
 
     function disconnectDevice(mac, name) {
@@ -171,6 +234,10 @@ Item {
     function startActiveScan() {
         if (!btActiveScanner.running) {
             btActiveScanner.running = true;
+            // Also make the laptop discoverable for 3 minutes (default timeout)
+            var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["bluetoothctl", "discoverable", "on"] }', root);
+            p.exited.connect(function() { p.destroy(); });
+            p.running = true;
         }
     }
     
