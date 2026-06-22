@@ -1,13 +1,31 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
 PanelWindow {
     id: root
-    visible: true
+    visible: root.ready
     color: "transparent"
+
+    property bool ready: false
+    property string tempImagePath: "/tmp/reflection_screenshot_" + root.screen.name + ".png"
+
+    Process {
+        id: screenshotProc
+        running: false
+        onExited: {
+            root.ready = true;
+        }
+    }
+
+    Component.onCompleted: {
+        console.log("Taking screenshot for screen: " + root.screen.name);
+        screenshotProc.command = ["bash", "-c", `grim -o '${root.screen.name}' '${root.tempImagePath}'`];
+        screenshotProc.running = true;
+    }
     WlrLayershell.namespace: "quickshell:regionSelector"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
@@ -45,12 +63,10 @@ PanelWindow {
             return;
         }
 
-        const absX = Math.round(root.regionX * root.monitorScale + root.monitorOffsetX);
-        const absY = Math.round(root.regionY * root.monitorScale + root.monitorOffsetY);
-        const absW = Math.round(root.regionWidth * root.monitorScale);
-        const absH = Math.round(root.regionHeight * root.monitorScale);
-
-        const geometry = `${absX},${absY} ${absW}x${absH}`;
+        const rx = Math.round(root.regionX * root.monitorScale);
+        const ry = Math.round(root.regionY * root.monitorScale);
+        const rw = Math.round(root.regionWidth * root.monitorScale);
+        const rh = Math.round(root.regionHeight * root.monitorScale);
         
         const d = new Date();
         const filename = "Screenshot_" + d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate() + "_" + d.getHours() + "-" + d.getMinutes() + "-" + d.getSeconds() + ".png";
@@ -58,7 +74,7 @@ PanelWindow {
 
         Quickshell.execDetached([
             "bash", "-c", 
-            `mkdir -p ~/Pictures/Screenshots && grim -g "${geometry}" ${filepath} && wl-copy < ${filepath} && notify-send "Screenshot Saved" "Copied to clipboard and saved to Pictures" -i ${filepath} -a "REFLECTION"`
+            `mkdir -p ~/Pictures/Screenshots && magick '${root.tempImagePath}' -crop ${rw}x${rh}+${rx}+${ry} +repage ${filepath} && wl-copy < ${filepath} && notify-send "Screenshot Saved" "Copied to clipboard and saved to Pictures" -i ${filepath} -a "REFLECTION" && rm -f '${root.tempImagePath}'`
         ]);
 
         root.dismiss();

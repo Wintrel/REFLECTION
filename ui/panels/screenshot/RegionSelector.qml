@@ -4,6 +4,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import "../../../core/state" as State
+import "../launcher" as Launcher
 
 Scope {
     id: root
@@ -24,6 +26,8 @@ Scope {
     IpcHandler {
         target: "regionScreenshot"
         function trigger() {
+            Launcher.AppLauncherState.close()
+            State.GlobalStates.controlCenterOpen = false
             ScreenshotState.isOpen = true
         }
     }
@@ -31,6 +35,10 @@ Scope {
     GlobalShortcut {
         name: "regionScreenshot"
         description: "Takes a screenshot of the selected region"
-        onPressed: ScreenshotState.isOpen = true
+        onPressed: {
+            Launcher.AppLauncherState.close()
+            State.GlobalStates.controlCenterOpen = false
+            ScreenshotState.isOpen = true
+        }
     }
 }
