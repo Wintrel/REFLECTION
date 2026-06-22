@@ -1,4 +1,0 @@
-module qs.ui.panels.launcher
-
-StartMenuUI 1.0 StartMenuUI.qml
-singleton AppLauncherState 1.0 AppLauncherState.qml

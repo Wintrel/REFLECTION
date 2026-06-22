@@ -9,12 +9,11 @@ import "../../../core/state" as State
 import "../../../core/services/system"
 import "components"
 import "../control_center" as CC
-import qs.ui.panels.launcher
 
 PanelWindow {
     id: taskbarWindow
 
-    WlrLayershell.keyboardFocus: AppLauncherState.isOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
     anchors {
         bottom: true
@@ -39,24 +38,20 @@ PanelWindow {
         Region {
             item: ccContainer
         }
-        Region {
-            item: startMenuContainer
-        }
     }
 
     property var theme: Core.Theme { id: theme }
     
-    // Clickaway handler for closing Control Center and Start Menu
+    // Clickaway handler for closing Control Center
     Item {
         id: clickawayMask
         width: parent.width
-        height: (State.GlobalStates.controlCenterOpen || AppLauncherState.isOpen) ? parent.height : 0
+        height: State.GlobalStates.controlCenterOpen ? parent.height : 0
         
         MouseArea {
             anchors.fill: parent
             onClicked: {
                 State.GlobalStates.controlCenterOpen = false;
-                AppLauncherState.close();
             }
         }
     }
@@ -68,7 +63,7 @@ PanelWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
 
-        property bool isHidden: !HyprlandService.isWorkspaceEmpty && !taskbarHover.hovered && !State.GlobalStates.controlCenterOpen && !AppLauncherState.isOpen
+        property bool isHidden: !HyprlandService.isWorkspaceEmpty && !taskbarHover.hovered && !State.GlobalStates.controlCenterOpen
 
         anchors.bottomMargin: isHidden ? -(height - 2) : 0
         Behavior on anchors.bottomMargin { NumberAnimation { duration: 700; easing.type: Easing.OutExpo } }
@@ -160,76 +155,7 @@ PanelWindow {
                 radiusTaskbar: theme.taskbarRadius
                 bgBezel: theme.bgBezel
             }
-            
-            // The Fused Start Menu
-            Item {
-                id: startMenuContainer
-                z: -1
-                width: 800
-                height: 600
-                
-                // --- HORIZONTAL PLACEMENT ---
-                anchors.horizontalCenter: taskbarContainer.horizontalCenter
-                
-                // --- VERTICAL PLACEMENT ---
-                anchors.bottom: taskbarContainer.top
-                
-                property bool isOpen: AppLauncherState.isOpen
-                anchors.bottomMargin: isOpen ? 0 : -height - taskbarContainer.height
-                
-                opacity: isOpen ? 1 : 0
-                visible: opacity > 0
-                
-                Behavior on anchors.bottomMargin { NumberAnimation { duration: 800; easing.type: Easing.OutExpo } }
-                Behavior on opacity { NumberAnimation { duration: 500 } }
-                
-                StartMenuUI {
-                    id: startMenuUI
-                    anchors.fill: parent
-                    theme: taskbarWindow.theme
-                }
-                
-                // --- THE LEFT SWOOP (FILLET) ---
-                Item {
-                    width: theme.taskbarRadius
-                    height: theme.taskbarRadius
-                    anchors.bottom: parent.bottom
-                    anchors.right: parent.left
-                    clip: true
-                    
-                    Rectangle {
-                        width: 4 * theme.taskbarRadius
-                        height: 4 * theme.taskbarRadius
-                        radius: 2 * theme.taskbarRadius
-                        color: "transparent"
-                        border.color: theme.bgBezel
-                        border.width: theme.taskbarRadius
-                        x: -2 * theme.taskbarRadius
-                        y: -2 * theme.taskbarRadius 
-                    }
-                }
-                
-                // --- THE RIGHT SWOOP (FILLET) ---
-                Item {
-                    width: theme.taskbarRadius
-                    height: theme.taskbarRadius
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.right
-                    clip: true
-                    
-                    Rectangle {
-                        width: 4 * theme.taskbarRadius
-                        height: 4 * theme.taskbarRadius
-                        radius: 2 * theme.taskbarRadius
-                        color: "transparent"
-                        border.color: theme.bgBezel
-                        border.width: theme.taskbarRadius
-                        x: -theme.taskbarRadius
-                        y: -2 * theme.taskbarRadius 
-                    }
-                }
-            }
-            
+
             // The Fused Control Center
             Item {
                 id: ccContainer
