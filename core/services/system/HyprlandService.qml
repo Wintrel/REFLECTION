@@ -26,7 +26,7 @@ Item {
     
     Process {
         id: stateDaemon
-        command: ["python3", "/home/wintrel/Documents/REFLECTION/scripts/hypr_daemon.py"]
+        command: ["python3", Quickshell.env("HOME") + "/.config/quickshell/reflection/scripts/hypr_daemon.py"]
         running: true
         stdout: SplitParser {
             onRead: data => {

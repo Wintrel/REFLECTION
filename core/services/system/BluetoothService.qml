@@ -64,7 +64,7 @@ Item {
     // Persistent background D-Bus Agent
     Process {
         id: btAgentProcess
-        command: ["python3", "/home/wintrel/Documents/REFLECTION/core/scripts/bt_agent.py"]
+        command: ["python3", Quickshell.env("HOME") + "/.config/quickshell/reflection/core/scripts/bt_agent.py"]
         running: true
         
         stdout: SplitParser {

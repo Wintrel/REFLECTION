@@ -13,7 +13,7 @@ QtObject {
     property var values: []
     
     property Process process: Process {
-        command: ["cava", "-p", "/home/wintrel/Documents/REFLECTION/config/cava_raw"]
+        command: ["cava", "-p", Quickshell.env("HOME") + "/.config/quickshell/reflection/config/cava_raw"]
         running: root.active
         
         stdout: SplitParser {
