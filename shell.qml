@@ -8,6 +8,7 @@ import "ui/panels/dynamic_island"
 import "ui/panels/taskbar"
 import "ui/panels/lockscreen"
 import "ui/panels/screenshot"
+import "ui/panels/launcher"
 
 ShellRoot {
     id: root

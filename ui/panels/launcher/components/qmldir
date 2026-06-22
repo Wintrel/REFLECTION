@@ -1,0 +1,4 @@
+module qs.ui.panels.launcher.components
+
+AppGrid 1.0 AppGrid.qml
+SearchBar 1.0 SearchBar.qml
