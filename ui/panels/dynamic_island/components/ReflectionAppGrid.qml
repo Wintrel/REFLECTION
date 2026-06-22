@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
 import Quickshell
+import Quickshell.Io
 import "../../../../core/state" as State
 import "../../../../core/services/system"
 
@@ -42,7 +43,12 @@ Item {
         if (!item) return;
         
         if (item.isRunning) {
-            Quickshell.process("hyprctl dispatch focuswindow " + item.appId.replace(".desktop", ""));
+            var className = item.appId.replace(".desktop", "");
+            var p = Qt.createQmlObject(
+                'import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "focuswindow", "' + className + '"] }',
+                root
+            );
+            p.running = true;
         } else {
             if (item.appRef && typeof item.appRef.execute === "function") {
                 item.appRef.execute();

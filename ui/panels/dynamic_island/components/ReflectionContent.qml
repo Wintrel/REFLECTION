@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import "../../../../core/state" as State
 import "../../../../core/services/system"
@@ -39,13 +40,78 @@ Item {
         return null;
     }
 
-    // Command Parsing Logic
+    // Shell command execution helper using the project's Process pattern
+    function runCommand(cmd) {
+        var p = Qt.createQmlObject(
+            'import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"] }',
+            root
+        );
+        p.running = true;
+    }
+
+    // Command definitions: each entry has aliases[], name, action, icon
+    property var commandDefs: [
+        // Power
+        { aliases: ["sleep", "suspend"],                    name: "Sleep System",       action: "systemctl suspend",           icon: "bedtime" },
+        { aliases: ["reboot", "restart"],                   name: "Reboot System",      action: "systemctl reboot",            icon: "restart_alt" },
+        { aliases: ["shutdown", "poweroff", "power off"],   name: "Shutdown System",    action: "systemctl poweroff",          icon: "power_settings_new" },
+        { aliases: ["lock", "lock screen"],                 name: "Lock Screen",        action: "loginctl lock-session",       icon: "lock" },
+        { aliases: ["logout", "log out", "sign out"],       name: "Log Out",            action: "hyprctl dispatch exit",       icon: "logout" },
+        { aliases: ["hibernate"],                            name: "Hibernate System",   action: "systemctl hibernate",         icon: "downloading" },
+
+        // Utilities
+        { aliases: ["screenshot", "snip", "capture"],       name: "Take Screenshot",    action: "sleep 0.3 && grim",           icon: "screenshot_monitor" },
+        { aliases: ["screenrecord", "record", "recording"], name: "Screen Record",      action: "wf-recorder",                 icon: "videocam" },
+        { aliases: ["clipboard", "paste history"],           name: "Clipboard History",  action: "cliphist list | wofi --dmenu | cliphist decode | wl-copy", icon: "content_paste" },
+        { aliases: ["color", "colorpicker", "color picker", "pick color"], name: "Color Picker", action: "hyprpicker -a",   icon: "colorize" },
+
+        // System controls
+        { aliases: ["wifi on", "enable wifi"],               name: "Enable Wi-Fi",       action: "nmcli radio wifi on",         icon: "wifi" },
+        { aliases: ["wifi off", "disable wifi"],             name: "Disable Wi-Fi",      action: "nmcli radio wifi off",        icon: "wifi_off" },
+        { aliases: ["bluetooth on", "enable bluetooth", "bt on"],  name: "Enable Bluetooth",  action: "bluetoothctl power on",  icon: "bluetooth" },
+        { aliases: ["bluetooth off", "disable bluetooth", "bt off"], name: "Disable Bluetooth", action: "bluetoothctl power off", icon: "bluetooth_disabled" },
+        { aliases: ["dnd", "do not disturb", "silent"],      name: "Do Not Disturb",     action: "dunstctl set-paused true",    icon: "do_not_disturb_on" },
+        { aliases: ["dnd off", "notifications on"],          name: "Notifications On",   action: "dunstctl set-paused false",   icon: "notifications_active" },
+
+        // Performance
+        { aliases: ["performance", "turbo", "boost"],       name: "Performance Mode",   action: "powerprofilesctl set performance", icon: "speed" },
+        { aliases: ["balanced", "normal"],                   name: "Balanced Mode",      action: "powerprofilesctl set balanced",    icon: "tune" },
+        { aliases: ["powersave", "battery saver", "quiet", "silent mode"], name: "Power Saver Mode", action: "powerprofilesctl set power-saver", icon: "battery_saver" },
+
+        // File manager / terminal
+        { aliases: ["files", "file manager", "nautilus"],    name: "Open File Manager",  action: "nautilus",                    icon: "folder_open" },
+        { aliases: ["terminal", "term", "console"],          name: "Open Terminal",      action: "kitty",                       icon: "terminal" },
+        { aliases: ["settings", "system settings"],          name: "System Settings",    action: "gnome-control-center",        icon: "settings" },
+
+        // Display
+        { aliases: ["night light", "nightlight", "blue light"], name: "Toggle Night Light", action: "pkill wlsunset || wlsunset -T 4500 -t 3500", icon: "nightlight" },
+    ]
+
+    // Command Parsing Logic — supports aliases and prefix matching
     function parseCommand(input) {
         var lower = input.trim().toLowerCase();
-        if (lower === "sleep") return { name: "Sleep System", action: "systemctl suspend", icon: "bedtime" };
-        if (lower === "reboot") return { name: "Reboot System", action: "systemctl reboot", icon: "restart_alt" };
-        if (lower === "lock") return { name: "Lock System", action: "loginctl lock-session", icon: "lock" };
-        if (lower === "screenshot") return { name: "Take Screenshot", action: "sleep 0.3 && grim", icon: "screenshot_monitor" };
+        if (lower.length < 2) return null;
+
+        // Exact alias match first
+        for (var i = 0; i < commandDefs.length; i++) {
+            var def = commandDefs[i];
+            for (var j = 0; j < def.aliases.length; j++) {
+                if (lower === def.aliases[j]) {
+                    return { name: def.name, action: def.action, icon: def.icon };
+                }
+            }
+        }
+
+        // Prefix match (e.g. "shut" matches "shutdown")
+        for (var k = 0; k < commandDefs.length; k++) {
+            var def2 = commandDefs[k];
+            for (var l = 0; l < def2.aliases.length; l++) {
+                if (def2.aliases[l].indexOf(lower) === 0) {
+                    return { name: def2.name, action: def2.action, icon: def2.icon };
+                }
+            }
+        }
+
         return null;
     }
 
@@ -151,11 +217,11 @@ Item {
                             appGrid.launchSelected();
                         } else if (currentIntent === 1) {
                             // Copy math result to clipboard
-                            Quickshell.process("wl-copy " + root.mathResult);
+                            runCommand("echo -n '" + root.mathResult + "' | wl-copy");
                             State.ReflectionState.close();
                         } else if (currentIntent === 2) {
                             if (commandResult) {
-                                Quickshell.process(commandResult.action);
+                                runCommand(commandResult.action);
                                 State.ReflectionState.close();
                             }
                         }
@@ -301,7 +367,7 @@ Item {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (commandResult) {
-                                var proc = Quickshell.process(commandResult.action);
+                                runCommand(commandResult.action);
                                 State.ReflectionState.close();
                             }
                         }
