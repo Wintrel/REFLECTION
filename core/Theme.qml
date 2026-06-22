@@ -38,6 +38,16 @@ Item {
     property int islandHistoryW: 600
     property int islandHistoryH: 400
     
+    // Reflection State Sizing
+    property int reflectionSearchW: 450
+    property int reflectionSearchH: 80
+
+    property int reflectionFocusW: 450
+    property int reflectionFocusH: 220
+
+    property int reflectionGridW: 550
+    property int reflectionGridH: 350
+    
     // Animation Durations
     property int animDuration: 600
     

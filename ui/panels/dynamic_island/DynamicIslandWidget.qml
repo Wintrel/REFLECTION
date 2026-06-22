@@ -2,6 +2,8 @@ import QtQuick
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Io
+import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import Quickshell.Services.Notifications
 import QtMultimedia
@@ -97,6 +99,22 @@ Item {
             if (islandWidget.islandState !== 3 || priority >= 2) {
                 islandWidget.islandState = 5;
                 osdTimer.restart();
+            }
+        }
+    }
+
+    Connections {
+        target: State.ReflectionState
+        function onIsOpenChanged() {
+            if (State.ReflectionState.isOpen) {
+                if (islandWidget.islandState !== 8 && islandWidget.islandState !== 3) {
+                    islandWidget.previousState = islandWidget.islandState;
+                }
+                islandWidget.islandState = 8;
+            } else {
+                if (islandWidget.islandState === 8) {
+                    islandWidget.islandState = islandWidget.previousState || 0;
+                }
             }
         }
     }
@@ -289,19 +307,19 @@ Item {
             hoverEnabled: true
             
             onEntered: {
-                if (islandWidget.isLocked || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.stop();
                 else if (islandWidget.islandState === 5) osdTimer.stop();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4) islandWidget.islandState = 1
             }
             onExited: {
-                if (islandWidget.isLocked || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.restart();
                 else if (islandWidget.islandState === 5) osdTimer.restart();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4) islandWidget.islandState = 0
             }
             onClicked: {
-                if (islandWidget.isLocked || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) {
                     if (islandWidget.previousState === 2 || islandWidget.previousState === 4) {
                         islandWidget.islandState = islandWidget.previousState;
@@ -330,6 +348,11 @@ Item {
         
         // Smooth sizing based on state
         width: {
+            if (islandState === 8) {
+                if (State.ReflectionState.searchQuery.length === 0) return theme.reflectionSearchW; // Search bar only
+                if (reflectionContent.currentIntent === 0) return theme.reflectionGridW; // App Grid
+                return theme.reflectionFocusW; // Math / Command Intents
+            }
             if (islandState === 7) return theme.islandNotifW; // Same width as Prompt
             if (islandState === 6) return theme.islandNotifW; // Same width as Notif
             if (islandState === 5) return theme.islandHoverW;
@@ -344,7 +367,12 @@ Item {
         }
         height: {
             var targetH = theme.islandMinH;
-            if (islandState === 7) targetH = theme.islandNotifH; // Same height as Prompt
+            if (islandState === 8) {
+                if (State.ReflectionState.searchQuery.length === 0) targetH = theme.reflectionSearchH; // Search bar only
+                else if (reflectionContent.currentIntent === 0) targetH = theme.reflectionGridH; // App Grid
+                else targetH = theme.reflectionFocusH; // Math / Command Intents
+            }
+            else if (islandState === 7) targetH = theme.islandNotifH; // Same height as Prompt
             else if (islandState === 6) targetH = theme.islandNotifH; // Same height as Notif
             else if (islandState === 5) targetH = theme.islandHoverH;
             else if (islandState === 4) targetH = historyContent.computedHeight;
@@ -435,6 +463,12 @@ Item {
                 islandState: islandWidget.islandState
                 theme: theme
             }
+
+            IslandComponents.ReflectionContent {
+                id: reflectionContent
+                islandState: islandWidget.islandState
+                theme: theme
+            }
         }
     }
     
@@ -442,5 +476,21 @@ Item {
         islandShape: islandShape
         radiusIsland: theme.radiusIsland
         bgBezel: theme.bgBezel
+    }
+
+    // Global Wayland Shortcut Hook for Super key
+    GlobalShortcut {
+        name: "quickshell:searchToggleRelease"
+        onPressed: {
+            State.ReflectionState.toggle()
+        }
+    }
+
+    // IPC Handler Hook for hyprctl or quickshell IPC
+    IpcHandler {
+        target: "searchToggle"
+        function trigger() {
+            State.ReflectionState.toggle()
+        }
     }
 }
