@@ -1,11 +1,15 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Pam
+import Quickshell.Io
+import Quickshell.Hyprland
 
 import "../../../core"
+import "../../../core/state" as State
 
-ShellRoot {
+Scope {
     id: root
 
     property string pendingPassword: ""
@@ -14,6 +18,23 @@ ShellRoot {
     signal authSuccess()
     signal authFailed()
     signal pamMessage(string msg)
+
+    IpcHandler {
+        target: "lock"
+        function activate() { State.GlobalStates.screenLocked = true; }
+    }
+
+    GlobalShortcut {
+        name: "lock"
+        description: "Locks the screen"
+        onPressed: State.GlobalStates.screenLocked = true
+    }
+
+    GlobalShortcut {
+        name: "lockFocus"
+        description: "Focuses the lock screen"
+        onPressed: State.GlobalStates.screenLocked = true
+    }
 
     PamContext {
         id: pamContext
@@ -50,7 +71,7 @@ ShellRoot {
 
     WlSessionLock {
         id: lockManager
-        locked: true
+        locked: State.GlobalStates.screenLocked
 
         // WlSessionLock expects a Component for its surface layoutt
         surface: Component {
@@ -89,7 +110,7 @@ ShellRoot {
         interval: 400
         repeat: false
         onTriggered: {
-            lockManager.locked = false;
+            State.GlobalStates.screenLocked = false;
             root.isUnlocking = false;
         }
     }

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import Quickshell
+import Quickshell.Io
 
 import "../../../core"
 import "components"
@@ -36,13 +37,28 @@ Item {
         lockscreenIsland.setStatus(msg);
     }
     
-    // Background wallpaper
+    // Background wallpaper dynamically loaded from awww daemon
     Image {
         id: bgImage
         anchors.fill: parent
-        source: "file:///home/wintrel/Pictures/Koyumi Indoor.png"
+        source: ""
         fillMode: Image.PreserveAspectCrop
+        asynchronous: true
         visible: false // Hidden by blur
+    }
+
+    Process {
+        id: wallQuery
+        command: ["sh", "-c", "awww query | grep -m 1 'currently displaying: image:' | sed 's/.*currently displaying: image: //'"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let p = text.trim();
+                if (p.length > 0) {
+                    bgImage.source = "file://" + p;
+                }
+            }
+        }
     }
     
     FastBlur {
