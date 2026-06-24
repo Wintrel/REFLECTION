@@ -1,0 +1,1 @@
+import QtQuick; import Quickshell; ShellRoot { Component.onCompleted: { for (var i = 0; i < Quickshell.screens.length; i++) console.log(Quickshell.screens[i].name, Quickshell.screens[i].width); Quickshell.exit(0); } }

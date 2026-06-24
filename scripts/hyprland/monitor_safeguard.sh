@@ -25,9 +25,9 @@ check_monitors() {
             echo "[Monitor Safeguard] Detected broken monitor: $monitor. Initiating reset loop."
             
             # Nvidia cache reset loop: Disable output, wait, re-enable
-            hyprctl keyword monitor "$monitor, disable"
+            hyprctl eval "hl.monitor({ output = '$monitor', disabled = true })"
             sleep 1.5
-            hyprctl keyword monitor "$monitor, preferred, auto, 1"
+            hyprctl eval "hl.monitor({ output = '$monitor', mode = 'preferred', position = 'auto', scale = 1 })"
             
             # Wait a bit before allowing another check to prevent aggressive looping
             sleep 3
@@ -39,7 +39,12 @@ check_monitors() {
 check_monitors
 
 # Listen for monitor hotplug events
-socat -U - UNIX-CONNECT:"$SOCKET2" | while read -r line; do
+python3 -c "
+import socket, sys
+s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+s.connect(sys.argv[1])
+for line in s.makefile('r', buffering=1): print(line.strip(), flush=True)
+" "$SOCKET2" | while read -r line; do
     if [[ "$line" == "monitoradded>>"* ]]; then
         # Wait a moment for the kernel DRM/KMS to settle before checking the Hyprland state
         sleep 1
