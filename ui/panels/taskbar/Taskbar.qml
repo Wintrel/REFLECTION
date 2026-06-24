@@ -7,11 +7,14 @@ import Qt5Compat.GraphicalEffects
 import "../../../core" as Core
 import "../../../core/state" as State
 import "../../../core/services/system"
+import "../../../core/monitors"
 import "components"
 import "../control_center" as CC
 
 PanelWindow {
     id: taskbarWindow
+
+    screen: MonitorService.primaryScreen
 
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 

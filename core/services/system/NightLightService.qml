@@ -11,7 +11,7 @@ Item {
     Process {
         id: wlsunsetProcess
         command: ["wlsunset", "-T", "4500"]
-        // Doesn't run automatically
+        // Doesn't run automatically1
         running: false
     }
 

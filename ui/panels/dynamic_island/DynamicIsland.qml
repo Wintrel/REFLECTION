@@ -2,10 +2,13 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import "../../../core" as Core
+import "../../../core/monitors"
 
 PanelWindow {
     Core.Theme { id: theme }
     id: islandWindow
+
+    screen: MonitorService.primaryScreen
 
     WlrLayershell.keyboardFocus: (widget.islandState === 6 || widget.islandState === 8) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     

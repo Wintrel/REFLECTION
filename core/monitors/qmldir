@@ -1,0 +1,2 @@
+module Core.Monitors
+singleton MonitorService 1.0 MonitorService.qml

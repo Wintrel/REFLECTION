@@ -221,7 +221,7 @@ Item {
                         }
                     }
                     
-                    // Text Content
+                    // Text Content/
                     Column {
                         id: col
                         anchors.verticalCenter: parent.verticalCenter
