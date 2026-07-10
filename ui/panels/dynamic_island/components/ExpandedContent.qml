@@ -222,8 +222,9 @@ Item {
                         text: "cast"
                         font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                         font.pixelSize: 10
-                        color: root.theme ? root.theme.accentPrimary : "#00FFCC"
+                        color: sourceRow.parent.containsMouse ? (root.theme ? root.theme.textMain : "#FFF") : (root.theme ? root.theme.accentPrimary : "#00FFCC")
                         anchors.verticalCenter: parent.verticalCenter
+                        Behavior on color { ColorAnimation { duration: 150 } }
                     }
                     Text {
                         text: root.mprisPlayer ? (root.mprisPlayer.identity || "Unknown Source").toUpperCase() : ""
@@ -231,8 +232,9 @@ Item {
                         font.pixelSize: 9
                         font.bold: true
                         font.letterSpacing: 0.5
-                        color: root.theme ? root.theme.accentPrimary : "#00FFCC"
+                        color: sourceRow.parent.containsMouse ? (root.theme ? root.theme.textMain : "#FFF") : (root.theme ? root.theme.accentPrimary : "#00FFCC")
                         anchors.verticalCenter: parent.verticalCenter
+                        Behavior on color { ColorAnimation { duration: 150 } }
                     }
                 }
             }
@@ -248,13 +250,12 @@ Item {
                 text: "skip_previous"
                 font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                 font.pixelSize: 32
-                color: root.theme ? root.theme.textMain : "#FFF"
+                color: maPrev.pressed ? (root.theme ? root.theme.colorMusic : "#5611f8") : (maPrev.containsMouse ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : (root.theme ? root.theme.textMain : "#FFF"))
                 anchors.verticalCenter: parent.verticalCenter 
                 
                 scale: maPrev.pressed ? 0.85 : (maPrev.containsMouse ? 1.1 : 1)
-                opacity: maPrev.pressed ? 0.6 : (maPrev.containsMouse ? 0.8 : 1)
                 Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
-                Behavior on opacity { NumberAnimation { duration: 250 } }
+                Behavior on color { ColorAnimation { duration: 150 } }
                 
                 MouseArea { 
                     id: maPrev
@@ -278,13 +279,12 @@ Item {
                 text: (root.mprisPlayer && root.mprisPlayer.isPlaying) ? "pause_circle" : "play_circle"
                 font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                 font.pixelSize: 42
-                color: root.theme ? root.theme.textMain : "#FFF"
+                color: maPlay.pressed ? (root.theme ? root.theme.colorMusic : "#5611f8") : (maPlay.containsMouse ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : (root.theme ? root.theme.textMain : "#FFF"))
                 anchors.verticalCenter: parent.verticalCenter 
                 
                 scale: maPlay.pressed ? 0.85 : (maPlay.containsMouse ? 1.05 : 1)
-                opacity: maPlay.pressed ? 0.6 : (maPlay.containsMouse ? 0.8 : 1)
                 Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: 150 } }
                 
                 MouseArea { 
                     id: maPlay
@@ -299,13 +299,12 @@ Item {
                 text: "skip_next"
                 font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                 font.pixelSize: 32
-                color: root.theme ? root.theme.textMain : "#FFF"
+                color: maNext.pressed ? (root.theme ? root.theme.colorMusic : "#5611f8") : (maNext.containsMouse ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : (root.theme ? root.theme.textMain : "#FFF"))
                 anchors.verticalCenter: parent.verticalCenter 
                 
                 scale: maNext.pressed ? 0.85 : (maNext.containsMouse ? 1.1 : 1)
-                opacity: maNext.pressed ? 0.6 : (maNext.containsMouse ? 0.8 : 1)
                 Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
-                Behavior on opacity { NumberAnimation { duration: 650 } }
+                Behavior on color { ColorAnimation { duration: 150 } }
                 
                 MouseArea { 
                     id: maNext
@@ -333,7 +332,8 @@ Item {
             height: (maProgress.containsMouse || isDragging) ? 10 : 6
             radius: height / 2
             Behavior on height { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-            color: Qt.rgba(0, 0, 0, 0.5)
+            color: (maProgress.containsMouse || isDragging) ? Qt.rgba(255, 255, 255, 0.15) : Qt.rgba(0, 0, 0, 0.5)
+            Behavior on color { ColorAnimation { duration: 200 } }
             
             property bool isDragging: false
             property real dragRatio: 0
