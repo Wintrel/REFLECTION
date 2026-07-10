@@ -45,7 +45,7 @@ Item {
     function dismissNotification() {
         if (islandWidget.islandState === 3) {
             notifTimer.stop();
-            if (islandWidget.previousState === 2 || islandWidget.previousState === 4) {
+            if (islandWidget.previousState === 2 || islandWidget.previousState === 4 || islandWidget.previousState === 9) {
                 islandWidget.islandState = islandWidget.previousState;
             } else {
                 islandWidget.islandState = islandShape.mouseArea.containsMouse ? 1 : 0;
@@ -67,7 +67,7 @@ Item {
         interval: 2000 // 2 seconds
         onTriggered: {
             if (islandWidget.islandState === 5) {
-                if (islandWidget.previousState === 2 || islandWidget.previousState === 4) {
+                if (islandWidget.previousState === 2 || islandWidget.previousState === 4 || islandWidget.previousState === 9) {
                     islandWidget.islandState = islandWidget.previousState;
                 } else {
                     islandWidget.islandState = islandShape.mouseArea.containsMouse ? 1 : 0;
@@ -310,18 +310,18 @@ Item {
                 if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.stop();
                 else if (islandWidget.islandState === 5) osdTimer.stop();
-                else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4) islandWidget.islandState = 1
+                else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9) islandWidget.islandState = 1
             }
             onExited: {
                 if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.restart();
                 else if (islandWidget.islandState === 5) osdTimer.restart();
-                else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4) islandWidget.islandState = 0
+                else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9) islandWidget.islandState = 0
             }
             onClicked: {
                 if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) {
-                    if (islandWidget.previousState === 2 || islandWidget.previousState === 4) {
+                    if (islandWidget.previousState === 2 || islandWidget.previousState === 4 || islandWidget.previousState === 9) {
                         islandWidget.islandState = islandWidget.previousState;
                     } else {
                         islandWidget.islandState = 1;
@@ -332,7 +332,7 @@ Item {
                     islandWidget.previousState = 0;
                 } else if (islandWidget.islandState === 4) {
                     islandWidget.islandState = 0;
-                } else if (islandWidget.islandState === 2) {
+                } else if (islandWidget.islandState === 2 || islandWidget.islandState === 9) {
                     islandWidget.islandState = containsMouse ? 1 : 0
                 } else {
                     islandWidget.islandState = 2
@@ -358,6 +358,7 @@ Item {
             if (islandState === 5) return theme.islandHoverW;
             if (islandState === 4) return theme.islandHistoryW;
             if (islandState === 3) return theme.islandNotifW;
+            if (islandState === 9) return theme.islandBatteryW;
             if (islandState === 2) return theme.islandMaxW;
             if (islandState === 1) return theme.islandHoverW;
             
@@ -377,6 +378,7 @@ Item {
             else if (islandState === 5) targetH = theme.islandHoverH;
             else if (islandState === 4) targetH = historyContent.computedHeight;
             else if (islandState === 3) targetH = theme.islandNotifH;
+            else if (islandState === 9) targetH = theme.islandBatteryH;
             else if (islandState === 2) targetH = theme.islandMaxH;
             else if (islandState === 1) targetH = theme.islandHoverH;
             return targetH + theme.radiusIsland;
@@ -468,6 +470,13 @@ Item {
                 id: reflectionContent
                 islandState: islandWidget.islandState
                 theme: theme
+            }
+
+            IslandComponents.BatteryContent {
+                islandState: islandWidget.islandState
+                theme: theme
+                islandBatteryW: theme.islandBatteryW
+                islandBatteryH: theme.islandBatteryH
             }
         }
     }

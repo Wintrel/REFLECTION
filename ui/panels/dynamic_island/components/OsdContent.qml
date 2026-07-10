@@ -57,8 +57,8 @@ Item {
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - 32 - 12
-            height: 6
-            radius: 3
+            height: 12
+            radius: 6
             color: root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.2) : "#30A6ADC8"
             
             Rectangle {
@@ -81,11 +81,23 @@ Item {
         visible: root.osdMode === 2
         
         Text {
+            id: alertIcon
             anchors.verticalCenter: parent.verticalCenter
             text: root.osdIcon
             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
             font.pixelSize: 20
             color: root.osdColor !== "" ? root.osdColor : (root.theme ? root.theme.textMain : "#FFF")
+            
+            transformOrigin: Item.Center
+            
+            SequentialAnimation on scale {
+                loops: Animation.Infinite
+                running: root.islandState === 5 && root.osdMode === 2 && root.osdPriority >= 2
+                
+                NumberAnimation { from: 1.0; to: 1.25; duration: 300; easing.type: Easing.OutBack }
+                NumberAnimation { from: 1.25; to: 1.0; duration: 400; easing.type: Easing.InOutQuad }
+                PauseAnimation { duration: 800 }
+            }
         }
         
         Text {

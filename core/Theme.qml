@@ -35,6 +35,9 @@ Item {
     property int islandMaxW: 600
     property int islandMaxH: 200
     
+    property int islandBatteryW: 500
+    property int islandBatteryH: 220
+    
     property int islandHistoryW: 600
     property int islandHistoryH: 400
     
