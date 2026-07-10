@@ -189,6 +189,12 @@ Item {
             var n = arguments.length > 0 ? arguments[0] : null;
             if (!n) return;
             
+            // Ignore Cider's internal track-change notifications
+            var app = (n.appName || "").toLowerCase();
+            if (app === "cider") {
+                return;
+            }
+            
             // Create a pure JS copy of the notification data
             var notifCopy = {
                 summary: n.summary !== undefined ? n.summary : "",

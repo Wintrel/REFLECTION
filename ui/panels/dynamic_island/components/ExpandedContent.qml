@@ -16,6 +16,20 @@ Item {
     property real lastMprisAction: 0
     property bool forceFillAnimation: false
     
+    property bool isSwitchingTracks: false
+    property string currentTrackTitle: root.mprisPlayer ? (root.mprisPlayer.trackTitle || "") : ""
+    onCurrentTrackTitleChanged: {
+        root.isSwitchingTracks = false;
+        trackSwitchTimeout.stop();
+    }
+    
+    Timer {
+        id: trackSwitchTimeout
+        interval: 2500
+        repeat: false
+        onTriggered: root.isSwitchingTracks = false;
+    }
+    
     function canSendMpris() {
         var now = Date.now();
         if (now - lastMprisAction > 400) {
@@ -37,10 +51,48 @@ Item {
     
     // Background Visualizer
     Components.Visualizer {
+        id: bgVisualizer
         anchors.fill: parent
         anchors.margins: -8
         isPlaying: root.islandState === 2
-        accentColor: root.theme ? root.theme.colorMusic : "#5611f8"
+        accentColor: root.isSwitchingTracks ? "#11111b" : (root.theme ? root.theme.colorMusic : "#5611f8")
+        Behavior on accentColor { ColorAnimation { duration: 400; easing.type: Easing.InOutQuad } }
+    }
+    
+    // Electric Blue Loading Shimmer Overlay (Masked to Visualizer Bars)
+    Item {
+        anchors.fill: bgVisualizer
+        visible: root.isSwitchingTracks
+        
+        layer.enabled: true
+        layer.effect: OpacityMask {
+            maskSource: bgVisualizer
+        }
+        
+        Rectangle {
+            id: loadingShimmer
+            width: parent.width * 0.8
+            height: parent.height * 1.5
+            y: -parent.height * 0.25
+            rotation: 15
+            
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { 
+                    position: 0.5; 
+                    color: root.theme ? Qt.rgba(root.theme.colorSystemShimmer.r, root.theme.colorSystemShimmer.g, root.theme.colorSystemShimmer.b, 0.9) : Qt.rgba(0, 1, 1, 0.9) 
+                } // Bright electric blue from theme
+                GradientStop { position: 1.0; color: "transparent" }
+            }
+            
+            SequentialAnimation on x {
+                loops: Animation.Infinite
+                running: root.isSwitchingTracks && root.visible
+                NumberAnimation { from: -loadingShimmer.width - 20; to: bgVisualizer.width + 50; duration: 900; easing.type: Easing.InOutSine }
+                PauseAnimation { duration: 100 }
+            }
+        }
     }
     
     // Top Sliver (Icons)
@@ -267,6 +319,8 @@ Item {
                             if (root.mprisPlayer.position > threshold && root.mprisPlayer.canSeek) {
                                 root.mprisPlayer.position = 0;
                             } else {
+                                root.isSwitchingTracks = true;
+                                trackSwitchTimeout.restart();
                                 root.mprisPlayer.previous();
                             }
                         }
@@ -312,6 +366,8 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         if (root.mprisPlayer && root.canSendMpris()) {
+                            root.isSwitchingTracks = true;
+                            trackSwitchTimeout.restart();
                             root.forceFillAnimation = true;
                             root.mprisPlayer.next();
                         }
