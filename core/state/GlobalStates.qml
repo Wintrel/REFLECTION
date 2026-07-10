@@ -55,4 +55,29 @@ Singleton {
             root.superDown = false
         }
     }
+    
+    // Ambient Idle State
+    property bool ambientIdleActive: false
+    
+    onAmbientIdleActiveChanged: {
+        var stateArg = root.ambientIdleActive ? "idle" : "wake";
+        var scriptPath = Quickshell.env("HOME") + "/.config/quickshell/reflection/scripts/ambient_wallpaper.sh";
+        var w = Qt.createQmlObject('import Quickshell.Io; Process { command: ["bash", "' + scriptPath + '", "' + stateArg + '"] }', root);
+        w.running = true;
+    }
+    
+    property real globalSweepPos: 0
+    SequentialAnimation on globalSweepPos {
+        loops: Animation.Infinite
+        running: root.ambientIdleActive
+        NumberAnimation { from: -0.2; to: 1.2; duration: 6000; easing.type: Easing.InOutSine }
+        PauseAnimation { duration: 1500 }
+    }
+    
+    IpcHandler {
+        target: "ambientIdle"
+        function activate() {
+            root.ambientIdleActive = !root.ambientIdleActive;
+        }
+    }
 }

@@ -44,6 +44,10 @@ Scope {
             DynamicIslandWidget {
                 id: widget
                 anchors.horizontalCenter: parent.horizontalCenter
+                
+                anchors.top: parent.top
+                anchors.topMargin: State.GlobalStates.ambientIdleActive ? -height - 20 : 0
+                Behavior on anchors.topMargin { NumberAnimation { duration: 700; easing.type: Easing.OutExpo } }
             }
         }
     }

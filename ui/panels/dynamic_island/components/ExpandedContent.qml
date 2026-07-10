@@ -49,7 +49,7 @@ Item {
     Behavior on opacity { NumberAnimation { duration: root.theme ? root.theme.animDuration : 250 } }
     
     // Background Visualizer
-    Components.Visualizer {
+    Components.MusicVisualizer {
         id: bgVisualizer
         anchors.fill: parent
         anchors.margins: -8

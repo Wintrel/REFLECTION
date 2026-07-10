@@ -254,6 +254,16 @@ Item {
                 function onIsPlayingChanged() { playerInst.updatePlayer(); }
                 function onLengthChanged() { playerInst.updatePlayer(); }
             }
+            
+            // Auto-pause media when entering Ambient Idle
+            Connections {
+                target: State.GlobalStates
+                function onAmbientIdleActiveChanged() {
+                    if (State.GlobalStates.ambientIdleActive && playerItem && playerItem.isPlaying) {
+                        playerItem.pause();
+                    }
+                }
+            }
         }
         
         function updatePlayer() {
