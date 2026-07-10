@@ -35,19 +35,6 @@ Scope {
             color: "transparent"
             visible: contentOverlay.opacity > 0
             
-            property real totalWidth: {
-                var w = 0;
-                var screens = Quickshell.screens;
-                if (screens) {
-                    for (var i = 0; i < screens.length; i++) {
-                        if (screens[i] && screens[i].geometry) {
-                            w += screens[i].geometry.width;
-                        }
-                    }
-                }
-                return w > 0 ? w : 1920;
-            }
-            
             Rectangle {
                 id: contentOverlay
                 anchors.fill: parent
@@ -90,12 +77,6 @@ Scope {
                 Components.IdleVisualizer {
                     anchors.fill: parent
                     anchors.bottomMargin: 10
-                    
-                    // Route the multi-monitor global sweep math
-                    useGlobalSweep: true
-                    globalSweepPos: State.GlobalStates.globalSweepPos
-                    globalOffsetX: idleWindow.screen.geometry.x
-                    globalTotalWidth: idleWindow.totalWidth
                 }
             }
         } // end contentOverlay

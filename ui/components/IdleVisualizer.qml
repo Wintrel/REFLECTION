@@ -44,8 +44,10 @@ Item {
                 
                 property real distToSweep: Math.abs(globalRelativeX - root.idleSweepPos)
                 
-                property real glowRadius: 0.15 * (root.width / Math.max(1, root.globalTotalWidth))
-                property real glowFactor: Math.max(0, 1.0 - (distToSweep / Math.max(0.05, glowRadius)))
+                // Fixed glow width in global normalized coords — consistent across all monitors
+                // so the shimmer doesn't shrink/grow when crossing the monitor boundary
+                property real glowRadius: 0.12
+                property real glowFactor: Math.max(0, 1.0 - (distToSweep / glowRadius))
 
                 Rectangle {
                     width: parent.width

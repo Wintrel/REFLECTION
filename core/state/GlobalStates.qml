@@ -66,7 +66,41 @@ Singleton {
         w.running = true;
     }
     
-    property real globalSweepPos: 0
+    // Multi-monitor desktop geometry — computed once in the singleton so all
+    // IdleVisualizer instances share the exact same values. This prevents
+    // each PanelWindow from independently computing (and potentially getting
+    // wrong) totalWidth due to QML binding timing.
+    readonly property real globalDesktopMinX: {
+        var mn = Infinity;
+        var screens = Quickshell.screens;
+        if (screens) {
+            for (var i = 0; i < screens.length; i++) {
+                if (screens[i] && screens[i].geometry) {
+                    mn = Math.min(mn, screens[i].geometry.x);
+                }
+            }
+        }
+        return mn === Infinity ? 0 : mn;
+    }
+    
+    readonly property real globalDesktopWidth: {
+        var maxRight = 0;
+        var screens = Quickshell.screens;
+        if (screens) {
+            for (var i = 0; i < screens.length; i++) {
+                if (screens[i] && screens[i].geometry) {
+                    var right = screens[i].geometry.x + screens[i].geometry.width;
+                    maxRight = Math.max(maxRight, right);
+                }
+            }
+        }
+        var span = maxRight - root.globalDesktopMinX;
+        return span > 0 ? span : 1920;
+    }
+    
+    // Default to -0.5 (well off-screen) so there's no visible flash
+    // if the property briefly returns to its non-animated value during loop reset
+    property real globalSweepPos: -0.5
     SequentialAnimation on globalSweepPos {
         loops: Animation.Infinite
         running: root.ambientIdleActive
