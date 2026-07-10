@@ -478,7 +478,7 @@ Item {
         bgBezel: theme.bgBezel
     }
 
-    // Global Wayland Shortcut Hook for Super key
+    // Global Wayland Shortcut Hook for Super key1
     GlobalShortcut {
         name: "quickshell:searchToggleRelease"
         onPressed: {
