@@ -1,4 +1,22 @@
-import os, json, subprocess
+import os, json, subprocess, sys
+
+STATE_FILE = os.path.expanduser("~/.config/quickshell/reflection/.battery_state.json")
+
+def load_state():
+    try:
+        if os.path.exists(STATE_FILE):
+            with open(STATE_FILE, 'r') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {"target_limit": 100, "is_oneshot": False}
+
+def save_state(state):
+    try:
+        with open(STATE_FILE, 'w') as f:
+            json.dump(state, f)
+    except Exception as e:
+        print(f"Error saving state: {e}", file=sys.stderr)
 
 def read_sys(path):
     try:
@@ -57,17 +75,42 @@ def get_battery_stats():
     except Exception:
         pass
         
-    # Get Battery Limit
-    limit = 100
+    # Get Battery Limit (kernel actual)
+    actual_limit = 100
     try:
         limit_out = subprocess.check_output(['asusctl', 'battery', 'info']).decode().strip()
         for line in limit_out.split('\n'):
             if line.startswith('Current battery charge limit:'):
-                limit = int(line.split(':')[-1].strip().replace('%', ''))
+                actual_limit = int(line.split(':')[-1].strip().replace('%', ''))
                 break
     except Exception:
         pass
         
+    state = load_state()
+    is_oneshot = state.get("is_oneshot", False)
+    target_limit = state.get("target_limit", 100)
+    
+    # Smart reversion of oneshot
+    if is_oneshot:
+        if status in ("Full", "Not charging", "Discharging"):
+            is_oneshot = False
+            state["is_oneshot"] = False
+            save_state(state)
+            
+            # If we were full/not charging and asusctl doesn't auto-revert, we enforce it here:
+            if status != "Discharging" and actual_limit == 100:
+                try:
+                    subprocess.check_call(['asusctl', 'battery', 'limit', str(target_limit)])
+                except Exception:
+                    pass
+
+    # Fallback init: if state was 100 but actual limit is something else (and not oneshot), sync state
+    if not is_oneshot and target_limit != actual_limit:
+        # If user changed it via terminal directly, sync it back to our state.
+        state["target_limit"] = actual_limit
+        target_limit = actual_limit
+        save_state(state)
+
     print(json.dumps({
         "percentage": capacity,
         "status": status,
@@ -77,8 +120,45 @@ def get_battery_stats():
         "energyNow": energy_now,
         "energyFull": energy_full,
         "asusProfile": profile,
-        "batteryLimit": limit
+        "batteryLimit": target_limit,
+        "isOneshot": is_oneshot
     }))
 
+def set_limit(limit):
+    try:
+        subprocess.check_call(['asusctl', 'battery', 'limit', str(limit)])
+        state = load_state()
+        state['target_limit'] = int(limit)
+        state['is_oneshot'] = False
+        save_state(state)
+        print(json.dumps({"success": True}))
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))
+
+def set_oneshot(enable):
+    enable_bool = str(enable).lower() == "true"
+    state = load_state()
+    try:
+        if enable_bool:
+            subprocess.check_call(['asusctl', 'battery', 'oneshot'])
+            state['is_oneshot'] = True
+        else:
+            target = state.get('target_limit', 100)
+            subprocess.check_call(['asusctl', 'battery', 'limit', str(target)])
+            state['is_oneshot'] = False
+        save_state(state)
+        print(json.dumps({"success": True}))
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))
+
 if __name__ == "__main__":
-    get_battery_stats()
+    if len(sys.argv) > 1:
+        cmd = sys.argv[1]
+        if cmd == "set_limit" and len(sys.argv) > 2:
+            set_limit(sys.argv[2])
+        elif cmd == "set_oneshot" and len(sys.argv) > 2:
+            set_oneshot(sys.argv[2])
+        else:
+            get_battery_stats()
+    else:
+        get_battery_stats()

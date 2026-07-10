@@ -14,7 +14,7 @@ Item {
     
     // Contextual battery colors
     readonly property color chargingColor: "#00FFCC"
-    readonly property color oneshotColor: "#FFD700"   // Warm gold for one-time full charge
+    readonly property color oneshotColor: root.theme ? root.theme.colorSystemShimmer : "#0051ff" // Electric blue override
     readonly property color acColor: "#89B4FA"        // On AC but not actively charging (Full / Limit)
     
     // Derived active charging color (gold during oneshot, cyan otherwise)
@@ -173,7 +173,7 @@ Item {
                 
                 Text {
                     text: {
-                        if (BatteryService.isOneshotCharging) return "Charging to 100%";
+                        if (BatteryService.isOneshotCharging) return "One-Shot Override";
                         if (BatteryService.isCharging) return "Charging";
                         if (BatteryService.isOnAC) {
                             if (BatteryService.status === "Full") return "Fully Charged";

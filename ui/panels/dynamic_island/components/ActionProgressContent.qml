@@ -36,7 +36,7 @@ Item {
     // The Indeterminate Progress Bar
     Item {
         width: parent.width - 64
-        height: 3
+        height: 6
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 16
         anchors.horizontalCenter: parent.horizontalCenter
@@ -47,28 +47,35 @@ Item {
         Rectangle {
             anchors.fill: parent
             color: Qt.rgba(255,255,255,0.1)
-            radius: 1.5
+            radius: parent.height / 2
         }
         
         // Indeterminate loader (only visible when inProgress)
         Rectangle {
-            id: progressIndicator
+            id: progressShimmer
             height: parent.height
-            radius: 1.5
-            color: theme ? theme.accentPrimary : "#ff9900"
-            
-            width: parent.width * 0.3
+            width: 100
             x: -width
+            radius: parent.height / 2
             
-            opacity: ActionProgressService.inProgress ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            visible: ActionProgressService.inProgress
+            
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { 
+                    position: 0.5; 
+                    color: theme ? Qt.rgba(theme.colorSystemShimmer.r, theme.colorSystemShimmer.g, theme.colorSystemShimmer.b, 1.0) : Qt.rgba(0, 1, 1, 1.0) 
+                }
+                GradientStop { position: 1.0; color: "transparent" }
+            }
             
             SequentialAnimation on x {
                 running: ActionProgressService.inProgress && root.visible
                 loops: Animation.Infinite
                 NumberAnimation {
-                    from: -progressIndicator.width
-                    to: progressIndicator.parent.width
+                    from: -progressShimmer.width
+                    to: progressShimmer.parent.width
                     duration: 1200
                     easing.type: Easing.InOutQuad
                 }
@@ -78,7 +85,7 @@ Item {
         // Resolved line (fills exactly when success/fail)
         Rectangle {
             anchors.fill: parent
-            radius: 1.5
+            radius: parent.height / 2
             color: ActionProgressService.isSuccess ? (theme ? theme.accentWorkspace : "#5611f8") : "#f8113b"
             
             opacity: ActionProgressService.isResolving ? 1 : 0

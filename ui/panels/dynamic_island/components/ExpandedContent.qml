@@ -14,7 +14,6 @@ Item {
     property real islandMaxH: 0
     
     property real lastMprisAction: 0
-    property bool forceFillAnimation: false
     
     property bool isSwitchingTracks: false
     property string currentTrackTitle: root.mprisPlayer ? (root.mprisPlayer.trackTitle || "") : ""
@@ -54,7 +53,7 @@ Item {
         id: bgVisualizer
         anchors.fill: parent
         anchors.margins: -8
-        isPlaying: root.islandState === 2
+        isPlaying: root.islandState === 2 && (root.mprisPlayer ? root.mprisPlayer.isPlaying : false)
         accentColor: root.isSwitchingTracks ? "#11111b" : (root.theme ? root.theme.colorMusic : "#5611f8")
         Behavior on accentColor { ColorAnimation { duration: 400; easing.type: Easing.InOutQuad } }
     }
@@ -368,7 +367,6 @@ Item {
                         if (root.mprisPlayer && root.canSendMpris()) {
                             root.isSwitchingTracks = true;
                             trackSwitchTimeout.restart();
-                            root.forceFillAnimation = true;
                             root.mprisPlayer.next();
                         }
                     }
@@ -413,50 +411,6 @@ Item {
                     NumberAnimation {
                         duration: 350
                         easing.type: Easing.OutCubic
-                    }
-                }
-                
-                property real lastWidth: 0
-                onComputedWidthChanged: {
-                    if (progressBar.isDragging) {
-                        lastWidth = computedWidth;
-                        return;
-                    }
-                    var naturalEndSkip = (lastWidth > parent.width * 0.8 && computedWidth < parent.width * 0.2);
-                    var manualNextSkip = root.forceFillAnimation;
-                    
-                    if (naturalEndSkip || manualNextSkip) {
-                        root.forceFillAnimation = false;
-                        widthBehavior.enabled = false;
-                        trackChangeAnim.start();
-                    }
-                    lastWidth = computedWidth;
-                }
-                
-                SequentialAnimation {
-                    id: trackChangeAnim
-                    NumberAnimation {
-                        target: fillRect
-                        property: "width"
-                        to: progressBar.width
-                        duration: 650
-                        easing.type: Easing.OutQuad
-                    }
-                    PropertyAction {
-                        target: fillRect
-                        property: "width"
-                        value: 0
-                    }
-                    NumberAnimation {
-                        target: fillRect
-                        property: "width"
-                        to: fillRect.computedWidth
-                        duration: 650
-                        easing.type: Easing.OutCubic
-                    }
-                    onStopped: {
-                        widthBehavior.enabled = true;
-                        fillRect.width = Qt.binding(function() { return fillRect.computedWidth; });
                     }
                 }
             }

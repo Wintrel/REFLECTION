@@ -9,10 +9,10 @@ Item {
     property color textSub: "#A6ADC8"
     
     // Status Colors
-    property color colorNotification: '#710cee' // Purple/Indigo
+    property color colorNotification: '#710cee' // Purple/Indigo/
     property color colorMusic: '#5611f8' // indigo
     property color accentWorkspace: '#5611f8' // Indigo purple for workspace dots
-    property color accentPrimary: '#ff9900' // Orange accent for active states
+    property color accentPrimary: '#ff9900' // Orange accent for system is asking for something on user or its interactive/currently interacting
     property color colorSystemShimmer: '#0051ff' // Electric blue for system loading states
     property color bgBase: '#000000' // Base black
     
