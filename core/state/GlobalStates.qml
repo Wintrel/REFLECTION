@@ -113,8 +113,15 @@ Singleton {
     IpcHandler {
         target: "ambientIdle"
         function activate() {
-            if (root.ambientActiveMode) root.ambientActiveMode = false;
+            if (root.ambientActiveMode) return;
             root.ambientIdleActive = !root.ambientIdleActive;
+        }
+        function turnOn() {
+            if (root.ambientActiveMode) return;
+            root.ambientIdleActive = true;
+        }
+        function turnOff() {
+            root.ambientIdleActive = false;
         }
     }
     
@@ -123,6 +130,13 @@ Singleton {
         function activate() {
             if (root.ambientIdleActive) root.ambientIdleActive = false;
             root.ambientActiveMode = !root.ambientActiveMode;
+        }
+        function turnOn() {
+            if (root.ambientIdleActive) root.ambientIdleActive = false;
+            root.ambientActiveMode = true;
+        }
+        function turnOff() {
+            root.ambientActiveMode = false;
         }
     }
 }

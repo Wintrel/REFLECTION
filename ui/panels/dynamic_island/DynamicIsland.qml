@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import "../../../core" as Core
 import "../../../core/monitors"
+import "../../../core/state" as State
 
 // Scope container — Variants manages the PanelWindow lifecycle on monitor changes.
 // When the anchor screen disappears (unplug), the PanelWindow is destroyed.
@@ -46,7 +47,7 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 
                 anchors.top: parent.top
-                anchors.topMargin: State.GlobalStates.ambientIdleActive ? -height - 20 : 0
+                anchors.topMargin: State.GlobalStates.anyAmbientActive ? -height - 20 : 0
                 Behavior on anchors.topMargin { NumberAnimation { duration: 700; easing.type: Easing.OutExpo } }
             }
         }
