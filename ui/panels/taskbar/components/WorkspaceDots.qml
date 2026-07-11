@@ -17,7 +17,8 @@ Row {
             var maxId = 5;
             var ws = System.HyprlandService.workspaces;
             for (var i = 0; i < ws.length; i++) {
-                if (ws[i].id > maxId && ws[i].id < 100) {
+                // Ignore special ambient workspaces (e.g. 90+) by capping at 10
+                if (ws[i].id > maxId && ws[i].id <= 10) {
                     maxId = ws[i].id;
                 }
             }

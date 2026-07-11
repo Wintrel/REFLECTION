@@ -72,7 +72,7 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
 
-                property bool isHidden: State.GlobalStates.ambientIdleActive || (!HyprlandService.isWorkspaceEmpty && !taskbarHover.hovered && !State.GlobalStates.controlCenterOpen)
+                property bool isHidden: State.GlobalStates.anyAmbientActive || (!HyprlandService.isWorkspaceEmpty && !taskbarHover.hovered && !State.GlobalStates.controlCenterOpen)
 
                 anchors.bottomMargin: isHidden ? -(height - 2) : 0
                 Behavior on anchors.bottomMargin { NumberAnimation { duration: 700; easing.type: Easing.OutExpo } }

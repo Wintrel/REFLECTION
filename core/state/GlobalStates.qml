@@ -56,11 +56,13 @@ Singleton {
         }
     }
     
-    // Ambient Idle State
+    // Ambient States
     property bool ambientIdleActive: false
+    property bool ambientActiveMode: false
+    property bool anyAmbientActive: ambientIdleActive || ambientActiveMode
     
-    onAmbientIdleActiveChanged: {
-        var stateArg = root.ambientIdleActive ? "idle" : "wake";
+    onAnyAmbientActiveChanged: {
+        var stateArg = root.anyAmbientActive ? "idle" : "wake";
         var scriptPath = Quickshell.env("HOME") + "/.config/quickshell/reflection/scripts/ambient_wallpaper.sh";
         var w = Qt.createQmlObject('import Quickshell.Io; Process { command: ["bash", "' + scriptPath + '", "' + stateArg + '"] }', root);
         w.running = true;
@@ -111,7 +113,16 @@ Singleton {
     IpcHandler {
         target: "ambientIdle"
         function activate() {
+            if (root.ambientActiveMode) root.ambientActiveMode = false;
             root.ambientIdleActive = !root.ambientIdleActive;
+        }
+    }
+    
+    IpcHandler {
+        target: "ambientActive"
+        function activate() {
+            if (root.ambientIdleActive) root.ambientIdleActive = false;
+            root.ambientActiveMode = !root.ambientActiveMode;
         }
     }
 }

@@ -209,8 +209,7 @@ QtObject {
     }
     
     // Short delay after setAsusProfile so asusctl has time to apply before we read back
-    Timer {
-        id: profileRefreshTimer
+    property Timer profileRefreshTimer: Timer {
         interval: 800
         repeat: false
         onTriggered: root.refreshProfile()

@@ -42,15 +42,16 @@ Scope {
                 // Translucent black to subtly dim and desaturate the wallpaper
                 color: Qt.rgba(0, 0, 0, 0.6)
                 
-                opacity: State.GlobalStates.ambientIdleActive ? 1 : 0
+                opacity: State.GlobalStates.anyAmbientActive ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.InOutSine } }
                 
                 // Capture keyboard input to wake the shell
                 FocusScope {
                     anchors.fill: parent
-                    focus: State.GlobalStates.ambientIdleActive
+                    focus: State.GlobalStates.anyAmbientActive
                     Keys.onPressed: (event) => {
                         State.GlobalStates.ambientIdleActive = false;
+                        State.GlobalStates.ambientActiveMode = false;
                         event.accepted = true;
                     }
                 }
@@ -61,11 +62,15 @@ Scope {
                     hoverEnabled: true
                     onPositionChanged: {
                         // Slight debounce so it doesn't wake instantly if the mouse was already moving when triggered
-                        if (State.GlobalStates.ambientIdleActive && contentOverlay.opacity > 0.5) {
+                        if (State.GlobalStates.anyAmbientActive && contentOverlay.opacity > 0.5) {
                             State.GlobalStates.ambientIdleActive = false;
+                            State.GlobalStates.ambientActiveMode = false;
                         }
                     }
-                    onPressed: State.GlobalStates.ambientIdleActive = false;
+                    onPressed: {
+                        State.GlobalStates.ambientIdleActive = false;
+                        State.GlobalStates.ambientActiveMode = false;
+                    }
                 }
             
             // Bottom Ambient Visualizer
@@ -77,6 +82,15 @@ Scope {
                 Components.IdleVisualizer {
                     anchors.fill: parent
                     anchors.bottomMargin: 10
+                    visible: State.GlobalStates.ambientIdleActive
+                }
+                
+                Components.MusicVisualizer {
+                    anchors.fill: parent
+                    anchors.bottomMargin: 10
+                    visible: State.GlobalStates.ambientActiveMode
+                    isPlaying: true
+                    accentColor: '#6c0011ff' // Matches the charging cyan electric blue style
                 }
             }
         } // end contentOverlay
