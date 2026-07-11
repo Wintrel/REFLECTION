@@ -14,7 +14,7 @@ Item {
     SequentialAnimation on internalSweepPos {
         loops: Animation.Infinite
         running: root.visible && !root.useGlobalSweep
-        NumberAnimation { from: -0.2; to: 1.2; duration: 4000; easing.type: Easing.InOutSine }
+        NumberAnimation { from: -0.2; to: 1.2; duration: 10000; easing.type: Easing.InOutSine }
         PauseAnimation { duration: 1500 }
     }
     

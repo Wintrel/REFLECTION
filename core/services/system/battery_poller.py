@@ -25,7 +25,7 @@ def read_sys(path):
     except Exception:
         return "0"
 
-def get_battery_stats():
+def get_battery_stats(no_asus=False):
     base = "/sys/class/power_supply/BAT0"
     if not os.path.exists(base):
         print(json.dumps({"error": "No BAT0"}))
@@ -64,27 +64,36 @@ def get_battery_stats():
     else:
         time_remaining = ""
             
-    # Get ASUS profile
+    # Get ASUS profile — skipped in no-asus mode, use state file cache instead
     profile = "Unknown"
-    try:
-        profile_out = subprocess.check_output(['asusctl', 'profile', 'get']).decode().strip()
-        for line in profile_out.split('\n'):
-            if line.startswith('Active profile:'):
-                profile = line.split(':')[-1].strip()
-                break
-    except Exception:
-        pass
+    if not no_asus:
+        try:
+            profile_out = subprocess.check_output(['asusctl', 'profile', 'get'], timeout=3).decode().strip()
+            for line in profile_out.split('\n'):
+                if line.startswith('Active profile:'):
+                    profile = line.split(':')[-1].strip()
+                    break
+        except Exception:
+            pass
+    else:
+        # Use the last known profile from state so the UI doesn't reset to Unknown
+        state_tmp = load_state()
+        profile = state_tmp.get('last_profile', 'Balanced')
         
-    # Get Battery Limit (kernel actual)
+    # Get Battery Limit — skipped in no-asus mode
     actual_limit = 100
-    try:
-        limit_out = subprocess.check_output(['asusctl', 'battery', 'info']).decode().strip()
-        for line in limit_out.split('\n'):
-            if line.startswith('Current battery charge limit:'):
-                actual_limit = int(line.split(':')[-1].strip().replace('%', ''))
-                break
-    except Exception:
-        pass
+    if not no_asus:
+        try:
+            limit_out = subprocess.check_output(['asusctl', 'battery', 'info'], timeout=3).decode().strip()
+            for line in limit_out.split('\n'):
+                if line.startswith('Current battery charge limit:'):
+                    actual_limit = int(line.split(':')[-1].strip().replace('%', ''))
+                    break
+        except Exception:
+            pass
+    else:
+        state_tmp = load_state()
+        actual_limit = state_tmp.get('target_limit', 100)
         
     state = load_state()
     is_oneshot = state.get("is_oneshot", False)
@@ -111,6 +120,11 @@ def get_battery_stats():
         target_limit = actual_limit
         save_state(state)
 
+    # Cache last known profile in state so no-asus mode can return it
+    if not no_asus and profile != 'Unknown':
+        state['last_profile'] = profile
+        save_state(state)
+
     print(json.dumps({
         "percentage": capacity,
         "status": status,
@@ -135,6 +149,33 @@ def set_limit(limit):
     except Exception as e:
         print(json.dumps({"error": str(e)}))
 
+def get_profile_only():
+    """Fetch only the asusctl profile and limit — used for on-demand sync when the panel opens."""
+    profile = "Unknown"
+    actual_limit = 100
+    try:
+        profile_out = subprocess.check_output(['asusctl', 'profile', 'get'], timeout=3).decode().strip()
+        for line in profile_out.split('\n'):
+            if line.startswith('Active profile:'):
+                profile = line.split(':')[-1].strip()
+                break
+    except Exception:
+        pass
+    try:
+        limit_out = subprocess.check_output(['asusctl', 'battery', 'info'], timeout=3).decode().strip()
+        for line in limit_out.split('\n'):
+            if line.startswith('Current battery charge limit:'):
+                actual_limit = int(line.split(':')[-1].strip().replace('%', ''))
+                break
+    except Exception:
+        pass
+    # Cache it
+    state = load_state()
+    if profile != 'Unknown':
+        state['last_profile'] = profile
+        save_state(state)
+    print(json.dumps({"asusProfile": profile, "batteryLimit": actual_limit}))
+
 def set_oneshot(enable):
     enable_bool = str(enable).lower() == "true"
     state = load_state()
@@ -158,6 +199,10 @@ if __name__ == "__main__":
             set_limit(sys.argv[2])
         elif cmd == "set_oneshot" and len(sys.argv) > 2:
             set_oneshot(sys.argv[2])
+        elif cmd == "profile_only":
+            get_profile_only()
+        elif cmd == "no_asus":
+            get_battery_stats(no_asus=True)
         else:
             get_battery_stats()
     else:

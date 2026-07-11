@@ -97,7 +97,7 @@ QtObject {
     }
     
     property Process statsProcess: Process {
-        command: ["python", "/home/wintrel/.config/quickshell/reflection/core/services/system/battery_poller.py"]
+        command: ["python", "/home/wintrel/.config/quickshell/reflection/core/services/system/battery_poller.py", "no_asus"]
         stdout: SplitParser {
             onRead: data => {
                 try {
@@ -186,6 +186,40 @@ QtObject {
         setProfileProcess.command = ["asusctl", "profile", "set", profile];
         setProfileProcess.running = true;
         root.asusProfile = profile; // Optimistic update
+        // Confirm the change landed after a short delay
+        profileRefreshTimer.restart();
+    }
+    
+    // Dedicated process for fetching only profile + limit on demand
+    property Process profileProcess: Process {
+        command: ["python", "/home/wintrel/.config/quickshell/reflection/core/services/system/battery_poller.py", "profile_only"]
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    var r = JSON.parse(data.trim());
+                    if (r.asusProfile) root.asusProfile = r.asusProfile;
+                    if (r.batteryLimit !== undefined) root.batteryLimit = r.batteryLimit;
+                } catch (e) {}
+            }
+        }
+    }
+    function refreshProfile() {
+        root.profileProcess.running = false;
+        root.profileProcess.running = true;
+    }
+    
+    // Short delay after setAsusProfile so asusctl has time to apply before we read back
+    Timer {
+        id: profileRefreshTimer
+        interval: 800
+        repeat: false
+        onTriggered: root.refreshProfile()
+    }
+    
+    // Track whether the battery panel is open — refresh profile immediately on open
+    property bool panelOpen: false
+    onPanelOpenChanged: {
+        if (root.panelOpen) root.refreshProfile();
     }
 
     property Process setLimitProcess: Process {}

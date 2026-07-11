@@ -70,6 +70,9 @@ Item {
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: root.theme ? root.theme.animDuration : 250 } }
     
+    // Tell the service the panel is open so it fetches the real profile immediately
+    Binding { target: BatteryService; property: "panelOpen"; value: root.islandState === 9 }
+    
     // ── Top Sliver ──
     Item {
         id: topSliver
