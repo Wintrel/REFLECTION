@@ -88,7 +88,7 @@ Item {
             SequentialAnimation on x {
                 loops: Animation.Infinite
                 running: root.isSwitchingTracks && root.visible
-                NumberAnimation { from: -loadingShimmer.width - 20; to: bgVisualizer.width + 50; duration: 900; easing.type: Easing.InOutSine }
+                NumberAnimation { from: -loadingShimmer.width - 20; to: bgVisualizer.width + 50; duration: 1200; easing.type: Easing.InOutSine }
                 PauseAnimation { duration: 100 }
             }
         }

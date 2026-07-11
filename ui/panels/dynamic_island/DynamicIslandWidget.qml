@@ -35,6 +35,10 @@ Item {
     property string osdIcon: ""
     property string osdText: ""
     property string osdColor: ""
+
+    // Ambient hide animation properties (driven by DynamicIsland.qml)
+    property real ambientShimmerPos: -0.3
+    property real ambientShimmerOpacity: 0
     
     // Force instantiate singletons so they run in the background
     property var _vol: VolumeService
@@ -493,6 +497,29 @@ Item {
                 theme: theme
                 islandBatteryW: theme.islandBatteryW
                 islandBatteryH: theme.islandBatteryH
+            }
+
+            // Ambient hide shimmer sweep overlay
+            Item {
+                anchors.fill: parent
+                opacity: islandWidget.ambientShimmerOpacity
+                visible: opacity > 0
+                z: 100
+
+                Rectangle {
+                    height: parent.height
+                    width: parent.width * 0.35
+                    x: islandWidget.ambientShimmerPos * (parent.width + width) - width * 0.5
+
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: "transparent" }
+                        GradientStop { position: 0.35; color: Qt.rgba(0.0, 0.32, 1.0, 0.2) }
+                        GradientStop { position: 0.5; color: Qt.rgba(0.0, 0.32, 1.0, 0.35) }
+                        GradientStop { position: 0.65; color: Qt.rgba(0.0, 0.32, 1.0, 0.2) }
+                        GradientStop { position: 1.0; color: "transparent" }
+                    }
+                }
             }
         }
     }

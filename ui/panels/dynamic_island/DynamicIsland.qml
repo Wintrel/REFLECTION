@@ -47,8 +47,72 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 
                 anchors.top: parent.top
-                anchors.topMargin: State.GlobalStates.anyAmbientActive ? -height - 20 : 0
-                Behavior on anchors.topMargin { NumberAnimation { duration: 700; easing.type: Easing.OutExpo } }
+                anchors.topMargin: 0
+
+                // Ambient hide: shimmer sweep → nod → slide away
+                SequentialAnimation {
+                    id: ambientHideAnim
+
+                    // Phase 1: Electric blue shimmer sweeps across the island
+                    ParallelAnimation {
+                        NumberAnimation {
+                            target: widget
+                            property: "ambientShimmerPos"
+                            from: -0.3
+                            to: 1.3
+                            duration: 600
+                            easing.type: Easing.InOutSine
+                        }
+                        SequentialAnimation {
+                            NumberAnimation { target: widget; property: "ambientShimmerOpacity"; to: 1; duration: 150 }
+                            PauseAnimation { duration: 300 }
+                            NumberAnimation { target: widget; property: "ambientShimmerOpacity"; to: 0; duration: 150 }
+                        }
+                    }
+
+                    // Phase 2: Nod — brief dip down, a polite acknowledgment
+                    NumberAnimation {
+                        target: widget
+                        property: "anchors.topMargin"
+                        to: 3
+                        duration: 150
+                        easing.type: Easing.OutQuad
+                    }
+
+                    // Phase 3: Slide away behind the screen edge
+                    NumberAnimation {
+                        target: widget
+                        property: "anchors.topMargin"
+                        to: -widget.height - 20
+                        duration: 500
+                        easing.type: Easing.InOutCubic
+                    }
+                }
+
+                // Ambient show: smooth slide back into view
+                NumberAnimation {
+                    id: ambientShowAnim
+                    target: widget
+                    property: "anchors.topMargin"
+                    to: 0
+                    duration: 700
+                    easing.type: Easing.OutExpo
+                }
+
+                Connections {
+                    target: State.GlobalStates
+                    function onAnyAmbientActiveChanged() {
+                        if (State.GlobalStates.anyAmbientActive) {
+                            ambientShowAnim.stop();
+                            ambientHideAnim.start();
+                        } else {
+                            ambientHideAnim.stop();
+                            widget.ambientShimmerOpacity = 0;
+                            widget.ambientShimmerPos = -0.3;
+                            ambientShowAnim.start();
+                        }
+                    }
+                }
             }
         }
     }
