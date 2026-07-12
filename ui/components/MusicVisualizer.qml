@@ -1,5 +1,4 @@
 import QtQuick
-import Qt5Compat.GraphicalEffects
 import "../../core/services/media"
 
 Item {
@@ -19,19 +18,9 @@ Item {
         restoreMode: Binding.RestoreBindingOrValue
     }
     
-    property real internalSweepPos: 0
-    SequentialAnimation on internalSweepPos {
-        loops: Animation.Infinite
-        running: !root.isPlaying && root.visible
-        NumberAnimation { from: -0.2; to: 1.2; duration: 4000; easing.type: Easing.InOutSine }
-        PauseAnimation { duration: 1500 }
-    }
-    
     property int barCount: Math.max(0, Math.floor((root.width + 6) / 14))
 
-    // CENTRALIZED CONTROLLERS
-    // These replace the 137+ individual connections and timers that were crashing performance.
-
+    // Centralized CAVA Listener (Fast Loop, avoids 137 * 60Hz signal handlers)
     Connections {
         target: CavaService
         function onValuesChanged() {
@@ -52,7 +41,7 @@ Item {
             }
         }
     }
-
+    
     Connections {
         target: root
         function onIsPlayingChanged() {
@@ -65,48 +54,6 @@ Item {
                     }
                 }
             }
-        }
-    }
-
-    Timer {
-        id: mockPlayTimer
-        property int tickCount: 0
-        running: root.isPlaying && root.visible && !root.hasCava
-        repeat: true
-        interval: 30
-        onTriggered: {
-            var count = root.barCount;
-            var group = tickCount % 5;
-            for (var i = 0; i < count; i++) {
-                if (i % 5 === group) {
-                    var item = visualizerRepeater.itemAt(i);
-                    if (item) {
-                        item.targetHeight = Math.max(5, Math.random() * root.height * 0.8);
-                    }
-                }
-            }
-            tickCount++;
-        }
-    }
-
-    Timer {
-        id: mockIdleTimer
-        property int tickCount: 0
-        running: !root.isPlaying && root.visible
-        repeat: true
-        interval: 400
-        onTriggered: {
-            var count = root.barCount;
-            var group = tickCount % 4;
-            for (var i = 0; i < count; i++) {
-                if (i % 4 === group) {
-                    var item = visualizerRepeater.itemAt(i);
-                    if (item) {
-                        item.targetHeight = 5 + Math.random() * 12;
-                    }
-                }
-            }
-            tickCount++;
         }
     }
     
@@ -127,35 +74,43 @@ Item {
 
                 property real targetHeight: 5
                 property real localRelativeX: root.barCount > 1 ? (index / (root.barCount - 1)) : 0
-                property real distToSweep: Math.abs(localRelativeX - root.internalSweepPos)
-                property real glowRadius: 0.15
-                property real glowFactor: !root.isPlaying ? Math.max(0, 1.0 - (distToSweep / Math.max(0.05, glowRadius))) : 0
 
-                property color barColor: {
-                    if (root.isPlaying) {
-                        return Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.4);
-                    } else {
-                        var baseAlpha = 0.08;
-                        var highlightAlpha = 0.4;
-                        var currentAlpha = baseAlpha + (highlightAlpha - baseAlpha) * barItem.glowFactor;
-                        return Qt.rgba(1, 1, 1, currentAlpha);
-                    }
-                }
-                
-                Behavior on barColor { 
-                    enabled: root.isPlaying
-                    ColorAnimation { duration: 500 } 
-                }
-
-                // The Aurora Light Beam (Optimized Native Gradient)
+                // The Aurora Light Beam Base
                 Rectangle {
+                    id: baseRect
                     width: parent.width
                     height: barItem.targetHeight
                     anchors.bottom: parent.bottom
                     
+                    property color baseColor: root.isPlaying ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.4) : Qt.rgba(1, 1, 1, 0.08)
+                    Behavior on baseColor { ColorAnimation { duration: 500 } }
+                    
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "transparent" } // top
-                        GradientStop { position: 1.0; color: barItem.barColor } // bottom
+                        GradientStop { position: 1.0; color: baseRect.baseColor } // bottom
+                    }
+                }
+
+                // The Aurora Light Beam Shimmer Overlay
+                Rectangle {
+                    width: parent.width
+                    height: barItem.targetHeight
+                    anchors.bottom: parent.bottom
+                    opacity: 0
+                    
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: "transparent" } // top
+                        GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0.4) } // bottom
+                    }
+
+                    SequentialAnimation on opacity {
+                        loops: Animation.Infinite
+                        running: !root.isPlaying && root.visible
+                        
+                        PauseAnimation { duration: barItem.localRelativeX * 4000 }
+                        NumberAnimation { from: 0; to: 1.0; duration: 500; easing.type: Easing.InOutSine }
+                        NumberAnimation { from: 1.0; to: 0; duration: 500; easing.type: Easing.InOutSine }
+                        PauseAnimation { duration: 4000 - (barItem.localRelativeX * 4000) + 1500 }
                     }
                 }
                 
@@ -164,30 +119,51 @@ Item {
                 Behavior on capHeight {
                     enabled: !root.hasCava || !root.isPlaying
                     NumberAnimation {
-                        // Fast up, slow float down for idle/mock states
                         duration: barItem.targetHeight > barItem.capHeight ? 100 : 800
                         easing.type: barItem.targetHeight > barItem.capHeight ? Easing.OutQuad : Easing.OutBounce
                     }
                 }
                 
                 Rectangle {
+                    id: capRect
                     width: 4
                     height: 4
                     radius: 2
                     anchors.horizontalCenter: parent.horizontalCenter
                     y: barItem.height - barItem.capHeight - 6 // Sit slightly above the beam
                     
-                    // Make the cap fully opaque and slightly brighter for contrast
-                    color: root.isPlaying ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 1.0) : Qt.rgba(1, 1, 1, 0.8)
+                    property color activeColor: Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 1.0)
+                    property color idleColor: Qt.rgba(1, 1, 1, 0.8)
+                    color: root.isPlaying ? activeColor : idleColor
+                    Behavior on color { ColorAnimation { duration: 500 } }
+                    
                     opacity: barItem.capHeight > 8 ? 1.0 : 0.0
                     Behavior on opacity { NumberAnimation { duration: 300 } }
                 }
 
                 Behavior on targetHeight {
-                    enabled: !root.hasCava || !root.isPlaying
                     NumberAnimation {
-                        duration: root.isPlaying ? 150 : (1500 + (index % 3) * 500)
+                        duration: root.isPlaying ? (root.hasCava ? 60 : 150) : (1500 + (index % 3) * 500)
                         easing.type: root.isPlaying ? Easing.OutQuad : Easing.InOutSine
+                    }
+                }
+                
+                // INDIVIDUAL TIMERS FOR MOCK DRIFT (Organic feel)
+                Timer {
+                    running: root.isPlaying && root.visible && !root.hasCava
+                    repeat: true
+                    interval: 150 + (index % 5) * 30
+                    onTriggered: {
+                        barItem.targetHeight = Math.max(5, Math.random() * root.height * 0.8)
+                    }
+                }
+                
+                Timer {
+                    running: !root.isPlaying && root.visible
+                    repeat: true
+                    interval: 1500 + (index % 4) * 400
+                    onTriggered: {
+                        barItem.targetHeight = 5 + Math.random() * 12
                     }
                 }
             }

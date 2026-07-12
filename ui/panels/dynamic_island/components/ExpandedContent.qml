@@ -49,7 +49,7 @@ Item {
     layer.enabled: true
     Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
     
-    // Starfield Void
+    // Starfield Voidy
     Components.Starfield {
         id: voidStarfield
         anchors.fill: parent

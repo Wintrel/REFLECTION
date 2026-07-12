@@ -2,18 +2,18 @@ import QtQuick
 
 Item {
     // Colors
-    property color bgBezel: "#000000" // The outer bezel border color
-    property color bgInner: "#000000" // Inner content area
-    property color textMain: "#CDD6F4"
-    property color textSub: "#A6ADC8"
+    property color bgBezel: "#000000" // True black for OLED
+    property color bgInner: "#000000" // True black for OLED
+    property color textMain: "#D4D4D8" // Soft silver (avoids OLED blooming/harshness)
+    property color textSub: "#82828C" // Muted ash grey
     
-    // Status Colors
-    property color colorNotification: '#284594' // Very dark blue
-    property color colorMusic: '#445b7c' // Dark Blue/Grey
-    property color accentWorkspace: '#2b4d97' // dark ish blue?
-    property color accentPrimary: '#6e8fc0' // Orange accent for system is asking for something on user or its interactive/currently interacting
-    property color colorSystemShimmer: '#97b3f0' // Electric blue for system loading states
-    property color bgBase: '#000000' // Base black
+    // Status Colors (Ghostly Stardust Palette)
+    property color colorNotification: '#3F3F4A' // Muted twilight slate (subtle glow for edges)
+    property color colorMusic: '#525266' // Soft cosmic slate
+    property color accentWorkspace: '#1C1C24' // Deep void grey
+    property color accentPrimary: '#8C8C9E' // Silver lavender (Interactive states)
+    property color colorSystemShimmer: '#C0C0D0' // Bright starlight (Loading/Shimmer)
+    property color bgBase: '#000000' // True black
     
     // Fonts
     property string fontMain: "Inter" // Fallback main font
