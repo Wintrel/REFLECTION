@@ -12,7 +12,8 @@ Item {
     
     opacity: root.islandState < 2 ? 1 : 0
     visible: opacity > 0
-    Behavior on opacity { NumberAnimation { duration: root.theme ? root.theme.animDuration / 2 : 150 } }
+    layer.enabled: true
+    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
     
     property bool isPlaying: root.mprisPlayer && root.mprisPlayer.isPlaying
     property bool hasNotifs: State.GlobalStates.notificationHistory.count > 0

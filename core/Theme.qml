@@ -11,7 +11,7 @@ Item {
     property color colorNotification: '#284594' // Very dark blue
     property color colorMusic: '#313e52' // Dark Blue/Grey
     property color accentWorkspace: '#2b4d97' // dark ish blue?
-    property color accentPrimary: '#ff9900' // Orange accent for system is asking for something on user or its interactive/currently interacting
+    property color accentPrimary: '#6e8fc0' // Orange accent for system is asking for something on user or its interactive/currently interacting
     property color colorSystemShimmer: '#97b3f0' // Electric blue for system loading states
     property color bgBase: '#000000' // Base black
     

@@ -17,9 +17,16 @@ Item {
         Item {
             id: starWrapper
             
-            // Randomize position across the entire parent item
-            x: Math.random() * root.width
-            y: Math.random() * root.height
+            // Generate random constants ONCE so they don't re-evaluate on resize
+            property real randX: Math.random()
+            property real randY: Math.random()
+            property real driftDist: 3 + Math.random() * 8
+            property int driftTime: 15000 + Math.random() * 10000
+            property int pauseTime: Math.random() * 4000
+            
+            // Bind to the parent's size using the stable random percentages
+            x: randX * root.width
+            y: randY * root.height
             
             // Randomize size between 1.0 and 2.5 pixels
             property real size: 1.0 + Math.random() * 2.5
@@ -63,24 +70,27 @@ Item {
             }
             
             // Extremely slow, subtle vertical drift to make the void feel 3D and alive
-            SequentialAnimation on y {
-                loops: Animation.Infinite
-                running: root.visible
-                
-                PauseAnimation { duration: Math.random() * 4000 }
-                
-                NumberAnimation { 
-                    from: starWrapper.y
-                    to: starWrapper.y - (3 + Math.random() * 8)
-                    duration: 15000 + Math.random() * 10000
-                    easing.type: Easing.InOutSine
-                }
-                
-                NumberAnimation {
-                    from: starWrapper.y - (3 + Math.random() * 8)
-                    to: starWrapper.y
-                    duration: 15000 + Math.random() * 10000
-                    easing.type: Easing.InOutSine
+            // We use a Transform so we don't overwrite the y-coordinate binding!
+            transform: Translate {
+                SequentialAnimation on y {
+                    loops: Animation.Infinite
+                    running: root.visible
+                    
+                    PauseAnimation { duration: starWrapper.pauseTime }
+                    
+                    NumberAnimation { 
+                        from: 0
+                        to: -starWrapper.driftDist
+                        duration: starWrapper.driftTime
+                        easing.type: Easing.InOutSine
+                    }
+                    
+                    NumberAnimation {
+                        from: -starWrapper.driftDist
+                        to: 0
+                        duration: starWrapper.driftTime
+                        easing.type: Easing.InOutSine
+                    }
                 }
             }
         }

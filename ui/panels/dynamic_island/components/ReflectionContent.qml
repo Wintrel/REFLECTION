@@ -6,6 +6,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import "../../../../core/state" as State
 import "../../../../core/services/system"
+import "../../../components" as Components
 
 Item {
     id: root
@@ -15,8 +16,17 @@ Item {
 
     // Only visible and active when in State 8 (Reflection)
     visible: opacity > 0
+    layer.enabled: true
     opacity: islandState === 8 ? 1 : 0
-    Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
+
+    // Ambient Void Background
+    Components.Starfield {
+        anchors.fill: parent
+        starCount: 40
+        starColor: root.theme ? root.theme.textMain : "#ffffff"
+        opacity: 0.5 // Ethereal depth
+    }
 
     property string query: State.ReflectionState.searchQuery
     property int currentIntent: 0 // 0 = App Search, 1 = Math Calculator, 2 = System Command
@@ -153,8 +163,17 @@ Item {
             radius: 22
             color: root.theme ? Qt.rgba(root.theme.textMain.r, root.theme.textMain.g, root.theme.textMain.b, 0.04) : "rgba(255,255,255,0.04)"
             border.width: searchInput.activeFocus ? 1 : 0
-            border.color: root.theme ? root.theme.accentPrimary : "#ff9900"
+            border.color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.5) : "#ff9900"
             Behavior on border.width { NumberAnimation { duration: 200 } }
+            
+            // Materialization transition
+            property bool isVisible: root.islandState === 8
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 10
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
 
             Row {
                 anchors.fill: parent
@@ -190,7 +209,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     font.family: root.theme ? root.theme.fontMain : "Inter"
                     font.pixelSize: 15
-                    font.weight: Font.Normal
+                    font.weight: Font.Light // Ethereal weight
                     color: root.theme ? root.theme.textMain : "#FFFFFF"
                     selectionColor: root.theme ? root.theme.accentPrimary : "#ff9900"
                     selectedTextColor: "#000000"
@@ -248,9 +267,19 @@ Item {
 
         // View Stack based on Intent
         Item {
+            id: viewStack
             width: parent.width
             height: parent.height - searchContainer.height - 14
             visible: State.ReflectionState.searchQuery.length > 0
+            
+            // Materialization transition
+            property bool isVisible: root.islandState === 8 && State.ReflectionState.searchQuery.length > 0
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 10
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
 
             // INTENT 0: App Search & Orchestration
             ReflectionAppGrid {
@@ -274,6 +303,14 @@ Item {
                     color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.08) : "rgba(255, 153, 0, 0.08)"
                     border.width: 1
                     border.color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.2) : "rgba(255, 153, 0, 0.2)"
+                    
+                    layer.enabled: true
+                    layer.effect: Glow {
+                        radius: 12
+                        samples: 24
+                        color: Qt.rgba(root.theme ? root.theme.accentPrimary.r : 1, root.theme ? root.theme.accentPrimary.g : 0.6, root.theme ? root.theme.accentPrimary.b : 0, 0.15)
+                        transparentBorder: true
+                    }
                     
                     Column {
                         anchors.centerIn: parent
@@ -329,6 +366,14 @@ Item {
                     border.width: 1
                     border.color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.3) : "rgba(255, 153, 0, 0.3)"
                     Behavior on color { ColorAnimation { duration: 150 } }
+                    
+                    layer.enabled: true
+                    layer.effect: Glow {
+                        radius: 12
+                        samples: 24
+                        color: Qt.rgba(root.theme ? root.theme.accentPrimary.r : 1, root.theme ? root.theme.accentPrimary.g : 0.6, root.theme ? root.theme.accentPrimary.b : 0, 0.15)
+                        transparentBorder: true
+                    }
                     
                     scale: cmdMouse.pressed ? 0.97 : 1.0
                     Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }

@@ -19,7 +19,8 @@ Item {
     
     opacity: root.islandState === 3 ? 1 : 0
     visible: opacity > 0
-    Behavior on opacity { NumberAnimation { duration: root.theme ? root.theme.animDuration : 250 } }
+    layer.enabled: true
+    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
     
     property bool isLocked: false
     property var currentNotif: null

@@ -68,10 +68,19 @@ Item {
     
     opacity: root.islandState === 9 ? 1 : 0
     visible: opacity > 0
-    Behavior on opacity { NumberAnimation { duration: root.theme ? root.theme.animDuration : 250 } }
+    layer.enabled: true
+    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
     
     // Tell the service the panel is open so it fetches the real profile immediately
     Binding { target: BatteryService; property: "panelOpen"; value: root.islandState === 9 }
+    
+    // Ambient Void Background
+    Components.Starfield {
+        anchors.fill: parent
+        starCount: 30
+        starColor: root.theme ? root.theme.textMain : "#ffffff"
+        opacity: 0.5 // Subtle depth
+    }
     
     // ── Top Sliver ──
     Item {
@@ -156,16 +165,33 @@ Item {
             anchors.right: parent.right
             height: 34
             
+            // Materialization transition
+            property bool isVisible: root.islandState === 9
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 10
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: heroSection.isVisible ? 0 : 150 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: heroSection.isVisible ? 0 : 150 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+            
             Text {
                 id: bigPercentage
                 anchors.left: parent.left
                 anchors.bottom: parent.bottom
                 text: BatteryService.percentage + "%"
                 font.family: root.theme ? root.theme.fontMain : "Inter"
-                font.pixelSize: 28
-                font.weight: Font.Bold
+                font.pixelSize: 30
+                font.weight: Font.Light // Ethereal weight
                 color: BatteryService.isOneshotCharging ? root.oneshotColor : (root.theme ? root.theme.textMain : "#CDD6F4")
                 Behavior on color { ColorAnimation { duration: 500 } }
+                
+                layer.enabled: root.islandState === 9
+                layer.effect: Glow {
+                    radius: 8
+                    samples: 16
+                    color: Qt.rgba(bigPercentage.color.r, bigPercentage.color.g, bigPercentage.color.b, 0.4)
+                    transparentBorder: true
+                }
             }
             
             Row {
@@ -225,18 +251,33 @@ Item {
             anchors.right: parent.right
             height: 14
             
-            // Track
+            // Materialization transition
+            property bool isVisible: root.islandState === 9
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 10
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: batteryBarContainer.isVisible ? 50 : 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: batteryBarContainer.isVisible ? 50 : 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+            
+            // Thin Track
             Rectangle {
                 id: barTrack
-                anchors.fill: parent
-                radius: height / 2
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                height: 2 // Delicate ethereal line
+                radius: 1
                 color: Qt.rgba(1, 1, 1, 0.08)
             }
             
-            // Oneshot pulsing glow on the track
+            // Oneshot pulsing glow on the fill
             Rectangle {
                 id: oneshotGlow
-                anchors.fill: parent
+                anchors.left: barFill.left
+                anchors.right: barFill.right
+                anchors.top: barFill.top
+                anchors.bottom: barFill.bottom
                 anchors.margins: -2
                 radius: (height + 4) / 2
                 color: "transparent"
@@ -244,6 +285,7 @@ Item {
                 border.color: root.oneshotColor
                 visible: BatteryService.isOneshotCharging && root.islandState === 9
                 opacity: 0
+                layer.enabled: visible // Only allocate GPU layer when glow is actually shown
                 
                 SequentialAnimation on opacity {
                     loops: Animation.Infinite
@@ -253,19 +295,33 @@ Item {
                 }
             }
             
-            // Fill
+            // Outer Glow for the Beam
+            RectangularGlow {
+                anchors.fill: barFill
+                glowRadius: 8
+                spread: 0.1
+                color: Qt.rgba(root.barColor.r, root.barColor.g, root.barColor.b, 0.4)
+                cornerRadius: barFill.radius + glowRadius
+            }
+            
+            // Fill Beam
             Rectangle {
                 id: barFill
                 anchors.left: parent.left
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
+                anchors.verticalCenter: parent.verticalCenter
+                height: 4 // Slightly thicker than 2px track for a "glow on rail" look
                 width: parent.width * (BatteryService.percentage / 100.0)
-                radius: parent.height / 2
-                color: root.barColor
+                radius: height / 2
                 clip: true
                 
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0; color: Qt.rgba(root.barColor.r, root.barColor.g, root.barColor.b, 0.4) }
+                    GradientStop { position: 0.8; color: Qt.rgba(root.barColor.r, root.barColor.g, root.barColor.b, 0.9) }
+                    GradientStop { position: 1.0; color: root.barColor }
+                }
+                
                 Behavior on width { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
-                Behavior on color { ColorAnimation { duration: 400 } }
                 
                 // Charging shimmer sweep (faster + brighter during oneshot)
                 Rectangle {
@@ -274,6 +330,7 @@ Item {
                     width: BatteryService.isOneshotCharging ? 70 : 50
                     height: parent.height
                     radius: parent.radius
+                    layer.enabled: visible // Only allocate GPU layer when shimmer is shown
                     
                     gradient: Gradient {
                         orientation: Gradient.Horizontal
@@ -305,6 +362,15 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             spacing: 8
+            
+            // Materialization transition
+            property bool isVisible: root.islandState === 9
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 10
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: statsColumn.isVisible ? 100 : 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: statsColumn.isVisible ? 100 : 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
             
             // Row 1: Time remaining + Power draw
             Item {
@@ -502,9 +568,19 @@ Item {
         
         // ── Power Profile Pills ──
         Row {
+            id: profileRow
             anchors.bottom: parent.bottom
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 8
+            
+            // Materialization transition
+            property bool isVisible: root.islandState === 9
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 10
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: profileRow.isVisible ? 150 : 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: profileRow.isVisible ? 150 : 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
             
             Repeater {
                 model: [
@@ -520,26 +596,27 @@ Item {
                     property bool isHovered: pillMa.containsMouse
                     property bool isPressed: pillMa.pressed
                     
-                    width: pillRow.width + 20
+                    width: pillInnerRow.width + 20
                     height: 28
                     radius: 14
                     
                     color: {
-                        if (isActive) return root.theme ? root.theme.textMain : "#FFF";
-                        if (isPressed) return Qt.rgba(1, 1, 1, 0.15);
-                        if (isHovered) return Qt.rgba(1, 1, 1, 0.1);
-                        return Qt.rgba(1, 1, 1, 0.04);
+                        if (isActive) return Qt.rgba(1, 1, 1, 0.1); // Ghostly inner fill
+                        if (isPressed) return Qt.rgba(1, 1, 1, 0.08);
+                        if (isHovered) return Qt.rgba(1, 1, 1, 0.04);
+                        return "transparent";
                     }
-                    border.width: isActive ? 0 : 1
-                    border.color: Qt.rgba(1, 1, 1, 0.12)
+                    border.width: 1
+                    border.color: isActive ? (root.theme ? root.theme.textMain : "#FFF") : (isHovered ? Qt.rgba(1, 1, 1, 0.3) : Qt.rgba(1, 1, 1, 0.1))
                     
                     scale: isPressed ? 0.96 : (isHovered && !isActive ? 1.03 : 1)
                     
                     Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on border.color { ColorAnimation { duration: 200 } }
                     Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
                     
                     Row {
-                        id: pillRow
+                        id: pillInnerRow
                         anchors.centerIn: parent
                         spacing: 5
                         
@@ -547,7 +624,7 @@ Item {
                             text: modelData.icon
                             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                             font.pixelSize: 14
-                            color: isActive ? "#000" : (root.theme ? root.theme.textMain : "#FFF")
+                            color: isActive ? (root.theme ? root.theme.textMain : "#FFF") : (root.theme ? root.theme.textSub : "#A6ADC8")
                             anchors.verticalCenter: parent.verticalCenter
                             Behavior on color { ColorAnimation { duration: 200 } }
                         }
@@ -556,8 +633,8 @@ Item {
                             text: modelData.label
                             font.family: root.theme ? root.theme.fontMain : "Inter"
                             font.pixelSize: 12
-                            font.weight: isActive ? Font.Bold : Font.Normal
-                            color: isActive ? "#000" : (root.theme ? root.theme.textMain : "#FFF")
+                            font.weight: isActive ? Font.Bold : Font.Medium
+                            color: isActive ? (root.theme ? root.theme.textMain : "#FFF") : (root.theme ? root.theme.textSub : "#A6ADC8")
                             anchors.verticalCenter: parent.verticalCenter
                             Behavior on color { ColorAnimation { duration: 200 } }
                         }

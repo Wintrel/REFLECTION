@@ -15,7 +15,8 @@ Item {
 
     opacity: islandState === 6 ? 1 : 0
     visible: opacity > 0
-    Behavior on opacity { NumberAnimation { duration: theme ? theme.animDuration : 300 } }
+    layer.enabled: true
+    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
 
     onOpacityChanged: {
         if (opacity === 1) {

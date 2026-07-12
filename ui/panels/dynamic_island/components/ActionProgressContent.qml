@@ -14,7 +14,8 @@ Item {
     
     opacity: islandState === 7 ? 1 : 0
     visible: opacity > 0
-    Behavior on opacity { NumberAnimation { duration: 250 } }
+    layer.enabled: true
+    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
     
     // Main Content
     Row {

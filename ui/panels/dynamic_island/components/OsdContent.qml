@@ -24,7 +24,8 @@ Item {
     
     opacity: root.islandState === 5 ? 1 : 0
     visible: opacity > 0
-    Behavior on opacity { NumberAnimation { duration: root.theme ? root.theme.animDuration : 250 } }
+    layer.enabled: true
+    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
     
     // Bar Layout (Mode 0 & 1)
     Row {
