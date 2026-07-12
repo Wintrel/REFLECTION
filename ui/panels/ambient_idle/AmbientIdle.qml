@@ -1,4 +1,5 @@
 import QtQuick
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Wayland
 import "../../../core" as Core
@@ -35,22 +36,38 @@ Scope {
             color: "transparent"
             visible: contentOverlay.opacity > 0
             
-            Rectangle {
+            // Vignette overlay
+            Item {
                 id: contentOverlay
                 anchors.fill: parent
-                
-                // Translucent black to subtly dim and desaturate the wallpaper
-                color: Qt.rgba(0, 0, 0, 0.6)
-                
+
                 opacity: State.GlobalStates.anyAmbientActive ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.InOutSine } }
+
+                RadialGradient {
+                    anchors.fill: parent
+                    horizontalRadius: Math.sqrt(width * width / 4 + height * height / 4)
+                    verticalRadius: Math.sqrt(width * width / 4 + height * height / 4)
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.65) }
+                        GradientStop { position: 0.55; color: Qt.rgba(0, 0, 0, 0.85) }
+                        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.98) }
+                    }
+                }
                 
+
+
                 Components.Starfield {
                     anchors.fill: parent
-                    // Large star count for the full desktop, low opacity for subtlety
-                    starCount: 150
-                    opacity: 0.5
+                    // Slightly lower density for background stars to make raining stars stand out
+                    starCount: 120
+                    opacity: 0.4
                     starColor: "#FFFFFF"
+                }
+
+                Components.FallingStars {
+                    anchors.fill: parent
+                    visible: contentOverlay.opacity > 0
                 }
                 
                 // Capture keyboard input to wake the shell
@@ -80,6 +97,7 @@ Scope {
                         State.GlobalStates.ambientActiveMode = false;
                     }
                 }
+                }
             
             // Bottom Ambient Visualizer.
             Item {
@@ -101,7 +119,6 @@ Scope {
                     accentColor: '#6c0011ff' // Matches the charging cyan electric blue style
                 }
             }
-        } // end contentOverlay
-    } // end PanelWindow
-} // end Variants
+        } // end PanelWindow
+    } // end Variants
 } // end Scope
