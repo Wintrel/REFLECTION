@@ -42,6 +42,7 @@ Item {
 
                 // The Aurora Light Beam Shimmer Overlay
                 Rectangle {
+                    id: shimmerOverlay
                     width: parent.width
                     height: barItem.targetHeight
                     anchors.bottom: parent.bottom
@@ -49,17 +50,17 @@ Item {
                     
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "transparent" } // top
-                        GradientStop { position: 1.0; color: Qt.rgba(0.78, 0.79, 0.81, 0.6) } // bottom
+                        GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0.8) } // bottom (Brighter shimmer to be visible)
                     }
 
                     SequentialAnimation on opacity {
                         loops: Animation.Infinite
                         running: root.visible
                         
-                        PauseAnimation { duration: barItem.localRelativeX * 5000 }
-                        NumberAnimation { from: 0; to: 1.0; duration: 600; easing.type: Easing.InOutSine }
-                        NumberAnimation { from: 1.0; to: 0; duration: 600; easing.type: Easing.InOutSine }
-                        PauseAnimation { duration: 5000 - (barItem.localRelativeX * 5000) + 1500 }
+                        PauseAnimation { duration: (index / Math.max(1, root.barCount)) * 4000 }
+                        NumberAnimation { from: 0; to: 1.0; duration: 500; easing.type: Easing.InOutSine }
+                        NumberAnimation { from: 1.0; to: 0; duration: 500; easing.type: Easing.InOutSine }
+                        PauseAnimation { duration: 4000 - ((index / Math.max(1, root.barCount)) * 4000) + 1500 }
                     }
                 }
                 
@@ -79,9 +80,11 @@ Item {
                     radius: 2
                     anchors.horizontalCenter: parent.horizontalCenter
                     y: barItem.height - barItem.capHeight - 6 // Sit slightly above the beam
-                    color: Qt.rgba(0.85, 0.86, 0.88, 0.8)
-                    opacity: barItem.capHeight > 8 ? 1.0 : 0.0
-                    Behavior on opacity { NumberAnimation { duration: 300 } }
+                    color: Qt.rgba(0.9, 0.9, 0.95, 0.9)
+                    
+                    // The star illuminates ONLY when the shimmer passes over it, and only if it's high enough!
+                    // This perfectly synchronizes the stars with the sweep and eliminates OLED burn-in.
+                    opacity: (barItem.capHeight > 8 ? 1.0 : 0.0) * shimmerOverlay.opacity
                 }
 
                 Behavior on targetHeight {
@@ -95,9 +98,16 @@ Item {
                 Timer {
                     running: root.visible
                     repeat: true
+                    // Randomize interval slightly so they drift naturally
                     interval: 1500 + (index % 4) * 400
                     onTriggered: {
-                        barItem.targetHeight = 10 + Math.random() * 20
+                        // 50% chance to drop to 0 (hiding the star cap to prevent burn-in)
+                        // 50% chance to spike up to 35
+                        if (Math.random() > 0.5) {
+                            barItem.targetHeight = Math.random() * 5;
+                        } else {
+                            barItem.targetHeight = 10 + Math.random() * 25;
+                        }
                     }
                 }
             }
