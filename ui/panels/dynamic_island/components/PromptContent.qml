@@ -48,6 +48,14 @@ Item {
                 anchors.leftMargin: 24
                 anchors.verticalCenter: parent.verticalCenter
                 
+                property bool isVisible: root.islandState === 6 && PromptService.promptType !== "bluetooth_passkey"
+                opacity: isVisible ? 1 : 0
+                transform: Translate {
+                    y: isVisible ? 0 : -5
+                    Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+                }
+                Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+                
                 Text {
                     text: PromptService.promptIcon
                     font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
@@ -64,6 +72,14 @@ Item {
                 anchors.rightMargin: 16
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
+                
+                property bool isVisible: root.islandState === 6 && PromptService.promptType !== "bluetooth_passkey"
+                opacity: isVisible ? 1 : 0
+                transform: Translate {
+                    y: isVisible ? 0 : 10
+                    Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+                }
+                Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
 
                 Text {
                     text: PromptService.promptTitle
@@ -91,6 +107,14 @@ Item {
                 anchors.right: parent.right
                 anchors.rightMargin: 24
                 anchors.verticalCenter: parent.verticalCenter
+                
+                property bool isVisible: root.islandState === 6 && PromptService.promptType !== "bluetooth_passkey"
+                opacity: isVisible ? 1 : 0
+                transform: Translate {
+                    x: isVisible ? 0 : 10
+                    Behavior on x { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+                }
+                Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
                 
                 TextField {
                     id: pwdField
@@ -194,6 +218,14 @@ Item {
                 anchors.leftMargin: 24
                 anchors.verticalCenter: parent.verticalCenter
                 
+                property bool isVisible: root.islandState === 6 && PromptService.promptType === "bluetooth_passkey"
+                opacity: isVisible ? 1 : 0
+                transform: Translate {
+                    y: isVisible ? 0 : -5
+                    Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+                }
+                Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+                
                 Text {
                     text: PromptService.promptIcon
                     font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
@@ -210,6 +242,14 @@ Item {
                 anchors.rightMargin: 16
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
+                
+                property bool isVisible: root.islandState === 6 && PromptService.promptType === "bluetooth_passkey"
+                opacity: isVisible ? 1 : 0
+                transform: Translate {
+                    y: isVisible ? 0 : 10
+                    Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+                }
+                Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
 
                 Text {
                     text: PromptService.promptTitle
@@ -235,6 +275,14 @@ Item {
                 anchors.rightMargin: 24
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 8
+                
+                property bool isVisible: root.islandState === 6 && PromptService.promptType === "bluetooth_passkey"
+                opacity: isVisible ? 1 : 0
+                transform: Translate {
+                    x: isVisible ? 0 : 10
+                    Behavior on x { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+                }
+                Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
                 
                 Rectangle {
                     width: 72

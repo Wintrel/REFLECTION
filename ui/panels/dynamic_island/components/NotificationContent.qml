@@ -45,6 +45,14 @@ Item {
             color: root.theme ? Qt.rgba(root.theme.colorNotification.r, root.theme.colorNotification.g, root.theme.colorNotification.b, 0.15) : "#20710cee"
             anchors.verticalCenter: parent.verticalCenter
             
+            property bool isVisible: root.islandState === 3
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : -5
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+            
             // Notification image or icon
             Image {
                 anchors.fill: parent
@@ -86,6 +94,14 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - iconRect.width - 16
             spacing: 2
+            
+            property bool isVisible: root.islandState === 3
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 10
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
             
             Text {
                 text: root.currentNotif ? (root.currentNotif.appName || "Notification").toUpperCase() : "NOTIFICATION"

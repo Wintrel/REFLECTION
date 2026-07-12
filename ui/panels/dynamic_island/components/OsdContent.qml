@@ -38,6 +38,15 @@ Item {
         // Icon
         Text {
             anchors.verticalCenter: parent.verticalCenter
+            
+            property bool isVisible: root.islandState === 5
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : -5
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+            
             text: {
                 if (root.osdMode === 1) {
                     if (System.BrightnessService.brightness > 0.7) return "light_mode";
@@ -62,6 +71,14 @@ Item {
             radius: 6
             color: root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.2) : "#30A6ADC8"
             
+            property bool isVisible: root.islandState === 5
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                x: isVisible ? 0 : -10
+                Behavior on x { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+            
             Rectangle {
                 anchors.left: parent.left
                 anchors.top: parent.top
@@ -84,6 +101,15 @@ Item {
         Text {
             id: alertIcon
             anchors.verticalCenter: parent.verticalCenter
+            
+            property bool isVisible: root.islandState === 5
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : -5
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+            
             text: root.osdIcon
             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
             font.pixelSize: 20
@@ -103,6 +129,15 @@ Item {
         
         Text {
             anchors.verticalCenter: parent.verticalCenter
+            
+            property bool isVisible: root.islandState === 5
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                x: isVisible ? 0 : -10
+                Behavior on x { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+            
             text: root.osdText
             font.family: root.theme ? root.theme.fontMain : "Inter"
             font.pixelSize: 14

@@ -22,7 +22,15 @@ Item {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -4
         spacing: 16
-
+        
+        property bool isVisible: root.islandState === 7
+        opacity: isVisible ? 1 : 0
+        transform: Translate {
+            y: isVisible ? 0 : -5
+            Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+        }
+        Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+        
         
         // Text
         Text {
@@ -41,6 +49,14 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 16
         anchors.horizontalCenter: parent.horizontalCenter
+        
+        property bool isVisible: root.islandState === 7
+        opacity: isVisible ? 1 : 0
+        transform: Translate {
+            y: isVisible ? 0 : 5
+            Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+        }
+        Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
         
         clip: true
         

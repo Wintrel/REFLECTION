@@ -52,6 +52,14 @@ Item {
         anchors.right: parent.right
         height: 50
         
+        property bool isVisible: root.islandState === 4
+        opacity: isVisible ? 1 : 0
+        transform: Translate {
+            y: isVisible ? 0 : -5
+            Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+        }
+        Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+        
         Text {
             anchors.left: parent.left
             anchors.leftMargin: 8
@@ -145,6 +153,14 @@ Item {
         clip: true
         spacing: 12
         model: State.GlobalStates.notificationHistory
+        
+        property bool isVisible: root.islandState === 4
+        opacity: isVisible ? 1 : 0
+        transform: Translate {
+            y: isVisible ? 0 : 10
+            Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+        }
+        Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
         
         // Empty State
         Item {
