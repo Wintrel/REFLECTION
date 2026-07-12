@@ -16,6 +16,7 @@ Scope {
             id: idleWindow
             required property var modelData
             screen: modelData
+            Core.Theme { id: theme }
 
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
             
@@ -116,7 +117,7 @@ Scope {
                     anchors.bottomMargin: 10
                     visible: State.GlobalStates.ambientActiveMode
                     isPlaying: true
-                    accentColor: '#6c0011ff' // Matches the charging cyan electric blue style
+                    accentColor: theme.colorMusic // Matches Ghostly Stardust theme
                 }
             }
         } // end PanelWindow
