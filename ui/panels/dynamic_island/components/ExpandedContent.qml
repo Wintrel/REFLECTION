@@ -114,9 +114,9 @@ Item {
         height: 20
         
         property bool isVisible: root.islandState === 2
-        opacity: isVisible ? 1 : 0
+        opacity: (root.islandState === 2) ? 1 : 0
         transform: Translate {
-            y: isVisible ? 0 : -5
+            y: (root.islandState === 2) ? 0 : -5
             Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
         }
         Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -216,11 +216,11 @@ Item {
             color: "#313244"
             
             property bool isVisible: root.islandState === 2
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 2) ? 1 : 0
             transform: Scale {
                 origin.x: 30; origin.y: 30
-                xScale: isVisible ? 1 : 0.8
-                yScale: isVisible ? 1 : 0.8
+                xScale: (root.islandState === 2) ? 1 : 0.8
+                yScale: (root.islandState === 2) ? 1 : 0.8
                 Behavior on xScale { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutBack } } }
                 Behavior on yScale { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutBack } } }
             }
@@ -254,9 +254,9 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             
             property bool isVisible: root.islandState === 2
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 2) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 10
+                y: (root.islandState === 2) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -335,9 +335,9 @@ Item {
             spacing: 16
             
             property bool isVisible: root.islandState === 2
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 2) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 10
+                y: (root.islandState === 2) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -430,9 +430,9 @@ Item {
             anchors.bottomMargin: 4
             
             property bool isVisible: root.islandState === 2
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 2) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 10
+                y: (root.islandState === 2) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 150 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 150 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }

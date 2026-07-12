@@ -45,6 +45,14 @@ Scope {
                 opacity: State.GlobalStates.anyAmbientActive ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 800; easing.type: Easing.InOutSine } }
                 
+                Components.Starfield {
+                    anchors.fill: parent
+                    // Large star count for the full desktop, low opacity for subtlety
+                    starCount: 150
+                    opacity: 0.5
+                    starColor: "#FFFFFF"
+                }
+                
                 // Capture keyboard input to wake the shell
                 FocusScope {
                     anchors.fill: parent
@@ -73,7 +81,7 @@ Scope {
                     }
                 }
             
-            // Bottom Ambient Visualizer
+            // Bottom Ambient Visualizer.
             Item {
                 width: parent.width
                 height: 100

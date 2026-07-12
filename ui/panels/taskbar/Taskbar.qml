@@ -190,18 +190,18 @@ Scope {
                         
                         // Set to 0 so it sits perfectly behind the flat top edge of the taskbar
                         property bool isOpen: State.GlobalStates.controlCenterOpen
-                        anchors.bottomMargin: isOpen ? 0 : -height - taskbarContainer.height
+                        anchors.bottomMargin: 0
                         
-                        opacity: isOpen ? 1 : 0
-                        visible: opacity > 0
-                        
-                        Behavior on anchors.bottomMargin { NumberAnimation { duration: 800; easing.type: Easing.OutExpo } }
-                        Behavior on opacity { NumberAnimation { duration: 500 } }
+                        transform: Translate {
+                            y: ccContainer.isOpen ? 0 : ccContainer.height + taskbarContainer.height
+                            Behavior on y { NumberAnimation { duration: 700; easing.type: Easing.OutExpo } }
+                        }
                         
                         CC.ControlCenterUI {
                             id: ccUI
                             anchors.fill: parent
                             theme: taskbarWindow.theme
+                            isOpen: ccContainer.isOpen
                         }
                         
                         // --- THE LEFT SWOOP (FILLET) ---

@@ -10,6 +10,7 @@ Item {
     id: root
 
     property var theme
+    property bool isOpen: false
     
     // State machine for the morphing Control Center
     property string viewState: "main" // "main", "wifi", "bluetooth", "audio"
@@ -67,10 +68,10 @@ Item {
             width: parent.width
             spacing: 16
             
-            property bool isVisible: root.viewState === "main"
-            opacity: isVisible ? 1 : 0
+            property bool isVisible: root.viewState === "main" && root.isOpen
+            opacity: (root.viewState === "main" && root.isOpen) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : -10
+                y: (root.viewState === "main" && root.isOpen) ? 0 : -10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -105,10 +106,10 @@ Item {
             columns: 2
             spacing: 16
             
-            property bool isVisible: root.viewState === "main"
-            opacity: isVisible ? 1 : 0
+            property bool isVisible: root.viewState === "main" && root.isOpen
+            opacity: (root.viewState === "main" && root.isOpen) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 10
+                y: (root.viewState === "main" && root.isOpen) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -173,10 +174,10 @@ Item {
             width: parent.width
             spacing: 16
             
-            property bool isVisible: root.viewState === "main"
-            opacity: isVisible ? 1 : 0
+            property bool isVisible: root.viewState === "main" && root.isOpen
+            opacity: (root.viewState === "main" && root.isOpen) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 15
+                y: (root.viewState === "main" && root.isOpen) ? 0 : 15
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }

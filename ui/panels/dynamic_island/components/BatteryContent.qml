@@ -167,9 +167,9 @@ Item {
             
             // Materialization transition
             property bool isVisible: root.islandState === 9
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 9) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 10
+                y: (root.islandState === 9) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: heroSection.isVisible ? 0 : 150 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: heroSection.isVisible ? 0 : 150 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -253,9 +253,9 @@ Item {
             
             // Materialization transition
             property bool isVisible: root.islandState === 9
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 9) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 10
+                y: (root.islandState === 9) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: batteryBarContainer.isVisible ? 50 : 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: batteryBarContainer.isVisible ? 50 : 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -365,9 +365,9 @@ Item {
             
             // Materialization transition
             property bool isVisible: root.islandState === 9
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 9) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 10
+                y: (root.islandState === 9) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: statsColumn.isVisible ? 100 : 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: statsColumn.isVisible ? 100 : 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -575,9 +575,9 @@ Item {
             
             // Materialization transition
             property bool isVisible: root.islandState === 9
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 9) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 10
+                y: (root.islandState === 9) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: profileRow.isVisible ? 150 : 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: profileRow.isVisible ? 150 : 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }

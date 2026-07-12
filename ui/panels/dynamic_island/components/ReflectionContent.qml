@@ -168,9 +168,9 @@ Item {
             
             // Materialization transition
             property bool isVisible: root.islandState === 8
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 8) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 10
+                y: (root.islandState === 8) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -274,9 +274,9 @@ Item {
             
             // Materialization transition
             property bool isVisible: root.islandState === 8 && State.ReflectionState.searchQuery.length > 0
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 8 && State.ReflectionState.searchQuery.length > 0) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 10
+                y: (root.islandState === 8 && State.ReflectionState.searchQuery.length > 0) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }

@@ -53,9 +53,9 @@ Item {
         height: 50
         
         property bool isVisible: root.islandState === 4
-        opacity: isVisible ? 1 : 0
+        opacity: (root.islandState === 4) ? 1 : 0
         transform: Translate {
-            y: isVisible ? 0 : -5
+            y: (root.islandState === 4) ? 0 : -5
             Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
         }
         Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -155,9 +155,9 @@ Item {
         model: State.GlobalStates.notificationHistory
         
         property bool isVisible: root.islandState === 4
-        opacity: isVisible ? 1 : 0
+        opacity: (root.islandState === 4) ? 1 : 0
         transform: Translate {
-            y: isVisible ? 0 : 10
+            y: (root.islandState === 4) ? 0 : 10
             Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
         }
         Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -197,9 +197,9 @@ Item {
             
             // Simple staggered slide-up and fade-in transition
             property bool isVisible: root.islandState === 4
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 4) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : 20
+                y: (root.islandState === 4) ? 0 : 20
                 Behavior on y {
                     SequentialAnimation {
                         PauseAnimation { duration: delegateItem.isVisible ? index * 40 : 0 }

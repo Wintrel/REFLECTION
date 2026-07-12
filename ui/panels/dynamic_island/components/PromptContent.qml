@@ -3,6 +3,7 @@ import QtQuick.Controls.Basic
 import Qt5Compat.GraphicalEffects
 import "../../../../core/services/system"
 import "../../../../core/state" as State
+import "../../../components" as Components
 
 Item {
     id: root
@@ -13,16 +14,59 @@ Item {
     property real islandNotifW: 400
     property real islandNotifH: 100
 
-    opacity: islandState === 6 ? 1 : 0
+    property bool isActive: islandState === 6
+    opacity: isActive ? 1 : 0
     visible: opacity > 0
     layer.enabled: true
     Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
 
     onOpacityChanged: {
-        if (opacity === 1) {
+        if (opacity === 1 && PromptService.promptType !== "bluetooth_passkey") {
             pwdField.forceActiveFocus();
         } else {
             pwdField.text = "";
+        }
+    }
+
+    // Dynamic Starfield Background
+    Components.Starfield {
+        anchors.fill: parent
+        starCount: 25
+        // Use theme.accentPrimary for standard prompts
+        starColor: theme ? theme.accentPrimary : "#00ffcc"
+        opacity: isActive ? 0.3 : 0
+        Behavior on opacity { NumberAnimation { duration: 600 } }
+    }
+
+    // Dynamic Edge Glow
+    Rectangle {
+        anchors.fill: parent
+        radius: 36 // Island radius
+        color: "transparent"
+        
+        border.color: {
+            if (!isActive) return "transparent"
+            var c = theme ? theme.accentPrimary : "#00ffcc"
+            // Pulsing logic when focused
+            if (PromptService.promptType !== "bluetooth_passkey" && pwdField.activeFocus) {
+                return Qt.rgba(c.r, c.g, c.b, pulseGlow.glowOpacity)
+            }
+            return Qt.rgba(c.r, c.g, c.b, 0.3)
+        }
+        border.width: 1
+        Behavior on border.color { ColorAnimation { duration: 400 } }
+        
+        // Property for the pulse animation
+        QtObject {
+            id: pulseGlow
+            property real glowOpacity: 0.3
+            
+            SequentialAnimation on glowOpacity {
+                loops: Animation.Infinite
+                running: root.isActive && pwdField.activeFocus
+                NumberAnimation { from: 0.3; to: 0.6; duration: 800; easing.type: Easing.InOutSine }
+                NumberAnimation { from: 0.6; to: 0.3; duration: 800; easing.type: Easing.InOutSine }
+            }
         }
     }
 
@@ -43,15 +87,15 @@ Item {
                 width: 48
                 height: 48
                 radius: 24
-                color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.2) : "#33ff9900"
+                color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.15) : Qt.rgba(0,1,0.8,0.15)
                 anchors.left: parent.left
                 anchors.leftMargin: 24
                 anchors.verticalCenter: parent.verticalCenter
                 
-                property bool isVisible: root.islandState === 6 && PromptService.promptType !== "bluetooth_passkey"
-                opacity: isVisible ? 1 : 0
+                property bool isVisible: root.isActive && PromptService.promptType !== "bluetooth_passkey"
+                opacity: (root.isActive && PromptService.promptType !== "bluetooth_passkey") ? 1 : 0
                 transform: Translate {
-                    y: isVisible ? 0 : -5
+                    y: (root.isActive && PromptService.promptType !== "bluetooth_passkey") ? 0 : -5
                     Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
                 }
                 Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -60,8 +104,16 @@ Item {
                     text: PromptService.promptIcon
                     font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
                     font.pixelSize: 24
-                    color: theme ? theme.accentPrimary : "#ff9900"
+                    color: theme ? theme.accentPrimary : "#00ffcc"
                     anchors.centerIn: parent
+                    
+                    // Subtle pulse
+                    SequentialAnimation on opacity {
+                        loops: Animation.Infinite
+                        running: root.isActive
+                        NumberAnimation { from: 0.8; to: 1.0; duration: 1000; easing.type: Easing.InOutSine }
+                        NumberAnimation { from: 1.0; to: 0.8; duration: 1000; easing.type: Easing.InOutSine }
+                    }
                 }
             }
 
@@ -73,10 +125,10 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
                 
-                property bool isVisible: root.islandState === 6 && PromptService.promptType !== "bluetooth_passkey"
-                opacity: isVisible ? 1 : 0
+                property bool isVisible: root.isActive && PromptService.promptType !== "bluetooth_passkey"
+                opacity: (root.isActive && PromptService.promptType !== "bluetooth_passkey") ? 1 : 0
                 transform: Translate {
-                    y: isVisible ? 0 : 10
+                    y: (root.isActive && PromptService.promptType !== "bluetooth_passkey") ? 0 : 10
                     Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
                 }
                 Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -92,7 +144,7 @@ Item {
                 Text {
                     text: PromptService.promptSubtitle
                     font.family: theme ? theme.fontMain : "Inter"
-                    font.pixelSize: 15
+                    font.pixelSize: 14
                     font.weight: Font.DemiBold
                     color: theme ? theme.textMain : "#FFF"
                     elide: Text.ElideRight
@@ -108,10 +160,10 @@ Item {
                 anchors.rightMargin: 24
                 anchors.verticalCenter: parent.verticalCenter
                 
-                property bool isVisible: root.islandState === 6 && PromptService.promptType !== "bluetooth_passkey"
-                opacity: isVisible ? 1 : 0
+                property bool isVisible: root.isActive && PromptService.promptType !== "bluetooth_passkey"
+                opacity: (root.isActive && PromptService.promptType !== "bluetooth_passkey") ? 1 : 0
                 transform: Translate {
-                    x: isVisible ? 0 : 10
+                    x: (root.isActive && PromptService.promptType !== "bluetooth_passkey") ? 0 : 10
                     Behavior on x { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
                 }
                 Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -127,12 +179,21 @@ Item {
                     font.family: theme ? theme.fontMain : "Inter"
                     verticalAlignment: TextInput.AlignVCenter
                     leftPadding: 16
-                    rightPadding: 36 // Space for submit arrow
+                    rightPadding: 36
+                    
                     background: Rectangle {
-                        color: Qt.rgba(0,0,0,0.3)
-                        radius: 18 // Sleek pill shape
+                        color: Qt.rgba(0,0,0,0.5) // Deep void inset
+                        radius: 18
                         border.width: pwdField.activeFocus ? 1 : 0
-                        border.color: theme ? theme.accentPrimary : "#ff9900"
+                        border.color: theme ? theme.accentPrimary : "#00ffcc"
+                        
+                        // Subtle drop shadow inside the textfield to make it look carved
+                        layer.enabled: true
+                        layer.effect: InnerShadow {
+                            color: Qt.rgba(0,0,0,0.8)
+                            radius: 4
+                            spread: 0.2
+                        }
                     }
                     onAccepted: {
                         if (pwdField.text !== "") {
@@ -152,13 +213,13 @@ Item {
                     anchors.right: parent.right
                     anchors.rightMargin: 4
                     anchors.verticalCenter: parent.verticalCenter
-                    color: maStdSubmit.containsMouse ? (theme ? theme.accentPrimary : "#ff9900") : "transparent"
+                    color: maStdSubmit.containsMouse ? (theme ? theme.accentPrimary : "#00ffcc") : "transparent"
                     
                     Text {
                         text: "arrow_forward"
                         font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
                         font.pixelSize: 18
-                        color: maStdSubmit.containsMouse ? "#000" : (theme ? theme.accentPrimary : "#ff9900")
+                        color: maStdSubmit.containsMouse ? "#000" : (theme ? theme.accentPrimary : "#00ffcc")
                         anchors.centerIn: parent
                     }
                     MouseArea {
@@ -202,8 +263,8 @@ Item {
         }
 
         // ----------------------------------------------------
-        // Bluetooth Passkey Prompt Layout (Apple Style)
-        // ----------------------------------------------------
+        // Bluetooth Passkey Prompt Layout
+        // -----------------------------------------------------
         Item {
             anchors.fill: parent
             visible: PromptService.promptType === "bluetooth_passkey"
@@ -213,15 +274,15 @@ Item {
                 width: 48
                 height: 48
                 radius: 24
-                color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.2) : "#33ff9900"
+                color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.15) : Qt.rgba(0,1,0.8,0.15)
                 anchors.left: parent.left
                 anchors.leftMargin: 24
                 anchors.verticalCenter: parent.verticalCenter
                 
-                property bool isVisible: root.islandState === 6 && PromptService.promptType === "bluetooth_passkey"
-                opacity: isVisible ? 1 : 0
+                property bool isVisible: root.isActive && PromptService.promptType === "bluetooth_passkey"
+                opacity: (root.isActive && PromptService.promptType === "bluetooth_passkey") ? 1 : 0
                 transform: Translate {
-                    y: isVisible ? 0 : -5
+                    y: (root.isActive && PromptService.promptType === "bluetooth_passkey") ? 0 : -5
                     Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
                 }
                 Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -230,8 +291,15 @@ Item {
                     text: PromptService.promptIcon
                     font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
                     font.pixelSize: 24
-                    color: theme ? theme.accentPrimary : "#ff9900"
+                    color: theme ? theme.accentPrimary : "#00ffcc"
                     anchors.centerIn: parent
+                    
+                    SequentialAnimation on opacity {
+                        loops: Animation.Infinite
+                        running: root.isActive && PromptService.promptType === "bluetooth_passkey"
+                        NumberAnimation { from: 0.8; to: 1.0; duration: 1000; easing.type: Easing.InOutSine }
+                        NumberAnimation { from: 1.0; to: 0.8; duration: 1000; easing.type: Easing.InOutSine }
+                    }
                 }
             }
 
@@ -243,10 +311,10 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
                 
-                property bool isVisible: root.islandState === 6 && PromptService.promptType === "bluetooth_passkey"
-                opacity: isVisible ? 1 : 0
+                property bool isVisible: root.isActive && PromptService.promptType === "bluetooth_passkey"
+                opacity: (root.isActive && PromptService.promptType === "bluetooth_passkey") ? 1 : 0
                 transform: Translate {
-                    y: isVisible ? 0 : 10
+                    y: (root.isActive && PromptService.promptType === "bluetooth_passkey") ? 0 : 10
                     Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
                 }
                 Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -259,13 +327,21 @@ Item {
                     color: Qt.rgba(255, 255, 255, 0.6)
                 }
 
+                // Cyberpunk-style glowing code text
                 Text {
                     text: PromptService.promptCode
                     font.family: "Monospace"
-                    font.pixelSize: 26
+                    font.pixelSize: 24
                     font.weight: Font.Bold
-                    font.letterSpacing: 2
-                    color: theme ? theme.textMain : "#FFF"
+                    font.letterSpacing: 4
+                    color: theme ? theme.accentPrimary : "#00ffcc"
+                    
+                    layer.enabled: true
+                    layer.effect: Glow {
+                        color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.5) : Qt.rgba(0,1,0.8,0.5)
+                        radius: 8
+                        spread: 0.2
+                    }
                 }
             }
 
@@ -276,28 +352,29 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 8
                 
-                property bool isVisible: root.islandState === 6 && PromptService.promptType === "bluetooth_passkey"
-                opacity: isVisible ? 1 : 0
+                property bool isVisible: root.isActive && PromptService.promptType === "bluetooth_passkey"
+                opacity: (root.isActive && PromptService.promptType === "bluetooth_passkey") ? 1 : 0
                 transform: Translate {
-                    x: isVisible ? 0 : 10
+                    x: (root.isActive && PromptService.promptType === "bluetooth_passkey") ? 0 : 10
                     Behavior on x { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
                 }
                 Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
                 
+                // Confirm Button
                 Rectangle {
                     width: 72
                     height: 36
                     radius: 18 // Pill shape
-                    color: maBtYes.containsMouse ? (theme ? theme.accentPrimary : "#ff9900") : Qt.rgba(theme ? theme.accentPrimary.r : 1, theme ? theme.accentPrimary.g : 0.6, theme ? theme.accentPrimary.b : 0, 0.2)
+                    color: maBtYes.containsMouse ? (theme ? theme.accentPrimary : "#00ffcc") : Qt.rgba(theme ? theme.accentPrimary.r : 0, theme ? theme.accentPrimary.g : 1, theme ? theme.accentPrimary.b : 0.8, 0.15)
                     border.width: 1
-                    border.color: theme ? theme.accentPrimary : "#ff9900"
+                    border.color: theme ? theme.accentPrimary : "#00ffcc"
                     
                     Text {
                         text: "Accept"
                         font.family: theme ? theme.fontMain : "Inter"
                         font.pixelSize: 13
                         font.weight: Font.DemiBold
-                        color: maBtYes.containsMouse ? "#000" : (theme ? theme.accentPrimary : "#ff9900")
+                        color: maBtYes.containsMouse ? "#000" : (theme ? theme.accentPrimary : "#00ffcc")
                         anchors.centerIn: parent
                     }
                     MouseArea {
@@ -309,6 +386,7 @@ Item {
                     }
                 }
                 
+                // Reject Button
                 Rectangle {
                     width: 72
                     height: 36

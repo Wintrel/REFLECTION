@@ -57,7 +57,7 @@ Item {
 
                     color: {
                         var base = Qt.rgba(1, 1, 1, 0.08);
-                        var highlight = Qt.rgba(0.2, 0.6, 1.0, 0.6); // Electric Blue shimmer
+                        var highlight = Qt.rgba(0.78, 0.79, 0.81, 0.6); // Electric Blue shimmer
                         var glow = barItem.glowFactor;
                         
                         var r = base.r * (1 - glow) + highlight.r * glow;

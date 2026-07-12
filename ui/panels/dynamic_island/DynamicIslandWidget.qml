@@ -153,6 +153,21 @@ Item {
             islandWidget.islandState = 7;
         }
     }
+
+    Connections {
+        target: PolkitAuthService
+        function onPolkitRequestStarted() {
+            if (islandWidget.islandState !== 10 && islandWidget.islandState !== 3) {
+                islandWidget.previousState = islandWidget.islandState;
+            }
+            islandWidget.islandState = 10;
+        }
+        function onPolkitRequestFinished() {
+            if (islandWidget.islandState === 10) {
+                islandWidget.islandState = islandWidget.previousState || 0;
+            }
+        }
+    }
     
     // Auto-dismiss timer for Action Progress success state
     Timer {
@@ -330,19 +345,19 @@ Item {
             hoverEnabled: true
             
             onEntered: {
-                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.stop();
                 else if (islandWidget.islandState === 5) osdTimer.stop();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9) islandWidget.islandState = 1
             }
             onExited: {
-                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.restart();
                 else if (islandWidget.islandState === 5) osdTimer.restart();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9) islandWidget.islandState = 0
             }
             onClicked: {
-                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) {
                     if (islandWidget.previousState === 2 || islandWidget.previousState === 4 || islandWidget.previousState === 9) {
                         islandWidget.islandState = islandWidget.previousState;
@@ -376,6 +391,7 @@ Item {
                 if (reflectionContent.currentIntent === 0) return theme.reflectionGridW; // App Grid
                 return theme.reflectionFocusW; // Math / Command Intents
             }
+            if (islandState === 10) return theme.islandNotifW; // Same width as Notif
             if (islandState === 7) return theme.islandNotifW; // Same width as Prompt
             if (islandState === 6) return theme.islandNotifW; // Same width as Notif
             if (islandState === 5) return theme.islandHoverW;
@@ -396,6 +412,7 @@ Item {
                 else if (reflectionContent.currentIntent === 0) targetH = theme.reflectionGridH; // App Grid
                 else targetH = theme.reflectionFocusH; // Math / Command Intents
             }
+            else if (islandState === 10) targetH = theme.islandNotifH; // Same height as Notif
             else if (islandState === 7) targetH = theme.islandNotifH; // Same height as Prompt
             else if (islandState === 6) targetH = theme.islandNotifH; // Same height as Notif
             else if (islandState === 5) targetH = theme.islandHoverH;
@@ -478,6 +495,13 @@ Item {
             }
 
             IslandComponents.PromptContent {
+                islandState: islandWidget.islandState
+                theme: theme
+                islandNotifW: theme.islandNotifW
+                islandNotifH: theme.islandNotifH
+            }
+            
+            IslandComponents.PolkitAuthContent {
                 islandState: islandWidget.islandState
                 theme: theme
                 islandNotifW: theme.islandNotifW

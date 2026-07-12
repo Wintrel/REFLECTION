@@ -40,9 +40,9 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             
             property bool isVisible: root.islandState === 5
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 5) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : -5
+                y: (root.islandState === 5) ? 0 : -5
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -72,9 +72,9 @@ Item {
             color: root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.2) : "#30A6ADC8"
             
             property bool isVisible: root.islandState === 5
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 5) ? 1 : 0
             transform: Translate {
-                x: isVisible ? 0 : -10
+                x: (root.islandState === 5) ? 0 : -10
                 Behavior on x { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -103,9 +103,9 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             
             property bool isVisible: root.islandState === 5
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 5) ? 1 : 0
             transform: Translate {
-                y: isVisible ? 0 : -5
+                y: (root.islandState === 5) ? 0 : -5
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -131,9 +131,9 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             
             property bool isVisible: root.islandState === 5
-            opacity: isVisible ? 1 : 0
+            opacity: (root.islandState === 5) ? 1 : 0
             transform: Translate {
-                x: isVisible ? 0 : -10
+                x: (root.islandState === 5) ? 0 : -10
                 Behavior on x { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
