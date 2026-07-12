@@ -55,7 +55,7 @@ Item {
         anchors.margins: -8
         visible: root.visible
         starColor: root.theme ? root.theme.textMain : "#ffffff"
-        opacity: 0.8
+        opacity: 0.85
     }
     
     // Background Visualizer

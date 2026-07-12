@@ -36,6 +36,9 @@ Singleton {
     ListModel {
         id: historyModel
     }
+    
+    // Signal to trigger global edge lighting
+    signal notificationTriggered()
 
     onSidebarRightOpenChanged: {
         if (GlobalStates.sidebarRightOpen) {

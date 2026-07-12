@@ -3,6 +3,7 @@ import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
 import "../../../../core" as Core
 import "../../../../core/state" as State
+import "../../../components" as Components
 
 Item {
     id: root
@@ -33,6 +34,14 @@ Item {
     opacity: root.islandState === 4 ? 1 : 0
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: root.theme ? root.theme.animDuration : 250 } }
+    
+    // Ambient Void Background
+    Components.Starfield {
+        anchors.fill: parent
+        starCount: 35
+        starColor: root.theme ? root.theme.textMain : "#ffffff"
+        opacity: 0.5 // Subtle so it doesn't distract from notifications
+    }
     
     // Header
     Item {
@@ -165,8 +174,28 @@ Item {
         }
         
         delegate: Item {
+            id: delegateItem
             width: ListView.view.width
             height: Math.max(iconRect.height, col.height) + 32
+            
+            // Simple staggered slide-up and fade-in transition
+            property bool isVisible: root.islandState === 4
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 20
+                Behavior on y {
+                    SequentialAnimation {
+                        PauseAnimation { duration: delegateItem.isVisible ? index * 40 : 0 }
+                        NumberAnimation { duration: 400; easing.type: Easing.OutExpo }
+                    }
+                }
+            }
+            Behavior on opacity {
+                SequentialAnimation {
+                    PauseAnimation { duration: delegateItem.isVisible ? index * 40 : 0 }
+                    NumberAnimation { duration: 300; easing.type: Easing.OutSine }
+                }
+            }
             
             Rectangle {
                 anchors.fill: parent

@@ -17,6 +17,18 @@ Item {
     property bool isPlaying: root.mprisPlayer && root.mprisPlayer.isPlaying
     property bool hasNotifs: State.GlobalStates.notificationHistory.count > 0
     
+    // Ambient Void Background (Only visible when there's active ambient content)
+    Components.Starfield {
+        anchors.fill: parent
+        starCount: 12 // Less stars since the space is small
+        starColor: root.theme ? root.theme.textMain : "#ffffff"
+        opacity: (root.isPlaying || root.hasNotifs) ? 0.3 : 0
+        Behavior on opacity { NumberAnimation { duration: 500; easing.type: Easing.InOutSine } }
+        
+        // Clip to ensure stars don't bleed out of the minimized bounds
+        clip: true
+    }
+    
     // Abstract Ambient Indicators (Based on Reflection Philosophy)
     
     // Left side: Music Ambient Indicator (Waveform)

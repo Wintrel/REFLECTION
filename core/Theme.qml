@@ -4,16 +4,15 @@ Item {
     // Colors
     property color bgBezel: "#000000" // The outer bezel border color
     property color bgInner: "#000000" // Inner content area
-    property color accentBlue: "#89B4FA"
     property color textMain: "#CDD6F4"
     property color textSub: "#A6ADC8"
     
     // Status Colors
-    property color colorNotification: '#710cee' // Purple/Indigo/
-    property color colorMusic: '#5611f8' // indigo
-    property color accentWorkspace: '#5611f8' // Indigo purple for workspace dots
+    property color colorNotification: '#284594' // Very dark blue
+    property color colorMusic: '#313e52' // Dark Blue/Grey
+    property color accentWorkspace: '#2b4d97' // dark ish blue?
     property color accentPrimary: '#ff9900' // Orange accent for system is asking for something on user or its interactive/currently interacting
-    property color colorSystemShimmer: '#0051ff' // Electric blue for system loading states
+    property color colorSystemShimmer: '#97b3f0' // Electric blue for system loading states
     property color bgBase: '#000000' // Base black
     
     // Fonts

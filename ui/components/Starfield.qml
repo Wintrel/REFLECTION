@@ -22,7 +22,7 @@ Item {
             y: Math.random() * root.height
             
             // Randomize size between 1.0 and 2.5 pixels
-            property real size: 1.0 + Math.random() * 1.5
+            property real size: 1.0 + Math.random() * 2.5
             width: size
             height: size
             
@@ -31,34 +31,34 @@ Item {
                 radius: width / 2
                 color: root.starColor
                 
-                // Base opacity is nearly invisible
-                opacity: 0.05
+                // Base opacity is more visible
+                opacity: 0.2
                 
                 SequentialAnimation on opacity {
                     loops: Animation.Infinite
                     running: root.visible
                     
                     // Random pause at the start so all stars don't shimmer in sync
-                    PauseAnimation { duration: Math.random() * 6000 }
+                    PauseAnimation { duration: Math.random() * 2000 }
                     
                     // Smoothly fade in
                     NumberAnimation { 
-                        from: 0.05 
-                        to: 0.2 + Math.random() * 0.4 
-                        duration: 4000 + Math.random() * 4000
+                        from: 0.15 
+                        to: 0.4 + Math.random() * 0.5 
+                        duration: 2000 + Math.random() * 3000
                         easing.type: Easing.InOutSine 
                     }
                     
                     // Smoothly fade out
                     NumberAnimation { 
-                        from: 0.2 + Math.random() * 0.4 
-                        to: 0.05 
-                        duration: 4000 + Math.random() * 4000
+                        from: 0.4 + Math.random() * 0.5 
+                        to: 0.15 
+                        duration: 2000 + Math.random() * 3000
                         easing.type: Easing.InOutSine 
                     }
                     
                     // Random pause before shimmering again
-                    PauseAnimation { duration: 1000 + Math.random() * 3000 }
+                    PauseAnimation { duration: 500 + Math.random() * 1500 }
                 }
             }
             

@@ -231,6 +231,9 @@ Item {
             islandWidget.islandState = 3;
             notifTimer.restart();
             popSound.play();
+            
+            // Trigger Edge Lighting
+            State.GlobalStates.notificationTriggered();
         }
     }
     
