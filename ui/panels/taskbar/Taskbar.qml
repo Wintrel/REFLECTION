@@ -9,6 +9,7 @@ import "../../../core/state" as State
 import "../../../core/services/system"
 import "../../../core/monitors"
 import "components"
+import "../../components" as Components
 import "../control_center" as CC
 
 // Scope container — Variants manages the PanelWindow lifecycle on monitor changes.
@@ -102,7 +103,14 @@ Scope {
 
                             radius: parent.radius - 2
                             color: theme.bgInner
+                            clip: true
                             
+                            Components.Starfield {
+                                anchors.fill: parent
+                                anchors.margins: -10
+                                starColor: theme.textMain
+                                opacity: 0.5
+                            }
                         }
                         
                         // Patch to square off the top-right corner when Control Center is open

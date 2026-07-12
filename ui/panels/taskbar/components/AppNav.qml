@@ -1,4 +1,5 @@
 import QtQuick
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
 import "../../../../core/services/system" as System
@@ -43,6 +44,21 @@ Row {
             width: 32
             height: 32
             
+            scale: appMa.pressed ? 0.9 : (appMa.containsMouse ? 1.15 : 1)
+            Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+            
+            // App Glow (active on hover)
+            RectangularGlow {
+                anchors.fill: parent
+                glowRadius: 15
+                spread: 0.1
+                color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.3) : "#4d6e8fc0"
+                opacity: appMa.containsMouse ? 1.0 : 0
+                visible: opacity > 0
+                layer.enabled: true
+                Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+            }
+            
             // Icon
             Image {
                 anchors.centerIn: parent
@@ -68,19 +84,36 @@ Row {
             }
             
             // Multiple windows indicator
-            Rectangle {
+            Item {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: -6
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: 4
-                height: 4
-                radius: 2
-                color: root.theme ? root.theme.textMain : "#FFF"
+                width: modelData.count > 1 ? (appMa.containsMouse ? 24 : 16) : 0
+                height: 3
                 visible: modelData.count > 1
+                
+                Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutExpo } }
+                
+                RectangularGlow {
+                    anchors.fill: indicatorRect
+                    glowRadius: 6
+                    spread: 0.2
+                    color: root.theme ? Qt.rgba(root.theme.textMain.r, root.theme.textMain.g, root.theme.textMain.b, 0.5) : "#80FFFFFF"
+                    layer.enabled: true
+                }
+                
+                Rectangle {
+                    id: indicatorRect
+                    anchors.fill: parent
+                    radius: 1.5
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
             }
             
             MouseArea {
+                id: appMa
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     // Bypass the broken hyprctl lua syntax parser by directly invoking the internal dispatcher

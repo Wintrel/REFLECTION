@@ -1,4 +1,5 @@
 import QtQuick
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
 import "../../../../core/services/system" as System
@@ -25,27 +26,43 @@ Row {
             return maxId;
         }
         
-        Rectangle {
-            id: dot
-            property int wsId: index + 1
-            property bool isActive: System.HyprlandService.activeWorkspaceId === wsId
-            property bool isOccupied: {
-                var ws = System.HyprlandService.workspaces;
-                for (var i = 0; i < ws.length; i++) {
-                    if (ws[i].id === wsId && ws[i].windows > 0) return true;
-                }
-                return false;
+        Item {
+            width: dot.width
+            height: dot.height
+
+            RectangularGlow {
+                anchors.fill: dot
+                glowRadius: 10
+                spread: 0.1
+                color: root.theme ? Qt.rgba(root.theme.accentWorkspace.r, root.theme.accentWorkspace.g, root.theme.accentWorkspace.b, 0.6) : "#99ffffff"
+                opacity: isActive ? 1.0 : 0
+                visible: opacity > 0
+                layer.enabled: true
+                Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
-            
-            width: isActive ? 24 : 8
-            height: 8
-            radius: 4
-            
-            color: root.theme ? root.theme.accentWorkspace : '#ffffff'
-            opacity: isActive ? 1.0 : (isOccupied ? 0.4 : 0.1)
-            
-            Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-            Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
+            Rectangle {
+                id: dot
+                property int wsId: index + 1
+                property bool isActive: System.HyprlandService.activeWorkspaceId === wsId
+                property bool isOccupied: {
+                    var ws = System.HyprlandService.workspaces;
+                    for (var i = 0; i < ws.length; i++) {
+                        if (ws[i].id === wsId && ws[i].windows > 0) return true;
+                    }
+                    return false;
+                }
+                
+                width: isActive ? 24 : 8
+                height: 8
+                radius: 4
+                
+                color: root.theme ? root.theme.accentWorkspace : '#ffffff'
+                opacity: isActive ? 1.0 : (isOccupied ? 0.4 : 0.1)
+                
+                Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+                Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+            }
             
             MouseArea {
                 anchors.fill: parent

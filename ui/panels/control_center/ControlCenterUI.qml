@@ -59,12 +59,22 @@ Item {
         spacing: 24
         opacity: root.viewState === "main" ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 300 } }
+        layer.enabled: true
+        Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
         
         // 1. Frequent Controls (Sliders)
         Column {
             width: parent.width
             spacing: 16
+            
+            property bool isVisible: root.viewState === "main"
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : -10
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+
             
             // Volume
             ThickSlider {
@@ -94,6 +104,15 @@ Item {
             width: parent.width
             columns: 2
             spacing: 16
+            
+            property bool isVisible: root.viewState === "main"
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 10
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+
             
             QuickToggle {
                 width: (parent.width - 16) / 2
@@ -154,6 +173,15 @@ Item {
             width: parent.width
             spacing: 16
             
+            property bool isVisible: root.viewState === "main"
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 15
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+
+            
             SystemAction {
                 width: (parent.width - 16) / 2
                 icon: "settings"
@@ -178,7 +206,8 @@ Item {
         title: "Wi-Fi Networks"
         opacity: root.viewState === "wifi" ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 300 } }
+        layer.enabled: true
+        Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
         onBackClicked: root.viewState = "main"
         
         model: NetworkService.wifiNetworks
@@ -287,7 +316,8 @@ Item {
         title: "Bluetooth Devices"
         opacity: root.viewState === "bluetooth" ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 300 } }
+        layer.enabled: true
+        Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
         onBackClicked: root.viewState = "main"
         
         model: BluetoothService.bluetoothDevices
@@ -382,7 +412,8 @@ Item {
         title: "Audio Output"
         opacity: root.viewState === "audio" ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 300 } }
+        layer.enabled: true
+        Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
         onBackClicked: root.viewState = "main"
         
         model: VolumeService.audioSinks

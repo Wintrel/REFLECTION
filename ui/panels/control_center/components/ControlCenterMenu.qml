@@ -22,6 +22,14 @@ Item {
             width: parent.width
             height: 48
             spacing: 16
+            
+            property bool isVisible: root.opacity > 0
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : -10
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
 
             // Back Button
             Rectangle {
@@ -66,6 +74,14 @@ Item {
             height: parent.height - 64
             clip: true
             spacing: 8
+            
+            property bool isVisible: root.opacity > 0
+            opacity: isVisible ? 1 : 0
+            transform: Translate {
+                y: isVisible ? 0 : 15
+                Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            }
+            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
         }
     }
 }
