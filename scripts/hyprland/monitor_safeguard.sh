@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # monitor_safeguard.sh
-# Daemon that listens to Hyprland's socket2 and resets broken Nvidia monitors on hotplug
+# Daemon that listens to Hyprland's socket2 and DBus sleep events to reset broken Nvidia monitors
 
 # Wait for Hyprland to start and HYPRLAND_INSTANCE_SIGNATURE to be available
 while [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ]; do
@@ -9,15 +9,12 @@ while [ -z "$HYPRLAND_INSTANCE_SIGNATURE" ]; do
 done
 
 SOCKET2="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hypr/${HYPRLAND_INSTANCE_SIGNATURE}/.socket2.sock"
-
 if [ ! -S "$SOCKET2" ]; then
-    # Fallback if XDG_RUNTIME_DIR isn't perfectly resolving
     SOCKET2="/tmp/hypr/${HYPRLAND_INSTANCE_SIGNATURE}/.socket2.sock"
 fi
 
 check_monitors() {
     # Extract broken monitor names using jq
-    # Criteria: model is 0x0000, description contains 0x0000, or width is extremely low like 640
     broken_monitors=$(hyprctl monitors -j | jq -r '.[] | select((.description | contains("0x0000")) or (.model == "0x0000") or (.width <= 640)) | .name')
     
     for monitor in $broken_monitors; do
@@ -37,39 +34,45 @@ check_monitors() {
                 hyprctl eval "hl.monitor({ output = '$monitor', mode = 'preferred', position = 'auto', scale = 1 })"
             fi
             
-            # Wait a bit before allowing another check to prevent aggressive looping
             sleep 3
         fi
     done
 }
 
-# Initial check on startup
-check_monitors
+# --- FUNCTION 1: Listen for System Wake ---
+listen_sleep_events() {
+    dbus-monitor --system "type='signal',interface='org.freedesktop.login1.Manager',member='PrepareForSleep'" | while read -r line; do
+        if [[ "$line" == *"boolean false"* ]]; then
+            echo "[Monitor Safeguard] System woke from sleep. Waiting for displays to initialize..."
+            sleep 3
+            check_monitors
+            sleep 5
+            check_monitors
+        fi
+    done
+}
 
-# Listen for system wake events (from sleep/suspend) in the background
-dbus-monitor --system "type='signal',interface='org.freedesktop.login1.Manager',member='PrepareForSleep'" | while read -r line; do
-    # When PrepareForSleep is false, it means the system is waking up
-    if [[ "$line" == *"boolean false"* ]]; then
-        echo "[Monitor Safeguard] System woke from sleep. Waiting for displays to initialize..."
-        # Give Nvidia and DRM some time to wake up the displays
-        sleep 3
-        check_monitors
-        # Check again a bit later just in case it took longer
-        sleep 5
-        check_monitors
-    fi
-done &
-
-# Listen for monitor hotplug events
-python3 -c "
+# --- FUNCTION 2: Listen for Hotplugs ---
+listen_hotplug_events() {
+    python3 -c "
 import socket, sys
 s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 s.connect(sys.argv[1])
 for line in s.makefile('r', buffering=1): print(line.strip(), flush=True)
 " "$SOCKET2" | while read -r line; do
-    if [[ "$line" == "monitoradded>>"* ]]; then
-        # Wait a moment for the kernel DRM/KMS to settle before checking the Hyprland state
-        sleep 1
-        check_monitors
-    fi
-done
+        if [[ "$line" == "monitoradded>>"* ]]; then
+            sleep 1
+            check_monitors
+        fi
+    done
+}
+
+# Run the initial check on script startup
+check_monitors
+
+# Fire up both listeners as background daemons
+listen_sleep_events &
+listen_hotplug_events &
+
+# Keep the main script alive tracking the background processes
+wait
