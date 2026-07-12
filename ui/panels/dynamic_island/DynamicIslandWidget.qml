@@ -391,9 +391,9 @@ Item {
                 if (reflectionContent.currentIntent === 0) return theme.reflectionGridW; // App Grid
                 return theme.reflectionFocusW; // Math / Command Intents
             }
-            if (islandState === 10) return theme.islandNotifW; // Same width as Notif
-            if (islandState === 7) return theme.islandNotifW; // Same width as Prompt
-            if (islandState === 6) return theme.islandNotifW; // Same width as Notif
+            if (islandState === 10) return theme.islandMaxW; // Polkit Auth
+            if (islandState === 7) return theme.islandMaxW; // Action Progress
+            if (islandState === 6) return theme.islandMaxW; // Prompt
             if (islandState === 5) return theme.islandHoverW;
             if (islandState === 4) return theme.islandHistoryW;
             if (islandState === 3) return theme.islandNotifW;
@@ -412,9 +412,9 @@ Item {
                 else if (reflectionContent.currentIntent === 0) targetH = theme.reflectionGridH; // App Grid
                 else targetH = theme.reflectionFocusH; // Math / Command Intents
             }
-            else if (islandState === 10) targetH = theme.islandNotifH; // Same height as Notif
-            else if (islandState === 7) targetH = theme.islandNotifH; // Same height as Prompt
-            else if (islandState === 6) targetH = theme.islandNotifH; // Same height as Notif
+            else if (islandState === 10) targetH = theme.islandMaxH; // Polkit Auth
+            else if (islandState === 7) targetH = theme.islandMaxH; // Action Progress
+            else if (islandState === 6) targetH = theme.islandMaxH; // Prompt
             else if (islandState === 5) targetH = theme.islandHoverH;
             else if (islandState === 4) targetH = historyContent.computedHeight;
             else if (islandState === 3) targetH = theme.islandNotifH;
@@ -497,20 +497,22 @@ Item {
             IslandComponents.PromptContent {
                 islandState: islandWidget.islandState
                 theme: theme
-                islandNotifW: theme.islandNotifW
-                islandNotifH: theme.islandNotifH
+                islandMaxW: theme.islandMaxW
+                islandMaxH: theme.islandMaxH
             }
             
             IslandComponents.PolkitAuthContent {
                 islandState: islandWidget.islandState
                 theme: theme
-                islandNotifW: theme.islandNotifW
-                islandNotifH: theme.islandNotifH
+                islandMaxW: theme.islandMaxW
+                islandMaxH: theme.islandMaxH
             }
             
             IslandComponents.ActionProgressContent {
                 islandState: islandWidget.islandState
                 theme: theme
+                islandMaxW: theme.islandMaxW
+                islandMaxH: theme.islandMaxH
             }
 
             IslandComponents.ReflectionContent {

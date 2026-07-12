@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import "../../components" as Components
 import "../../../core" as Core
 import "../../../core/state" as State
+import "../../../core/services/system"
 
 Scope {
     Variants {
@@ -31,12 +32,49 @@ Scope {
             Core.Theme { id: theme }
 
             property bool isActive: false
+            property color currentColor: theme.colorNotification
             
             Connections {
                 target: State.GlobalStates
                 function onNotificationTriggered() {
+                    if (edgeWindow.isPromptActive) return; // Don't interrupt prompt lighting
+                    edgeWindow.currentColor = theme.colorNotification;
                     edgeWindow.isActive = true;
                     hideTimer.restart();
+                }
+            }
+
+            property bool isPromptActive: false
+
+            Connections {
+                target: PromptService
+                function onPromptRequested() {
+                    edgeWindow.isPromptActive = true;
+                    edgeWindow.currentColor = theme.accentPrimary;
+                    edgeWindow.isActive = true;
+                    hideTimer.stop();
+                }
+                function onCanceled() {
+                    edgeWindow.isPromptActive = false;
+                    edgeWindow.isActive = false;
+                }
+                function onSubmitted() {
+                    edgeWindow.isPromptActive = false;
+                    edgeWindow.isActive = false;
+                }
+            }
+
+            Connections {
+                target: PolkitAuthService
+                function onPolkitRequestStarted() {
+                    edgeWindow.isPromptActive = true;
+                    edgeWindow.currentColor = "#ff4444"; // Aggressive red for Polkit
+                    edgeWindow.isActive = true;
+                    hideTimer.stop();
+                }
+                function onPolkitRequestFinished() {
+                    edgeWindow.isPromptActive = false;
+                    edgeWindow.isActive = false;
                 }
             }
 
@@ -44,7 +82,9 @@ Scope {
                 id: hideTimer
                 interval: 5000 // 5 seconds of edge glow
                 onTriggered: {
-                    edgeWindow.isActive = false;
+                    if (!edgeWindow.isPromptActive) {
+                        edgeWindow.isActive = false;
+                    }
                 }
             }
 
@@ -64,7 +104,7 @@ Scope {
                     anchors.fill: parent
                     color: "transparent"
                     border.width: 15
-                    border.color: Qt.rgba(theme.colorNotification.r, theme.colorNotification.g, theme.colorNotification.b, 0.5)
+                    border.color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, 0.5)
                     
                     layer.enabled: true
                     layer.effect: GaussianBlur {
@@ -78,7 +118,7 @@ Scope {
                     anchors.fill: parent
                     color: "transparent"
                     border.width: 4
-                    border.color: theme.colorNotification
+                    border.color: edgeWindow.currentColor
                     
                     layer.enabled: true
                     layer.effect: GaussianBlur {

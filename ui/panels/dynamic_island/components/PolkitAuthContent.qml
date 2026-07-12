@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
+import Qt5Compat.GraphicalEffects
 import "../../../../core/services/system"
 import "../../../../core/state" as State
 import "../../../components" as Components
@@ -10,8 +11,8 @@ Item {
 
     property int islandState: 0
     property var theme: null
-    property real islandNotifW: 400
-    property real islandNotifH: 100
+    property real islandMaxW: 600
+    property real islandMaxH: 200
 
     // islandState === 10 is Polkit
     property bool isActive: islandState === 10
@@ -31,129 +32,109 @@ Item {
     // Red Dwarf Starfield Background Effect
     Components.Starfield {
         anchors.fill: parent
-        starCount: 25
+        starCount: 30
         starColor: "#ff5555"
         opacity: isActive ? 0.3 : 0
         Behavior on opacity { NumberAnimation { duration: 600 } }
     }
 
-    // Subtle red glow on the edges
-    Rectangle {
-        anchors.fill: parent
-        radius: 36 // Island radius
-        color: "transparent"
-        border.color: isActive ? Qt.rgba(1, 0.2, 0.2, 0.3) : "transparent"
-        border.width: 1
-        Behavior on border.color { ColorAnimation { duration: 400 } }
-    }
-
     Item {
-        width: islandNotifW
-        height: islandNotifH
+        width: islandMaxW
+        height: islandMaxH
         anchors.centerIn: parent
 
-        Rectangle {
-            id: iconRect
+        // 1. The Crown (Top-Center)
+        Item {
+            id: iconContainer
             width: 48
             height: 48
-            radius: 24
-            color: Qt.rgba(1, 0, 0, 0.15)
-            anchors.left: parent.left
-            anchors.leftMargin: 24
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.top: parent.top
+            anchors.topMargin: 12
+            anchors.horizontalCenter: parent.horizontalCenter
             
-            opacity: isActive ? 1 : 0
-            transform: Translate {
-                y: isActive ? 0 : -5
-                Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
+            Rectangle {
+                anchors.fill: parent
+                radius: 24
+                color: Qt.rgba(1, 0, 0, 0.15)
             }
-            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
-            
+
             Text {
-                text: "admin_panel_settings" // Lock/Admin icon
+                text: "admin_panel_settings"
                 font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
                 font.pixelSize: 24
                 color: "#ff4444"
                 anchors.centerIn: parent
                 
-                // Subtle pulse for the icon
                 SequentialAnimation on opacity {
                     loops: Animation.Infinite
-                    running: isActive
-                    NumberAnimation { from: 0.8; to: 1.0; duration: 1000; easing.type: Easing.InOutSine }
-                    NumberAnimation { from: 1.0; to: 0.8; duration: 1000; easing.type: Easing.InOutSine }
+                    running: root.isActive
+                    NumberAnimation { from: 0.7; to: 1.0; duration: 1500; easing.type: Easing.InOutSine }
+                    NumberAnimation { from: 1.0; to: 0.7; duration: 1500; easing.type: Easing.InOutSine }
                 }
             }
         }
 
+        // 2. The Context (Middle-Center)
         Column {
-            anchors.left: iconRect.right
-            anchors.leftMargin: 16
-            anchors.right: inputContainer.left
-            anchors.rightMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.top: iconContainer.bottom
+            anchors.topMargin: 8
+            anchors.horizontalCenter: parent.horizontalCenter
             spacing: 4
-            
-            opacity: isActive ? 1 : 0
-            transform: Translate {
-                y: isActive ? 0 : 10
-                Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
-            }
-            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
 
             Text {
                 text: PolkitAuthService.authState === 2 ? "Authenticating..." : "System Authentication"
                 font.family: theme ? theme.fontMain : "Inter"
-                font.pixelSize: 12
+                font.pixelSize: 14
                 font.weight: Font.Medium
                 color: PolkitAuthService.authState === 2 ? "#ff4444" : Qt.rgba(255, 255, 255, 0.6)
+                anchors.horizontalCenter: parent.horizontalCenter
             }
 
             Text {
                 text: PolkitAuthService.errorMessage !== "" ? PolkitAuthService.errorMessage : PolkitAuthService.currentMessage
                 font.family: theme ? theme.fontMain : "Inter"
-                font.pixelSize: 14
+                font.pixelSize: 16
                 font.weight: Font.DemiBold
                 color: PolkitAuthService.errorMessage !== "" ? "#ff5555" : (theme ? theme.textMain : "#FFF")
-                elide: Text.ElideRight
-                width: parent.width
+                anchors.horizontalCenter: parent.horizontalCenter
             }
         }
 
+        // 3. The Input Horizon (Bottom-Center)
         Item {
             id: inputContainer
-            width: 160
-            height: 36
-            anchors.right: parent.right
-            anchors.rightMargin: 24
-            anchors.verticalCenter: parent.verticalCenter
-            
-            opacity: isActive ? 1 : 0
-            transform: Translate {
-                x: isActive ? 0 : 10
-                Behavior on x { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
-            }
-            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+            width: 400
+            height: 40
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 16
+            anchors.horizontalCenter: parent.horizontalCenter
             
             TextField {
                 id: pwdField
                 anchors.fill: parent
-                placeholderText: "Password..."
+                placeholderText: "Enter Password..."
                 placeholderTextColor: Qt.rgba(255,255,255,0.4)
                 echoMode: TextInput.Password
                 color: "#FFF"
-                font.pixelSize: 13
+                font.pixelSize: 15
                 font.family: theme ? theme.fontMain : "Inter"
                 verticalAlignment: TextInput.AlignVCenter
-                leftPadding: 16
-                rightPadding: 36
+                leftPadding: 24
+                rightPadding: 50
                 enabled: PolkitAuthService.authState === 1 || PolkitAuthService.authState === 3
                 
                 background: Rectangle {
-                    color: Qt.rgba(0,0,0,0.5) // Darker void background
-                    radius: 18
+                    color: Qt.rgba(0,0,0,0.5) // Deep void inset
+                    radius: 20
                     border.width: pwdField.activeFocus ? 1 : 0
                     border.color: "#ff4444"
+                    
+                    layer.enabled: true
+                    layer.effect: InnerShadow {
+                        color: Qt.rgba(0,0,0,0.8)
+                        radius: 6
+                        spread: 0.3
+                    }
                 }
                 onAccepted: {
                     if (pwdField.text !== "") {
@@ -166,20 +147,20 @@ Item {
                 }
             }
             
-            // Integrated Submit Arrow
+            // Submit Arrow
             Rectangle {
-                width: 28
-                height: 28
-                radius: 14
+                width: 36
+                height: 36
+                radius: 18
                 anchors.right: parent.right
-                anchors.rightMargin: 4
+                anchors.rightMargin: 6
                 anchors.verticalCenter: parent.verticalCenter
                 color: maSubmit.containsMouse ? "#ff4444" : "transparent"
                 
                 Text {
                     text: "arrow_forward"
                     font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
-                    font.pixelSize: 18
+                    font.pixelSize: 20
                     color: maSubmit.containsMouse ? "#000" : "#ff4444"
                     anchors.centerIn: parent
                 }
@@ -200,24 +181,24 @@ Item {
 
         // Global Cancel Button
         Rectangle {
-            width: 24
-            height: 24
-            radius: 12
+            width: 32
+            height: 32
+            radius: 16
             color: "transparent"
             anchors.top: parent.top
-            anchors.topMargin: 4
+            anchors.topMargin: 12
             anchors.right: parent.right
-            anchors.rightMargin: 4
+            anchors.rightMargin: 12
             
             Text {
                 text: "close"
                 font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
-                font.pixelSize: 16
-                color: maCancel.containsMouse ? "#FFF" : Qt.rgba(255, 255, 255, 0.4)
+                font.pixelSize: 20
+                color: maGlobalCancel.containsMouse ? "#FFF" : Qt.rgba(255, 255, 255, 0.4)
                 anchors.centerIn: parent
             }
             MouseArea {
-                id: maCancel
+                id: maGlobalCancel
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
