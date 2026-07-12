@@ -392,7 +392,7 @@ Item {
                 return theme.reflectionFocusW; // Math / Command Intents
             }
             if (islandState === 10) return theme.islandMaxW; // Polkit Auth
-            if (islandState === 7) return theme.islandMaxW; // Action Progress
+            if (islandState === 7) return theme.islandProgressW; // Action Progress
             if (islandState === 6) return theme.islandMaxW; // Prompt
             if (islandState === 5) return theme.islandHoverW;
             if (islandState === 4) return theme.islandHistoryW;
@@ -413,7 +413,7 @@ Item {
                 else targetH = theme.reflectionFocusH; // Math / Command Intents
             }
             else if (islandState === 10) targetH = theme.islandMaxH; // Polkit Auth
-            else if (islandState === 7) targetH = theme.islandMaxH; // Action Progress
+            else if (islandState === 7) targetH = theme.islandProgressH; // Action Progress
             else if (islandState === 6) targetH = theme.islandMaxH; // Prompt
             else if (islandState === 5) targetH = theme.islandHoverH;
             else if (islandState === 4) targetH = historyContent.computedHeight;
@@ -511,8 +511,8 @@ Item {
             IslandComponents.ActionProgressContent {
                 islandState: islandWidget.islandState
                 theme: theme
-                islandMaxW: theme.islandMaxW
-                islandMaxH: theme.islandMaxH
+                islandMaxW: theme.islandProgressW
+                islandMaxH: theme.islandProgressH
             }
 
             IslandComponents.ReflectionContent {

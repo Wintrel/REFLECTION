@@ -63,7 +63,9 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: 24
-                    color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.15) : Qt.rgba(0,1,0.8,0.15)
+                    color: "transparent"
+                    border.width: 1
+                    border.color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.25) : Qt.rgba(0,1,0.8,0.25)
                 }
 
                 Text {
@@ -92,17 +94,17 @@ Item {
                 Text {
                     text: PromptService.promptTitle
                     font.family: theme ? theme.fontMain : "Inter"
-                    font.pixelSize: 14
-                    font.weight: Font.Medium
-                    color: Qt.rgba(255, 255, 255, 0.6)
+                    font.pixelSize: 13
+                    font.weight: Font.Light
+                    color: Qt.rgba(255, 255, 255, 0.5)
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Text {
                     text: PromptService.promptSubtitle
                     font.family: theme ? theme.fontMain : "Inter"
-                    font.pixelSize: 16
-                    font.weight: Font.DemiBold
+                    font.pixelSize: 15
+                    font.weight: Font.Light
                     color: theme ? theme.textMain : "#FFF"
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
@@ -130,17 +132,37 @@ Item {
                     leftPadding: 24
                     rightPadding: 50
                     
-                    background: Rectangle {
-                        color: Qt.rgba(0,0,0,0.5) // Deep void inset
-                        radius: 20
-                        border.width: pwdField.activeFocus ? 1 : 0
-                        border.color: theme ? theme.accentPrimary : "#00ffcc"
-                        
-                        layer.enabled: true
-                        layer.effect: InnerShadow {
-                            color: Qt.rgba(0,0,0,0.8)
-                            radius: 6
-                            spread: 0.3
+                    background: Item {
+                        RectangularGlow {
+                            anchors.fill: parent
+                            glowRadius: 6
+                            spread: 0.1
+                            color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.25) : Qt.rgba(0, 1, 0.8, 0.25)
+                            cornerRadius: 20 + glowRadius
+                            opacity: pwdField.activeFocus ? 1.0 : 0.0
+                            Behavior on opacity { NumberAnimation { duration: 250 } }
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: Qt.rgba(0,0,0,0.5) // Deep void inset
+                            radius: 20
+                            
+                            layer.enabled: true
+                            layer.effect: InnerShadow {
+                                color: Qt.rgba(0,0,0,0.8)
+                                radius: 6
+                                spread: 0.3
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: "transparent"
+                            radius: 20
+                            border.width: 1
+                            border.color: pwdField.activeFocus ? (theme ? theme.accentPrimary : "#00ffcc") : Qt.rgba(255,255,255,0.08)
+                            Behavior on border.color { ColorAnimation { duration: 250 } }
                         }
                     }
                     onAccepted: {
@@ -155,20 +177,30 @@ Item {
                 
                 // Submit Arrow
                 Rectangle {
+                    id: submitBtn
                     width: 36
                     height: 36
                     radius: 18
                     anchors.right: parent.right
                     anchors.rightMargin: 6
                     anchors.verticalCenter: parent.verticalCenter
-                    color: maSubmit.containsMouse ? (theme ? theme.accentPrimary : "#00ffcc") : "transparent"
+                    
+                    scale: maSubmit.pressed ? 0.92 : (maSubmit.containsMouse ? 1.08 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
+                    
+                    color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, maSubmit.containsMouse ? 0.15 : 0.0) : Qt.rgba(0,1,0.8, maSubmit.containsMouse ? 0.15 : 0.0)
+                    border.width: 1
+                    border.color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, maSubmit.containsMouse ? 0.4 : 0.0) : Qt.rgba(0,1,0.8, maSubmit.containsMouse ? 0.4 : 0.0)
+                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on border.color { ColorAnimation { duration: 200 } }
                     
                     Text {
                         text: "arrow_forward"
                         font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
                         font.pixelSize: 20
-                        color: maSubmit.containsMouse ? "#000" : (theme ? theme.accentPrimary : "#00ffcc")
+                        color: maSubmit.containsMouse ? (theme ? theme.accentPrimary : "#00ffcc") : Qt.rgba(255, 255, 255, 0.4)
                         anchors.centerIn: parent
+                        Behavior on color { ColorAnimation { duration: 200 } }
                     }
                     MouseArea {
                         id: maSubmit
@@ -184,6 +216,7 @@ Item {
 
             // Global Cancel Button (Top Right corner)
             Rectangle {
+                id: globalCancelBtn
                 width: 32
                 height: 32
                 radius: 16
@@ -193,12 +226,16 @@ Item {
                 anchors.right: parent.right
                 anchors.rightMargin: 12
                 
+                scale: maGlobalCancel.pressed ? 0.92 : (maGlobalCancel.containsMouse ? 1.08 : 1.0)
+                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
+                
                 Text {
                     text: "close"
                     font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
                     font.pixelSize: 20
                     color: maGlobalCancel.containsMouse ? "#FFF" : Qt.rgba(255, 255, 255, 0.4)
                     anchors.centerIn: parent
+                    Behavior on color { ColorAnimation { duration: 200 } }
                 }
                 MouseArea {
                     id: maGlobalCancel
@@ -230,7 +267,9 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: 24
-                    color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.15) : Qt.rgba(0,1,0.8,0.15)
+                    color: "transparent"
+                    border.width: 1
+                    border.color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.25) : Qt.rgba(0,1,0.8,0.25)
                 }
 
                 Text {
@@ -253,32 +292,54 @@ Item {
                 anchors.top: btIconContainer.bottom
                 anchors.topMargin: 8
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 4
+                spacing: 8
 
                 Text {
                     text: PromptService.promptTitle
                     font.family: theme ? theme.fontMain : "Inter"
-                    font.pixelSize: 14
-                    font.weight: Font.Medium
-                    color: Qt.rgba(255, 255, 255, 0.6)
+                    font.pixelSize: 13
+                    font.weight: Font.Light
+                    color: Qt.rgba(255, 255, 255, 0.5)
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
-                // Cyberpunk-style glowing code text
-                Text {
-                    text: PromptService.promptCode
-                    font.family: "Monospace"
-                    font.pixelSize: 36
-                    font.weight: Font.Bold
-                    font.letterSpacing: 8
-                    color: theme ? theme.accentPrimary : "#00ffcc"
+                // Grid of Passkey characters (thoughtful security design)
+                Row {
+                    id: codeRow
                     anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 10
                     
-                    layer.enabled: true
-                    layer.effect: Glow {
-                        color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.5) : Qt.rgba(0,1,0.8,0.5)
-                        radius: 12
-                        spread: 0.2
+                    Repeater {
+                        model: PromptService.promptCode ? PromptService.promptCode.length : 0
+                        delegate: Item {
+                            width: 38
+                            height: 48
+                            
+                            RectangularGlow {
+                                anchors.fill: boxRect
+                                glowRadius: 4
+                                spread: 0.1
+                                color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.12) : Qt.rgba(0, 1, 0.8, 0.12)
+                                cornerRadius: boxRect.radius + glowRadius
+                            }
+                            
+                            Rectangle {
+                                id: boxRect
+                                anchors.fill: parent
+                                radius: 6
+                                color: Qt.rgba(0, 0, 0, 0.4)
+                                border.width: 0
+                                
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: PromptService.promptCode[index]
+                                    font.family: theme ? theme.fontMain : "Inter"
+                                    font.pixelSize: 22
+                                    font.weight: Font.Light
+                                    color: theme ? theme.accentPrimary : "#00ffcc"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -290,20 +351,38 @@ Item {
                 spacing: 16
                 
                 Rectangle {
-                    width: 120
-                    height: 40
-                    radius: 20
-                    color: maBtYes.containsMouse ? (theme ? theme.accentPrimary : "#00ffcc") : Qt.rgba(theme ? theme.accentPrimary.r : 0, theme ? theme.accentPrimary.g : 1, theme ? theme.accentPrimary.b : 0.8, 0.15)
+                    id: btnYes
+                    width: 90
+                    height: 30
+                    radius: 15
+                    
+                    scale: maBtYes.pressed ? 0.95 : (maBtYes.containsMouse ? 1.05 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
+                    
+                    color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, maBtYes.containsMouse ? 0.15 : 0.0) : Qt.rgba(0, 1, 0.8, maBtYes.containsMouse ? 0.15 : 0.0)
                     border.width: 1
-                    border.color: theme ? theme.accentPrimary : "#00ffcc"
+                    border.color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, maBtYes.containsMouse ? 0.5 : 0.2) : Qt.rgba(0, 1, 0.8, maBtYes.containsMouse ? 0.5 : 0.2)
+                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on border.color { ColorAnimation { duration: 200 } }
+                    
+                    RectangularGlow {
+                        anchors.fill: parent
+                        glowRadius: 4
+                        spread: 0.1
+                        color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.1) : Qt.rgba(0, 1, 0.8, 0.1)
+                        cornerRadius: btnYes.radius + glowRadius
+                        opacity: maBtYes.containsMouse ? 1.0 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                    }
                     
                     Text {
                         text: "Accept"
                         font.family: theme ? theme.fontMain : "Inter"
-                        font.pixelSize: 15
-                        font.weight: Font.DemiBold
-                        color: maBtYes.containsMouse ? "#000" : (theme ? theme.accentPrimary : "#00ffcc")
+                        font.pixelSize: 13
+                        font.weight: Font.Light
+                        color: maBtYes.containsMouse ? "#FFF" : (theme ? theme.accentPrimary : "#00ffcc")
                         anchors.centerIn: parent
+                        Behavior on color { ColorAnimation { duration: 200 } }
                     }
                     MouseArea {
                         id: maBtYes
@@ -315,20 +394,38 @@ Item {
                 }
                 
                 Rectangle {
-                    width: 120
-                    height: 40
-                    radius: 20
-                    color: maBtNo.containsMouse ? Qt.rgba(255, 50, 50, 0.8) : Qt.rgba(255, 50, 50, 0.1)
+                    id: btnNo
+                    width: 90
+                    height: 30
+                    radius: 15
+                    
+                    scale: maBtNo.pressed ? 0.95 : (maBtNo.containsMouse ? 1.05 : 1.0)
+                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
+                    
+                    color: Qt.rgba(255, 50, 50, maBtNo.containsMouse ? 0.15 : 0.0)
                     border.width: 1
-                    border.color: Qt.rgba(255, 50, 50, 0.5)
+                    border.color: Qt.rgba(255, 50, 50, maBtNo.containsMouse ? 0.5 : 0.2)
+                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on border.color { ColorAnimation { duration: 200 } }
+                    
+                    RectangularGlow {
+                        anchors.fill: parent
+                        glowRadius: 4
+                        spread: 0.1
+                        color: Qt.rgba(255, 50, 50, 0.1)
+                        cornerRadius: btnNo.radius + glowRadius
+                        opacity: maBtNo.containsMouse ? 1.0 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                    }
                     
                     Text {
                         text: "Reject"
                         font.family: theme ? theme.fontMain : "Inter"
-                        font.pixelSize: 15
-                        font.weight: Font.DemiBold
-                        color: maBtNo.containsMouse ? "#FFF" : Qt.rgba(255, 100, 100, 1.0)
+                        font.pixelSize: 13
+                        font.weight: Font.Light
+                        color: maBtNo.containsMouse ? "#FFF" : Qt.rgba(255, 100, 100, 0.8)
                         anchors.centerIn: parent
+                        Behavior on color { ColorAnimation { duration: 200 } }
                     }
                     MouseArea {
                         id: maBtNo

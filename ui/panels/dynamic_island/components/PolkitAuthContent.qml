@@ -123,17 +123,37 @@ Item {
                 rightPadding: 50
                 enabled: PolkitAuthService.authState === 1 || PolkitAuthService.authState === 3
                 
-                background: Rectangle {
-                    color: Qt.rgba(0,0,0,0.5) // Deep void inset
-                    radius: 20
-                    border.width: pwdField.activeFocus ? 1 : 0
-                    border.color: "#ff4444"
-                    
-                    layer.enabled: true
-                    layer.effect: InnerShadow {
-                        color: Qt.rgba(0,0,0,0.8)
-                        radius: 6
-                        spread: 0.3
+                background: Item {
+                    RectangularGlow {
+                        anchors.fill: parent
+                        glowRadius: 6
+                        spread: 0.1
+                        color: Qt.rgba(255, 68, 68, 0.25)
+                        cornerRadius: 20 + glowRadius
+                        opacity: pwdField.activeFocus ? 1.0 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 250 } }
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: Qt.rgba(0,0,0,0.5) // Deep void inset
+                        radius: 20
+                        
+                        layer.enabled: true
+                        layer.effect: InnerShadow {
+                            color: Qt.rgba(0,0,0,0.8)
+                            radius: 6
+                            spread: 0.3
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                        radius: 20
+                        border.width: 1
+                        border.color: pwdField.activeFocus ? "#ff4444" : Qt.rgba(255, 255, 255, 0.08)
+                        Behavior on border.color { ColorAnimation { duration: 250 } }
                     }
                 }
                 onAccepted: {
