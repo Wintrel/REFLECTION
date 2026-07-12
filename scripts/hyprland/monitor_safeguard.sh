@@ -27,7 +27,15 @@ check_monitors() {
             # Nvidia cache reset loop: Disable output, wait, re-enable
             hyprctl eval "hl.monitor({ output = '$monitor', disabled = true })"
             sleep 1.5
-            hyprctl eval "hl.monitor({ output = '$monitor', mode = 'preferred', position = 'auto', scale = 1 })"
+            
+            # Retrieve the correct monitor configuration from hyprmon.lua
+            MONITOR_CONF=$(grep "output = \"$monitor\"" "$HOME/.config/hypr/hyprmon.lua" 2>/dev/null || true)
+            
+            if [ -n "$MONITOR_CONF" ]; then
+                hyprctl eval "$MONITOR_CONF"
+            else
+                hyprctl eval "hl.monitor({ output = '$monitor', mode = 'preferred', position = 'auto', scale = 1 })"
+            fi
             
             # Wait a bit before allowing another check to prevent aggressive looping
             sleep 3
@@ -37,6 +45,20 @@ check_monitors() {
 
 # Initial check on startup
 check_monitors
+
+# Listen for system wake events (from sleep/suspend) in the background
+dbus-monitor --system "type='signal',interface='org.freedesktop.login1.Manager',member='PrepareForSleep'" | while read -r line; do
+    # When PrepareForSleep is false, it means the system is waking up
+    if [[ "$line" == *"boolean false"* ]]; then
+        echo "[Monitor Safeguard] System woke from sleep. Waiting for displays to initialize..."
+        # Give Nvidia and DRM some time to wake up the displays
+        sleep 3
+        check_monitors
+        # Check again a bit later just in case it took longer
+        sleep 5
+        check_monitors
+    fi
+done &
 
 # Listen for monitor hotplug events
 python3 -c "

@@ -48,6 +48,16 @@ Item {
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: root.theme ? root.theme.animDuration : 250 } }
     
+    // Starfield Void
+    Components.Starfield {
+        id: voidStarfield
+        anchors.fill: parent
+        anchors.margins: -8
+        visible: root.visible
+        starColor: root.theme ? root.theme.textMain : "#ffffff"
+        opacity: 0.8
+    }
+    
     // Background Visualizer
     Components.MusicVisualizer {
         id: bgVisualizer
