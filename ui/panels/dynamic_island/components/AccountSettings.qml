@@ -1,6 +1,7 @@
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
 import "../../../../core/services/system"
@@ -88,11 +89,26 @@ Item {
                     clip: true
                     
                     Image {
+                        id: avatarImg
                         anchors.fill: parent
                         source: AccountService.profilePicture
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
-                        visible: source.toString() !== ""
+                        visible: false
+                    }
+                    
+                    Rectangle {
+                        id: mask
+                        anchors.fill: parent
+                        radius: parent.radius
+                        visible: false
+                    }
+                    
+                    OpacityMask {
+                        anchors.fill: parent
+                        source: avatarImg
+                        maskSource: mask
+                        visible: avatarImg.source.toString() !== ""
                     }
                     
                     Text {
@@ -101,7 +117,7 @@ Item {
                         font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                         font.pixelSize: 32
                         color: root.theme ? root.theme.textMain : "#FFF"
-                        visible: parent.children[0].source.toString() === ""
+                        visible: avatarImg.source.toString() === ""
                     }
                 }
                 
@@ -148,7 +164,17 @@ Item {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                AccountService.pickAndSetProfilePicture();
+                                var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
+                                p.command = ["zenity", "--file-selection", "--title=Select Profile Picture"];
+                                p.stdout = Qt.createQmlObject('import Quickshell.Io; SplitParser { }', p);
+                                p.stdout.read.connect(function(data) {
+                                    var file = data.trim();
+                                    if (file.length > 0) {
+                                        cropper.imageSource = "file://" + file;
+                                    }
+                                });
+                                p.exited.connect(function() { p.destroy(); });
+                                p.running = true;
                             }
                         }
                     }
@@ -213,12 +239,11 @@ Item {
                         MouseArea {
                             id: maName
                             anchors.fill: parent
-                            hoverEnabled: nameInput.text !== AccountService.realName
-                            cursorShape: hoverEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                            enabled: nameInput.text !== AccountService.realName
+                            hoverEnabled: enabled
+                            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                             onClicked: {
-                                if (nameInput.text !== AccountService.realName) {
-                                    AccountService.setRealName(nameInput.text);
-                                }
+                                AccountService.setRealName(nameInput.text);
                             }
                         }
                     }
@@ -307,6 +332,16 @@ Item {
                     }
                 }
             }
+        }
+    }
+    
+    // Live Cropper Overlay
+    ProfilePictureCropper {
+        id: cropper
+        anchors.fill: parent
+        theme: root.theme
+        onCropped: {
+            AccountService.refreshInfo();
         }
     }
 }

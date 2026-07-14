@@ -22,9 +22,17 @@ Item {
     width: islandShape.width + (2 * theme.radiusIsland)
     height: islandShape.height - theme.radiusIsland
     
-    // State machine for the island: 0 = Minimized, 1 = Hovered, 2 = Expanded, 3 = Notification, 4 = History, 5 = OSD
+    // State machine for the island: 0 = Minimized, 1 = Hovered, 2 = Expanded, 3 = Notification, 4 = History, 5 = OSD, 11 = Settings
     property int islandState: 0
     property int previousState: 0
+    
+    onIslandStateChanged: {
+        // Keep global state synced if the island closes or morphs away from settings
+        // Do not close settings if transitioning to transient states (3: Notif, 5: OSD, 6: Prompt, 7: Progress, 10: Polkit)
+        if (islandState !== 11 && islandState !== 10 && islandState !== 7 && islandState !== 6 && islandState !== 5 && islandState !== 3 && State.GlobalStates.settingsOpen) {
+            State.GlobalStates.settingsOpen = false;
+        }
+    }
     
     // Privacy mode for Lockscreen
     property bool isLocked: false
@@ -134,11 +142,17 @@ Item {
         function onCanceled() {
             if (islandWidget.islandState === 6) {
                 islandWidget.islandState = islandWidget.previousState || 0;
+                if (islandWidget.islandState === 11) {
+                    islandWidget.previousState = 0;
+                }
             }
         }
         function onSubmitted(text) {
             if (islandWidget.islandState === 6) {
                 islandWidget.islandState = islandWidget.previousState || 0;
+                if (islandWidget.islandState === 11) {
+                    islandWidget.previousState = 0;
+                }
             }
         }
     }
@@ -165,6 +179,9 @@ Item {
         function onPolkitRequestFinished() {
             if (islandWidget.islandState === 10) {
                 islandWidget.islandState = islandWidget.previousState || 0;
+                if (islandWidget.islandState === 11) {
+                    islandWidget.previousState = 0;
+                }
             }
         }
     }
@@ -179,7 +196,9 @@ Item {
                 islandWidget.islandState = 11;
             } else {
                 if (islandWidget.islandState === 11) {
-                    islandWidget.islandState = islandWidget.previousState || 0;
+                    var targetState = islandWidget.previousState;
+                    if (targetState === 11) targetState = 0;
+                    islandWidget.islandState = targetState || 0;
                 }
             }
         }

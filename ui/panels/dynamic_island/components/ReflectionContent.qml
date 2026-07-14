@@ -56,6 +56,7 @@ Item {
             'import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"] }',
             root
         );
+        p.exited.connect(function() { p.destroy(); });
         p.running = true;
     }
 

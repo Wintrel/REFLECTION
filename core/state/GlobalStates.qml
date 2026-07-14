@@ -69,6 +69,7 @@ Singleton {
         var stateArg = root.anyAmbientActive ? "idle" : "wake";
         var scriptPath = Quickshell.env("HOME") + "/.config/quickshell/reflection/scripts/ambient_wallpaper.sh";
         var w = Qt.createQmlObject('import Quickshell.Io; Process { command: ["bash", "' + scriptPath + '", "' + stateArg + '"] }', root);
+        w.exited.connect(function() { w.destroy(); });
         w.running = true;
     }
     

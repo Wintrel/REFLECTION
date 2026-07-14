@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Qt5Compat.GraphicalEffects
 import "../../../../core/state" as State
 import "../../../../core/services/system"
 
@@ -33,7 +34,10 @@ Item {
     RowLayout {
         id: mainLayout
         anchors.fill: parent
-        anchors.margins: 20
+        anchors.leftMargin: 20
+        anchors.rightMargin: 20
+        anchors.bottomMargin: 20
+        anchors.topMargin: 40 // Larger top margin for a better close hitbox
         spacing: 20
         
         // Left Sidebar (Navigation)..
@@ -59,11 +63,26 @@ Item {
                     clip: true
                     
                     Image {
+                        id: avatarImg
                         anchors.fill: parent
                         source: AccountService.profilePicture
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
-                        visible: source.toString() !== ""
+                        visible: false
+                    }
+                    
+                    Rectangle {
+                        id: mask
+                        anchors.fill: parent
+                        radius: parent.radius
+                        visible: false
+                    }
+                    
+                    OpacityMask {
+                        anchors.fill: parent
+                        source: avatarImg
+                        maskSource: mask
+                        visible: avatarImg.source.toString() !== ""
                     }
                     
                     Text {
@@ -72,7 +91,7 @@ Item {
                         font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                         font.pixelSize: 24
                         color: root.theme ? root.theme.textMain : "#FFF"
-                        visible: parent.children[0].source.toString() === ""
+                        visible: avatarImg.source.toString() === ""
                     }
                 }
                 

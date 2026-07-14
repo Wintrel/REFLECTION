@@ -48,6 +48,7 @@ Item {
                 'import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "focuswindow", "' + className + '"] }',
                 root
             );
+            p.exited.connect(function() { p.destroy(); });
             p.running = true;
         } else {
             if (item.appRef && typeof item.appRef.execute === "function") {

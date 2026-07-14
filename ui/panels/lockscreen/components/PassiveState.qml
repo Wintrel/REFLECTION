@@ -9,19 +9,23 @@ Item {
     property var theme: null
     
     // Time updating
+    function updateTime() {
+        var date = new Date();
+        var h = date.getHours();
+        var m = date.getMinutes();
+        timeText.text = (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m);
+        
+        dateText.text = date.toLocaleDateString(Qt.locale(), "dddd, MMMM d");
+    }
+    
+    Component.onCompleted: updateTime()
+    
+    // Time updating
     Timer {
-        interval: 1000
+        interval: 15000 // 15 seconds
         running: true
         repeat: true
-        onTriggered: {
-            var date = new Date();
-            var h = date.getHours();
-            var m = date.getMinutes();
-            timeText.text = (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m);
-            
-            var options = { weekday: 'long', month: 'long', day: 'numeric' };
-            dateText.text = date.toLocaleDateString(Qt.locale(), "dddd, MMMM d");
-        }
+        onTriggered: root.updateTime()
     }
     
     Column {

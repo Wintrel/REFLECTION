@@ -35,7 +35,7 @@ Row {
                 glowRadius: 10
                 spread: 0.1
                 color: root.theme ? Qt.rgba(root.theme.accentWorkspace.r, root.theme.accentWorkspace.g, root.theme.accentWorkspace.b, 0.6) : "#99ffffff"
-                opacity: isActive ? 1.0 : 0
+                opacity: dot.isActive ? 1.0 : 0
                 visible: opacity > 0
                 layer.enabled: true
                 Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
@@ -70,6 +70,7 @@ Row {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \\"' + dot.wsId + '\\" })"] }', root);
+                    p.exited.connect(function() { p.destroy(); });
                     p.running = true;
                 }
             }

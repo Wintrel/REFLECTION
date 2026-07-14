@@ -20,6 +20,7 @@ Item {
         onTriggered: {
             var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
             p.command = ["awww", "restore"];
+            p.exited.connect(function() { p.destroy(); });
             p.running = true;
             refreshWallpapers(); // Scan wallpapers on startup
         }
@@ -74,12 +75,14 @@ Item {
         // Save the selection
         var p2 = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         p2.command = ["sh", "-c", "echo '" + imagePath + "' > ~/.config/quickshell/reflection/.current_wallpaper"];
+        p2.exited.connect(function() { p2.destroy(); });
         p2.running = true;
         
         var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         // Extract the raw path from the file:/// url
         var rawPath = imagePath.replace("file://", "");
         p.command = ["awww", "img", rawPath, "--transition-type", trans];
+        p.exited.connect(function() { p.destroy(); });
         p.running = true;
     }
 }

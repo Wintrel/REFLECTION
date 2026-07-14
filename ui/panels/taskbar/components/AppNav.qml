@@ -118,6 +118,7 @@ Row {
                 onClicked: {
                     // Bypass the broken hyprctl lua syntax parser by directly invoking the internal dispatcher
                     var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "hl.dsp.focus({ window = \\"address:' + modelData.address + '\\" })"] }', root);
+                    p.exited.connect(function() { p.destroy(); });
                     p.running = true;
                 }
             }

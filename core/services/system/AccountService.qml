@@ -71,7 +71,8 @@ Singleton {
     
     function setRealName(newName) {
         if (!newName || newName === root.realName) return;
-        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["pkexec", "chfn", "-f", "' + newName + '", "' + root.username + '"] }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process {}', root);
+        p.command = ["pkexec", "chfn", "-f", newName, root.username];
         p.exited.connect(function(code) {
             if (code === 0) {
                 root.refreshInfo();
@@ -88,8 +89,9 @@ Singleton {
     
     function setPassword(newPass) {
         if (!newPass) return;
-        var script = "echo '" + root.username + ":" + newPass + "' > /dev/shm/.qp_uid; chmod 600 /dev/shm/.qp_uid; pkexec chpasswd < /dev/shm/.qp_uid; rm -f /dev/shm/.qp_uid";
-        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + script + '"] }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process {}', root);
+        p.command = ["pkexec", "chpasswd"];
+        p.stdinEnabled = true;
         p.exited.connect(function(code) {
             if (code === 0) {
                 State.GlobalStates.notificationTriggered();
@@ -97,5 +99,7 @@ Singleton {
             p.destroy();
         });
         p.running = true;
+        p.write(root.username + ":" + newPass + "\n");
+        p.stdinEnabled = false;
     }
 }

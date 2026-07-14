@@ -6,7 +6,7 @@ import Quickshell.Io
 import "../../../core"
 import "components"
 import Qt5Compat.GraphicalEffects
-
+import "../../../core/services/system"
 Item {
     id: root
     
@@ -103,7 +103,7 @@ Item {
             anchors.centerIn: parent
             theme: root.theme
             
-            // Clock stays fully visible, but scales down to give focus to the avatar
+            // Clock stays fully visible, but scales down to give focus to the avatar.
             opacity: 1.0
             scale: root.viewState === "passive" ? 1.0 : 0.75
             
@@ -143,7 +143,7 @@ Item {
                     Image {
                         id: avatarImg
                         anchors.fill: parent
-                        source: "file://" + Quickshell.env("HOME") + "/.face.icon"
+                        source: AccountService.profilePicture
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         visible: false
@@ -177,7 +177,7 @@ Item {
                 }
 
                 Text {
-                    text: Quickshell.env("USER") || "Unknown User"
+                    text: AccountService.realName || AccountService.username || Quickshell.env("USER") || "Unknown User"
                     font.family: root.theme ? root.theme.fontMain : "Inter"
                     font.pixelSize: 32
                     font.weight: Font.Medium
