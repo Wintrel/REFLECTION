@@ -143,7 +143,7 @@ Item {
                     Image {
                         id: avatarImg
                         anchors.fill: parent
-                        source: "file:///home/" + (Quickshell.env("USER") || "wintrel") + "/.face.icon"
+                        source: "file://" + Quickshell.env("HOME") + "/.face.icon"
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         visible: false

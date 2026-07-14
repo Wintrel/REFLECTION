@@ -30,7 +30,7 @@ Item {
     
     // Load saved wallpaper path on startup
     Process {
-        command: ["sh", "-c", "cat /home/wintrel/.config/quickshell/reflection/.current_wallpaper 2>/dev/null || true"]
+        command: ["sh", "-c", "cat ~/.config/quickshell/reflection/.current_wallpaper 2>/dev/null || true"]
         stdout: SplitParser {
             onRead: data => { 
                 if (data.trim() !== "") root.currentWallpaper = data.trim(); 
@@ -56,7 +56,7 @@ Item {
             var newList = [];
             for (var i = 0; i < files.length; i++) {
                 if (files[i] && files[i].trim() !== "") {
-                    newList.push("file:///home/wintrel/Pictures/Wallpapers/" + files[i].trim());
+                    newList.push("file://" + Quickshell.env("HOME") + "/Pictures/Wallpapers/" + files[i].trim());
                 }
             }
             root.wallpapers = newList;
@@ -73,7 +73,7 @@ Item {
         
         // Save the selection
         var p2 = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
-        p2.command = ["sh", "-c", "echo '" + imagePath + "' > /home/wintrel/.config/quickshell/reflection/.current_wallpaper"];
+        p2.command = ["sh", "-c", "echo '" + imagePath + "' > ~/.config/quickshell/reflection/.current_wallpaper"];
         p2.running = true;
         
         var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);

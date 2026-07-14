@@ -97,7 +97,7 @@ QtObject {
     }
     
     property Process statsProcess: Process {
-        command: ["python", "/home/wintrel/.config/quickshell/reflection/core/services/system/battery_poller.py", "no_asus"]
+        command: ["python", Quickshell.env("HOME") + "/.config/quickshell/reflection/core/services/system/battery_poller.py", "no_asus"]
         stdout: SplitParser {
             onRead: data => {
                 try {
@@ -192,7 +192,7 @@ QtObject {
     
     // Dedicated process for fetching only profile + limit on demand
     property Process profileProcess: Process {
-        command: ["python", "/home/wintrel/.config/quickshell/reflection/core/services/system/battery_poller.py", "profile_only"]
+        command: ["python", Quickshell.env("HOME") + "/.config/quickshell/reflection/core/services/system/battery_poller.py", "profile_only"]
         stdout: SplitParser {
             onRead: data => {
                 try {
@@ -223,7 +223,7 @@ QtObject {
 
     property Process setLimitProcess: Process {}
     function setChargeLimit(limit) {
-        setLimitProcess.command = ["python", "/home/wintrel/.config/quickshell/reflection/core/services/system/battery_poller.py", "set_limit", limit.toString()];
+        setLimitProcess.command = ["python", Quickshell.env("HOME") + "/.config/quickshell/reflection/core/services/system/battery_poller.py", "set_limit", limit.toString()];
         setLimitProcess.running = true;
         root.batteryLimit = limit; // Optimistic update
     }
@@ -231,7 +231,7 @@ QtObject {
     // One-time full charge via asusctl battery oneshot
     property Process oneshotProcess: Process {}
     function chargeFullOnce() {
-        oneshotProcess.command = ["python", "/home/wintrel/.config/quickshell/reflection/core/services/system/battery_poller.py", "set_oneshot", "true"];
+        oneshotProcess.command = ["python", Quickshell.env("HOME") + "/.config/quickshell/reflection/core/services/system/battery_poller.py", "set_oneshot", "true"];
         oneshotProcess.running = true;
         root.isOneshotCharging = true;
         OsdService.showOsd(2, 1, "battery_charging_full", "One-Shot Charge Activated", "");
@@ -239,7 +239,7 @@ QtObject {
     
     // Cancel oneshot by resetting to the current limit
     function cancelOneshot() {
-        oneshotProcess.command = ["python", "/home/wintrel/.config/quickshell/reflection/core/services/system/battery_poller.py", "set_oneshot", "false"];
+        oneshotProcess.command = ["python", Quickshell.env("HOME") + "/.config/quickshell/reflection/core/services/system/battery_poller.py", "set_oneshot", "false"];
         oneshotProcess.running = true;
         root.isOneshotCharging = false;
         OsdService.showOsd(2, 1, "battery_saver", "One-shot cancelled", "");
