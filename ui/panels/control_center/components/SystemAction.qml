@@ -8,6 +8,8 @@ Item {
     property string icon: ""
     property string label: ""
     
+    signal clicked()
+    
     height: 48
     
     Rectangle {
@@ -52,7 +54,7 @@ Item {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                console.log("Action clicked: " + root.label);
+                root.clicked();
             }
         }
     }

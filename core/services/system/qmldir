@@ -10,3 +10,4 @@ singleton NightLightService NightLightService.qml
 singleton PromptService PromptService.qml
 singleton ActionProgressService ActionProgressService.qml
 singleton PolkitAuthService 1.0 PolkitAuthService.qml
+singleton AccountService AccountService.qml

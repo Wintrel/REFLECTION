@@ -1,7 +1,7 @@
 import QtQuick
 
 Item {
-    // Colors
+    // Colors.
     property color bgBezel: "#000000" // True black for OLED
     property color bgInner: "#000000" // True black for OLED
     property color textMain: "#D4D4D8" // Soft silver (avoids OLED blooming/harshness)
@@ -9,7 +9,7 @@ Item {
     
     // Status Colors (Ghostly Stardust Palette)
     property color colorNotification: '#3F3F4A' // Muted twilight slate (subtle glow for edges)
-    property color colorMusic: '#525266' // Soft cosmic slate
+    property color colorMusic: '#525266' // Soft cosmic slate.
     property color accentWorkspace: '#1C1C24' // Deep void grey
     property color accentPrimary: '#8C8C9E' // Silver lavender (Interactive states)
     property color colorSystemShimmer: '#C0C0D0' // Bright starlight (Loading/Shimmer)
@@ -43,6 +43,9 @@ Item {
     
     property int islandHistoryW: 600
     property int islandHistoryH: 400
+    
+    property int islandSettingsW: 1000
+    property int islandSettingsH: 550
     
     // Reflection State Sizing
     property int reflectionSearchW: 450

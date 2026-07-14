@@ -19,6 +19,7 @@ Singleton {
     property bool overviewOpen: false
     property bool regionSelectorOpen: false
     property bool searchOpen: false
+    property bool settingsOpen: false
     property bool screenLocked: false
     property bool controlCenterOpen: false
     property bool screenLockContainsCharacters: false
@@ -147,6 +148,13 @@ Singleton {
         target: "wallpaperSelector"
         function toggle() {
             root.wallpaperSelectorOpen = !root.wallpaperSelectorOpen;
+        }
+    }
+    
+    IpcHandler {
+        target: "settings"
+        function toggle() {
+            root.settingsOpen = !root.settingsOpen;
         }
     }
 }

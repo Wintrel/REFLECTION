@@ -169,6 +169,22 @@ Item {
         }
     }
     
+    Connections {
+        target: State.GlobalStates
+        function onSettingsOpenChanged() {
+            if (State.GlobalStates.settingsOpen) {
+                if (islandWidget.islandState !== 11 && islandWidget.islandState !== 3) {
+                    islandWidget.previousState = islandWidget.islandState;
+                }
+                islandWidget.islandState = 11;
+            } else {
+                if (islandWidget.islandState === 11) {
+                    islandWidget.islandState = islandWidget.previousState || 0;
+                }
+            }
+        }
+    }
+    
     // Auto-dismiss timer for Action Progress success state
     Timer {
         id: actionSuccessTimer
@@ -345,19 +361,24 @@ Item {
             hoverEnabled: true
             
             onEntered: {
-                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.stop();
                 else if (islandWidget.islandState === 5) osdTimer.stop();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9) islandWidget.islandState = 1
             }
             onExited: {
-                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.restart();
                 else if (islandWidget.islandState === 5) osdTimer.restart();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9) islandWidget.islandState = 0
             }
             onClicked: {
                 if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                
+                if (islandWidget.islandState === 11) {
+                    State.GlobalStates.settingsOpen = false;
+                    return;
+                }
                 if (islandWidget.islandState === 3) {
                     if (islandWidget.previousState === 2 || islandWidget.previousState === 4 || islandWidget.previousState === 9) {
                         islandWidget.islandState = islandWidget.previousState;
@@ -391,6 +412,7 @@ Item {
                 if (reflectionContent.currentIntent === 0) return theme.reflectionGridW; // App Grid
                 return theme.reflectionFocusW; // Math / Command Intents
             }
+            if (islandState === 11) return theme.islandSettingsW; // Settings Hub
             if (islandState === 10) return theme.islandMaxW; // Polkit Auth
             if (islandState === 7) return theme.islandProgressW; // Action Progress
             if (islandState === 6) return theme.islandMaxW; // Prompt
@@ -412,6 +434,7 @@ Item {
                 else if (reflectionContent.currentIntent === 0) targetH = theme.reflectionGridH; // App Grid
                 else targetH = theme.reflectionFocusH; // Math / Command Intents
             }
+            else if (islandState === 11) targetH = theme.islandSettingsH; // Settings Hub
             else if (islandState === 10) targetH = theme.islandMaxH; // Polkit Auth
             else if (islandState === 7) targetH = theme.islandProgressH; // Action Progress
             else if (islandState === 6) targetH = theme.islandMaxH; // Prompt
@@ -517,6 +540,12 @@ Item {
 
             IslandComponents.ReflectionContent {
                 id: reflectionContent
+                islandState: islandWidget.islandState
+                theme: theme
+            }
+            
+            IslandComponents.SettingsContent {
+                id: settingsContent
                 islandState: islandWidget.islandState
                 theme: theme
             }

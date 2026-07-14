@@ -188,6 +188,14 @@ Item {
                 icon: "settings"
                 label: "Settings"
                 theme: root.theme
+                onClicked: {
+                    State.GlobalStates.settingsOpen = true;
+                    var w = root;
+                    while (w && !w.hasOwnProperty("closePanel")) {
+                        w = w.parent;
+                    }
+                    if (w) w.closePanel();
+                }
             }
             SystemAction {
                 width: (parent.width - 16) / 2
