@@ -96,6 +96,9 @@ Item {
         // Display
         { aliases: ["night light", "nightlight", "blue light"], name: "Toggle Night Light", action: "pkill wlsunset || wlsunset -T 4500 -t 3500", icon: "nightlight" },
 
+        // Customization
+        { aliases: ["wallpaper", "wallpapers", "background"], name: "Wallpaper Selector", action: "quickshell ipc -c reflection call wallpaperSelector toggle", icon: "wallpaper" },
+
         // Ambient Modes
         { aliases: ["ambient active", "active ambient", "visualizer mode"], name: "Toggle Ambient Active", action: "quickshell ipc -c reflection call ambientActive activate", icon: "graphic_eq" },
         { aliases: ["ambient idle", "idle ambient", "shimmer mode"], name: "Toggle Ambient Idle", action: "quickshell ipc -c reflection call ambientIdle activate", icon: "lens_blur" },

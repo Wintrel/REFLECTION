@@ -142,4 +142,11 @@ Singleton {
             root.ambientActiveMode = false;
         }
     }
+    
+    IpcHandler {
+        target: "wallpaperSelector"
+        function toggle() {
+            root.wallpaperSelectorOpen = !root.wallpaperSelectorOpen;
+        }
+    }
 }

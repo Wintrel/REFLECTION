@@ -10,6 +10,7 @@ import "ui/panels/lockscreen"
 import "ui/panels/screenshot"
 import "ui/panels/ambient_idle"
 import "ui/panels/edge_lighting"
+import "ui/panels/wallpaper_selector"
 
 ShellRoot {
     id: root
@@ -20,5 +21,7 @@ ShellRoot {
     AmbientIdle {}
     RegionSelector {}
     EdgeLighting {}
+    WallpaperSelector {}
+    
     Component.onCompleted: WallpaperService
 }
