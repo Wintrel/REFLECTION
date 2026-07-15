@@ -7,10 +7,38 @@ import Quickshell.Io
 import "../../../../../core/services/system"
 import "../../../../../core/state" as State
 
-Rectangle {
+// 8. Active Login Sessions..
+            ColumnLayout {
     id: root
     property var theme
 
+                Layout.fillWidth: true
+                spacing: 8
+
+                Text {
+                    text: "Active Login Sessions"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Text {
+                    text: "Current logged-in system sessions. You can terminate remote or background console sessions directly."
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 12
+                    color: root.theme ? root.theme.textSub : "#888"
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Repeater {
+                        model: AccountService.activeSessions
+                        delegate: Rectangle {
                             Layout.fillWidth: true
                             implicitHeight: 64
                             radius: 8
@@ -137,3 +165,6 @@ Rectangle {
                                 }
                             }
                         }
+                    }
+                }
+            }

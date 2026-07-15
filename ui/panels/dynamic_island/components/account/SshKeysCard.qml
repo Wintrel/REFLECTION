@@ -7,10 +7,39 @@ import Quickshell.Io
 import "../../../../../core/services/system"
 import "../../../../../core/state" as State
 
-Rectangle {
+// 7. SSH Public Keys
+            ColumnLayout {
     id: root
     property var theme
 
+                Layout.fillWidth: true
+                spacing: 8
+
+                Text {
+                    text: "SSH Public Keys"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Text {
+                    text: "Public keys in ~/.ssh directory. Copy them to add to your remote profiles (e.g., GitHub, GitLab)."
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 12
+                    color: root.theme ? root.theme.textSub : "#888"
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+                    visible: AccountService.sshKeys.length > 0
+
+                    Repeater {
+                        model: AccountService.sshKeys
+                        delegate: Rectangle {
                             Layout.fillWidth: true
                             implicitHeight: 56
                             radius: 8
@@ -91,3 +120,24 @@ Rectangle {
                                 }
                             }
                         }
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 56
+                    radius: 8
+                    color: Qt.rgba(255, 255, 255, 0.015)
+                    border.width: 1
+                    border.color: Qt.rgba(255, 255, 255, 0.04)
+                    visible: AccountService.sshKeys.length === 0
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "No SSH public keys (*.pub) found in ~/.ssh/"
+                        font.family: "Inter"
+                        font.pixelSize: 12
+                        color: root.theme ? root.theme.textSub : "#888"
+                    }
+                }
+            }

@@ -7,10 +7,38 @@ import Quickshell.Io
 import "../../../../../core/services/system"
 import "../../../../../core/state" as State
 
-Rectangle {
+// 4. Default Shell Selector
+            ColumnLayout {
     id: root
     property var theme
 
+                Layout.fillWidth: true
+                spacing: 8
+
+                Text {
+                    text: "Default Login Shell"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Text {
+                    text: "Select your default shell. Changing this requires authentication."
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 12
+                    color: root.theme ? root.theme.textSub : "#888"
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 10
+                    
+                    Repeater {
+                        model: AccountService.availableShells
+                        delegate: Rectangle {
                             width: 140
                             height: 48
                             radius: 8
@@ -66,3 +94,6 @@ Rectangle {
                                 }
                             }
                         }
+                    }
+                }
+            }

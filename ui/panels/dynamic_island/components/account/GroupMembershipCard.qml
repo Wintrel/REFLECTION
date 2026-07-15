@@ -7,7 +7,10 @@ import Quickshell.Io
 import "../../../../../core/services/system"
 import "../../../../../core/state" as State
 
-Rectangle {
+// 6. Group Membership
+            ColumnLayout {
+    id: root
+    property var theme
     property var commonGroups: [
         { name: "wheel", label: "Administrators", desc: "Allows administrative actions via sudo/pkexec", icon: "security" },
         { name: "docker", label: "Docker Engine", desc: "Allows container management without sudo", icon: "layers" },
@@ -18,9 +21,33 @@ Rectangle {
         { name: "storage", label: "Device Storage", desc: "Direct mounting of external drives/filesystems", icon: "usb" }
     ]
 
-    id: root
-    property var theme
+                Layout.fillWidth: true
+                spacing: 8
 
+                Text {
+                    text: "System Group Memberships"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Text {
+                    text: "Manage access to hardware, containers, and administration. Group changes require authentication and system relog to apply."
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 12
+                    color: root.theme ? root.theme.textSub : "#888"
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Repeater {
+                        model: root.commonGroups
+                        delegate: Rectangle {
                             Layout.fillWidth: true
                             implicitHeight: 64
                             radius: 8
@@ -85,3 +112,6 @@ Rectangle {
                                 }
                             }
                         }
+                    }
+                }
+            }

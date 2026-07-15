@@ -7,10 +7,23 @@ import Quickshell.Io
 import "../../../../../core/services/system"
 import "../../../../../core/state" as State
 
-Rectangle {
+// 5. Storage Quota
+            ColumnLayout {
     id: root
     property var theme
 
+                Layout.fillWidth: true
+                spacing: 8
+
+                Text {
+                    text: "Home Storage Quota"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 80
                     radius: 8
@@ -77,3 +90,4 @@ Rectangle {
                         }
                     }
                 }
+            }

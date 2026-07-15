@@ -7,7 +7,10 @@ import Quickshell.Io
 import "../../../../../core/services/system"
 import "../../../../../core/state" as State
 
-Rectangle {
+// 3. Password
+            ColumnLayout {
+    id: root
+    property var theme
     property int passStrength: {
         var pass = passInput.text;
         if (pass.length === 0) return 0;
@@ -20,9 +23,31 @@ Rectangle {
         return score; // 0 to 5
     }
 
-    id: root
-    property var theme
+                Layout.fillWidth: true
+                spacing: 8
 
+                Text {
+                    text: "Password"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Text {
+                    text: "You will be prompted to authenticate with your old password."
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 12
+                    color: root.theme ? root.theme.textSub : "#888"
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 12
+
+                    Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 40
                         radius: 6
@@ -77,3 +102,88 @@ Rectangle {
                             }
                         }
                     }
+
+                    Rectangle {
+                        Layout.preferredWidth: 80
+                        Layout.preferredHeight: 40
+                        radius: 6
+                        color: maPass.containsMouse ? "#ff4444" : Qt.rgba(255, 68, 68, 0.1)
+                        border.width: 1
+                        border.color: maPass.containsMouse ? "#ff4444" : Qt.rgba(255, 68, 68, 0.2)
+                        opacity: passInput.text.length > 0 ? 1.0 : 0.5
+                        scale: maPass.containsMouse && passInput.text.length > 0 ? 1.03 : 1.0
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on border.color { ColorAnimation { duration: 150 } }
+                        Behavior on scale { NumberAnimation { duration: 150 } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Change"
+                            font.family: root.theme ? root.theme.fontMain : "Inter"
+                            font.pixelSize: 13
+                            font.weight: Font.Medium
+                            color: maPass.containsMouse && passInput.text.length > 0 ? "#FFF" : "#ff4444"
+                        }
+
+                        MouseArea {
+                            id: maPass
+                            anchors.fill: parent
+                            hoverEnabled: passInput.text.length > 0
+                            cursorShape: hoverEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                            onClicked: {
+                                if (passInput.text.length > 0) {
+                                    AccountService.setPassword(passInput.text);
+                                    passInput.text = ""; // clear after submitting
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Password strength bar indicators
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    visible: passInput.text.length > 0
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+                        
+                        Repeater {
+                            model: 5
+                            delegate: Rectangle {
+                                Layout.fillWidth: true
+                                height: 4
+                                radius: 2
+                                color: {
+                                    if (index < root.passStrength) {
+                                        if (root.passStrength <= 2) return "#ff4444"; // Weak - Red
+                                        if (root.passStrength <= 4) return "#ffbb33"; // Medium - Orange
+                                        return "#00C851"; // Strong - Green
+                                    } else {
+                                        return Qt.rgba(255, 255, 255, 0.1);
+                                    }
+                                }
+                                Behavior on color { ColorAnimation { duration: 150 } }
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: {
+                            if (root.passStrength === 0) return "";
+                            if (root.passStrength <= 2) return "Weak password";
+                            if (root.passStrength <= 4) return "Moderate password";
+                            return "Strong password";
+                        }
+                        font.family: "Inter"
+                        font.pixelSize: 11
+                        color: {
+                            if (root.passStrength <= 2) return "#ff4444";
+                            if (root.passStrength <= 4) return "#ffbb33";
+                            return "#00C851";
+                        }
+                    }
+                }
+            }

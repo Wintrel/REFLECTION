@@ -7,7 +7,8 @@ import Quickshell.Io
 import "../../../../../core/services/system"
 import "../../../../../core/state" as State
 
-Rectangle {
+// 1. Unified Profile Card
+            Rectangle {
     id: root
     property var theme
 
