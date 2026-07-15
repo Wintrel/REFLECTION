@@ -12,6 +12,16 @@ Item {
     Layout.fillWidth: true
     Layout.fillHeight: true
     
+    property var commonGroups: [
+        { name: "wheel", label: "Administrators", desc: "Allows administrative actions via sudo/pkexec", icon: "security" },
+        { name: "docker", label: "Docker Engine", desc: "Allows container management without sudo", icon: "layers" },
+        { name: "video", label: "Video Hardware", desc: "GPU, webcam, and direct framebuffer access", icon: "videocam" },
+        { name: "audio", label: "Audio Hardware", desc: "Direct access to sound card and MIDI hardware", icon: "volume_up" },
+        { name: "input", label: "Input Devices", desc: "Access raw mouse, keyboard, and controller devices", icon: "keyboard" },
+        { name: "i2c", label: "System Sensors", desc: "Hardware monitor sensors and backlight control", icon: "thermostat" },
+        { name: "storage", label: "Device Storage", desc: "Direct mounting of external drives/filesystems", icon: "usb" }
+    ]
+    
     property int passStrength: {
         var pass = passInput.text;
         if (pass.length === 0) return 0;
@@ -407,6 +417,104 @@ Item {
                     }
 
                     Rectangle {
+                        id: uidCard
+                        Layout.fillWidth: true
+                        implicitHeight: 52
+                        radius: 8
+                        color: maUidRow.containsMouse ? Qt.rgba(255, 255, 255, 0.04) : Qt.rgba(255, 255, 255, 0.02)
+                        border.width: 1
+                        border.color: maUidRow.containsMouse ? Qt.rgba(255, 255, 255, 0.08) : Qt.rgba(255, 255, 255, 0.04)
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on border.color { ColorAnimation { duration: 150 } }
+                        
+                        MouseArea { id: maUidRow; anchors.fill: parent; hoverEnabled: true }
+                        
+                        Text {
+                            id: uidIcon
+                            anchors.left: parent.left
+                            anchors.leftMargin: 16
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "fingerprint"
+                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                            font.pixelSize: 20
+                            color: root.theme ? root.theme.accentPrimary : "#AAA"
+                        }
+                        
+                        Column {
+                            anchors.left: uidIcon.right
+                            anchors.leftMargin: 16
+                            anchors.right: parent.right
+                            anchors.rightMargin: 16
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 2
+                            
+                            Text {
+                                text: "User ID (UID)"
+                                color: root.theme ? root.theme.textSub : "#888"
+                                font.family: "Inter"
+                                font.pixelSize: 10
+                                font.weight: Font.Light
+                            }
+                            Text {
+                                text: AccountService.uid
+                                color: root.theme ? root.theme.textMain : "#FFF"
+                                font.family: "Inter"
+                                font.pixelSize: 13
+                                font.weight: Font.Medium
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        id: gidCard
+                        Layout.fillWidth: true
+                        implicitHeight: 52
+                        radius: 8
+                        color: maGidRow.containsMouse ? Qt.rgba(255, 255, 255, 0.04) : Qt.rgba(255, 255, 255, 0.02)
+                        border.width: 1
+                        border.color: maGidRow.containsMouse ? Qt.rgba(255, 255, 255, 0.08) : Qt.rgba(255, 255, 255, 0.04)
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on border.color { ColorAnimation { duration: 150 } }
+                        
+                        MouseArea { id: maGidRow; anchors.fill: parent; hoverEnabled: true }
+                        
+                        Text {
+                            id: gidIcon
+                            anchors.left: parent.left
+                            anchors.leftMargin: 16
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "badge"
+                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                            font.pixelSize: 20
+                            color: root.theme ? root.theme.accentPrimary : "#AAA"
+                        }
+                        
+                        Column {
+                            anchors.left: gidIcon.right
+                            anchors.leftMargin: 16
+                            anchors.right: parent.right
+                            anchors.rightMargin: 16
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 2
+                            
+                            Text {
+                                text: "Primary Group ID (GID)"
+                                color: root.theme ? root.theme.textSub : "#888"
+                                font.family: "Inter"
+                                font.pixelSize: 10
+                                font.weight: Font.Light
+                            }
+                            Text {
+                                text: AccountService.gid
+                                color: root.theme ? root.theme.textMain : "#FFF"
+                                font.family: "Inter"
+                                font.pixelSize: 13
+                                font.weight: Font.Medium
+                            }
+                        }
+                    }
+
+                    Rectangle {
                         id: groupsCard
                         Layout.fillWidth: true
                         implicitHeight: Math.max(52, groupsColumn.implicitHeight + 16)
@@ -703,6 +811,564 @@ Item {
                             if (root.passStrength <= 2) return "#ff4444";
                             if (root.passStrength <= 4) return "#ffbb33";
                             return "#00C851";
+                        }
+                    }
+                }
+            }
+
+            // 4. Default Shell Selector
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Text {
+                    text: "Default Login Shell"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Text {
+                    text: "Select your default shell. Changing this requires authentication."
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 12
+                    color: root.theme ? root.theme.textSub : "#888"
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 10
+                    
+                    Repeater {
+                        model: AccountService.availableShells
+                        delegate: Rectangle {
+                            width: 140
+                            height: 48
+                            radius: 8
+                            color: isCurrent ? Qt.rgba(255, 255, 255, 0.08) : (maShell.containsMouse ? Qt.rgba(255, 255, 255, 0.04) : Qt.rgba(255, 255, 255, 0.02))
+                            border.width: 1
+                            border.color: isCurrent ? (root.theme ? root.theme.accentPrimary : "#AAA") : (maShell.containsMouse ? Qt.rgba(255, 255, 255, 0.1) : Qt.rgba(255, 255, 255, 0.04))
+                            Behavior on color { ColorAnimation { duration: 150 } }
+                            Behavior on border.color { ColorAnimation { duration: 150 } }
+                            scale: maShell.containsMouse ? 1.03 : 1.0
+                            Behavior on scale { NumberAnimation { duration: 100 } }
+
+                            readonly property string shellPath: modelData
+                            readonly property bool isCurrent: {
+                                var p1 = shellPath.split("/").pop();
+                                var p2 = AccountService.loginShell.split("/").pop();
+                                return p1 === p2;
+                            }
+
+                            MouseArea {
+                                id: maShell
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    AccountService.setShell(shellPath);
+                                }
+                            }
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 12
+                                anchors.rightMargin: 12
+                                spacing: 8
+
+                                Text {
+                                    text: isCurrent ? "radio_button_checked" : "radio_button_unchecked"
+                                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                    font.pixelSize: 16
+                                    color: isCurrent ? (root.theme ? root.theme.accentPrimary : "#AAA") : (root.theme ? root.theme.textSub : "#888")
+                                }
+
+                                Text {
+                                    text: {
+                                        var p = shellPath.split("/");
+                                        return p[p.length - 1];
+                                    }
+                                    font.family: "Inter"
+                                    font.pixelSize: 13
+                                    font.weight: isCurrent ? Font.Medium : Font.Normal
+                                    color: root.theme ? root.theme.textMain : "#FFF"
+                                    Layout.fillWidth: true
+                                    elide: Text.ElideRight
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 5. Storage Quota
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Text {
+                    text: "Home Storage Quota"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 80
+                    radius: 8
+                    color: Qt.rgba(255, 255, 255, 0.02)
+                    border.width: 1
+                    border.color: Qt.rgba(255, 255, 255, 0.04)
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 16
+                        spacing: 16
+
+                        Text {
+                            text: "storage"
+                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                            font.pixelSize: 28
+                            color: root.theme ? root.theme.accentPrimary : "#AAA"
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: "Home Partition (" + AccountService.homeDir + ")"
+                                    font.family: "Inter"
+                                    font.pixelSize: 13
+                                    font.weight: Font.Medium
+                                    color: root.theme ? root.theme.textMain : "#FFF"
+                                }
+                                Item { Layout.fillWidth: true }
+                                Text {
+                                    text: AccountService.storageUsage.used + " / " + AccountService.storageUsage.size + " (" + AccountService.storageUsage.percent + "% used)"
+                                    font.family: "Inter"
+                                    font.pixelSize: 12
+                                    color: root.theme ? root.theme.textSub : "#888"
+                                }
+                            }
+
+                            // Progress Bar Track
+                            Rectangle {
+                                Layout.fillWidth: true
+                                height: 6
+                                radius: 3
+                                color: Qt.rgba(255, 255, 255, 0.08)
+
+                                // Progress Fill
+                                Rectangle {
+                                    width: parent.width * (AccountService.storageUsage.percent / 100.0)
+                                    height: parent.height
+                                    radius: parent.radius
+                                    color: {
+                                        var pct = AccountService.storageUsage.percent;
+                                        if (pct > 85) return "#ff4444";
+                                        if (pct > 65) return "#ffbb33";
+                                        return root.theme ? root.theme.accentPrimary : "#C0C0D0";
+                                    }
+                                    Behavior on width { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
+                                    Behavior on color { ColorAnimation { duration: 150 } }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 6. Group Membership
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Text {
+                    text: "System Group Memberships"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Text {
+                    text: "Manage access to hardware, containers, and administration. Group changes require authentication and system relog to apply."
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 12
+                    color: root.theme ? root.theme.textSub : "#888"
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Repeater {
+                        model: root.commonGroups
+                        delegate: Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: 64
+                            radius: 8
+                            color: isMember ? Qt.rgba(255, 255, 255, 0.04) : (maGroupCard.containsMouse ? Qt.rgba(255, 255, 255, 0.03) : Qt.rgba(255, 255, 255, 0.015))
+                            border.width: 1
+                            border.color: isMember ? (root.theme ? root.theme.accentPrimary : "#AAA") : (maGroupCard.containsMouse ? Qt.rgba(255, 255, 255, 0.08) : Qt.rgba(255, 255, 255, 0.04))
+                            Behavior on color { ColorAnimation { duration: 150 } }
+                            Behavior on border.color { ColorAnimation { duration: 150 } }
+                            scale: maGroupCard.containsMouse ? 1.01 : 1.0
+                            Behavior on scale { NumberAnimation { duration: 100 } }
+
+                            readonly property string gName: modelData.name
+                            readonly property bool isMember: AccountService.userGroupsList.indexOf(gName) !== -1
+
+                            MouseArea {
+                                id: maGroupCard
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    AccountService.toggleGroupMembership(gName, !isMember);
+                                }
+                            }
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 16
+                                anchors.rightMargin: 16
+                                spacing: 16
+
+                                Text {
+                                    text: modelData.icon
+                                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                    font.pixelSize: 22
+                                    color: isMember ? (root.theme ? root.theme.accentPrimary : "#AAA") : (root.theme ? root.theme.textSub : "#888")
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
+                                    Text {
+                                        text: modelData.label + " (" + gName + ")"
+                                        font.family: "Inter"
+                                        font.pixelSize: 13
+                                        font.weight: Font.Medium
+                                        color: root.theme ? root.theme.textMain : "#FFF"
+                                    }
+                                    Text {
+                                        text: modelData.desc
+                                        font.family: "Inter"
+                                        font.pixelSize: 11
+                                        color: root.theme ? root.theme.textSub : "#888"
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                Text {
+                                    text: isMember ? "check_circle" : "add_circle_outline"
+                                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                    font.pixelSize: 20
+                                    color: isMember ? "#4ADE80" : (root.theme ? root.theme.textSub : "#888")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 7. SSH Public Keys
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Text {
+                    text: "SSH Public Keys"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Text {
+                    text: "Public keys in ~/.ssh directory. Copy them to add to your remote profiles (e.g., GitHub, GitLab)."
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 12
+                    color: root.theme ? root.theme.textSub : "#888"
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+                    visible: AccountService.sshKeys.length > 0
+
+                    Repeater {
+                        model: AccountService.sshKeys
+                        delegate: Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: 56
+                            radius: 8
+                            color: Qt.rgba(255, 255, 255, 0.02)
+                            border.width: 1
+                            border.color: Qt.rgba(255, 255, 255, 0.04)
+
+                            property bool justCopied: false
+
+                            Timer {
+                                id: copyTimer
+                                interval: 2000
+                                onTriggered: justCopied = false
+                            }
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 16
+                                anchors.rightMargin: 16
+                                spacing: 16
+
+                                Text {
+                                    text: "key"
+                                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                    font.pixelSize: 20
+                                    color: root.theme ? root.theme.accentPrimary : "#AAA"
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
+                                    Text {
+                                        text: modelData.name
+                                        font.family: "Inter"
+                                        font.pixelSize: 13
+                                        font.weight: Font.Medium
+                                        color: root.theme ? root.theme.textMain : "#FFF"
+                                    }
+                                    Text {
+                                        text: modelData.type + (modelData.comment ? " • " + modelData.comment : "")
+                                        font.family: "Inter"
+                                        font.pixelSize: 11
+                                        color: root.theme ? root.theme.textSub : "#888"
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                Rectangle {
+                                    Layout.preferredWidth: justCopied ? 85 : 70
+                                    Layout.preferredHeight: 32
+                                    radius: 6
+                                    color: justCopied ? "#00C851" : (maCopy.containsMouse ? (root.theme ? root.theme.accentPrimary : "#555") : Qt.rgba(255, 255, 255, 0.08))
+                                    border.width: 1
+                                    border.color: justCopied ? "#00C851" : (maCopy.containsMouse ? (root.theme ? root.theme.accentPrimary : "#555") : Qt.rgba(255, 255, 255, 0.04))
+                                    Behavior on color { ColorAnimation { duration: 150 } }
+                                    Behavior on border.color { ColorAnimation { duration: 150 } }
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: justCopied ? "Copied!" : "Copy"
+                                        font.family: "Inter"
+                                        font.pixelSize: 12
+                                        font.weight: Font.Medium
+                                        color: justCopied || maCopy.containsMouse ? "#000" : (root.theme ? root.theme.textMain : "#FFF")
+                                    }
+
+                                    MouseArea {
+                                        id: maCopy
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            AccountService.copyToClipboard(modelData.content);
+                                            justCopied = true;
+                                            copyTimer.restart();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 56
+                    radius: 8
+                    color: Qt.rgba(255, 255, 255, 0.015)
+                    border.width: 1
+                    border.color: Qt.rgba(255, 255, 255, 0.04)
+                    visible: AccountService.sshKeys.length === 0
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "No SSH public keys (*.pub) found in ~/.ssh/"
+                        font.family: "Inter"
+                        font.pixelSize: 12
+                        color: root.theme ? root.theme.textSub : "#888"
+                    }
+                }
+            }
+
+            // 8. Active Login Sessions
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                Text {
+                    text: "Active Login Sessions"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+
+                Text {
+                    text: "Current logged-in system sessions. You can terminate remote or background console sessions directly."
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 12
+                    color: root.theme ? root.theme.textSub : "#888"
+                    Layout.fillWidth: true
+                    wrapMode: Text.Wrap
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Repeater {
+                        model: AccountService.activeSessions
+                        delegate: Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: 64
+                            radius: 8
+                            color: isCurrentSession ? Qt.rgba(255, 255, 255, 0.04) : (maSessionCard.containsMouse ? Qt.rgba(255, 255, 255, 0.03) : Qt.rgba(255, 255, 255, 0.015))
+                            border.width: 1
+                            border.color: isCurrentSession ? (root.theme ? root.theme.accentPrimary : "#AAA") : (maSessionCard.containsMouse ? Qt.rgba(255, 255, 255, 0.08) : Qt.rgba(255, 255, 255, 0.04))
+                            Behavior on color { ColorAnimation { duration: 150 } }
+                            Behavior on border.color { ColorAnimation { duration: 150 } }
+
+                            readonly property string sId: modelData.id
+                            readonly property string sType: modelData.type
+                            readonly property string sTty: modelData.tty
+                            readonly property string sDesktop: modelData.desktop
+                            readonly property bool isCurrentSession: Quickshell.env("XDG_SESSION_ID") === sId
+
+                            MouseArea {
+                                id: maSessionCard
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: isCurrentSession ? Qt.ArrowCursor : Qt.PointingHandCursor
+                            }
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 16
+                                anchors.rightMargin: 16
+                                spacing: 16
+
+                                Text {
+                                    text: sType === "wayland" || sType === "x11" ? "desktop_windows" : "terminal"
+                                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                    font.pixelSize: 22
+                                    color: isCurrentSession ? (root.theme ? root.theme.accentPrimary : "#AAA") : (root.theme ? root.theme.textSub : "#888")
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
+                                    Text {
+                                        text: {
+                                            var desc = "";
+                                            if (sDesktop) desc += sDesktop + " (";
+                                            desc += sType.charAt(0).toUpperCase() + sType.slice(1);
+                                            if (sDesktop) desc += ")";
+                                            if (sTty) desc += " on " + sTty;
+                                            return desc;
+                                        }
+                                        font.family: "Inter"
+                                        font.pixelSize: 13
+                                        font.weight: Font.Medium
+                                        color: root.theme ? root.theme.textMain : "#FFF"
+                                    }
+                                    Text {
+                                        text: "Active for " + modelData.duration + (modelData.service ? " • via " + modelData.service : "")
+                                        font.family: "Inter"
+                                        font.pixelSize: 11
+                                        color: root.theme ? root.theme.textSub : "#888"
+                                        elide: Text.ElideRight
+                                    }
+                                }
+
+                                // Status Badge / Terminate Button
+                                Item {
+                                    Layout.preferredWidth: badgeContainer.implicitWidth
+                                    Layout.preferredHeight: 32
+
+                                    RowLayout {
+                                        id: badgeContainer
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 8
+
+                                        // Current badge
+                                        Rectangle {
+                                            visible: isCurrentSession
+                                            height: 24
+                                            width: 75
+                                            radius: 12
+                                            color: Qt.rgba(74, 222, 128, 0.15)
+                                            border.width: 1
+                                            border.color: "#4ADE80"
+                                            
+                                            Text {
+                                                anchors.centerIn: parent
+                                                text: "Current"
+                                                font.family: "Inter"
+                                                font.pixelSize: 11
+                                                font.weight: Font.Bold
+                                                color: "#4ADE80"
+                                            }
+                                        }
+
+                                        // Terminate Button
+                                        Rectangle {
+                                            visible: !isCurrentSession
+                                            height: 32
+                                            width: 85
+                                            radius: 6
+                                            color: maTerm.containsMouse ? "#ff4444" : Qt.rgba(255, 68, 68, 0.1)
+                                            border.width: 1
+                                            border.color: maTerm.containsMouse ? "#ff4444" : Qt.rgba(255, 68, 68, 0.2)
+                                            Behavior on color { ColorAnimation { duration: 150 } }
+                                            Behavior on border.color { ColorAnimation { duration: 150 } }
+
+                                            Text {
+                                                anchors.centerIn: parent
+                                                text: "Terminate"
+                                                font.family: "Inter"
+                                                font.pixelSize: 12
+                                                font.weight: Font.Medium
+                                                color: maTerm.containsMouse ? "#FFF" : "#ff4444"
+                                            }
+
+                                            MouseArea {
+                                                id: maTerm
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    AccountService.terminateSession(sId);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
