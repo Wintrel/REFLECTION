@@ -44,6 +44,9 @@ Item {
     property int islandHistoryW: 600
     property int islandHistoryH: 400
     
+    property int islandCiderW: 1300
+    property int islandCiderH: 600
+    
     property int islandSettingsW: 1100
     property int islandSettingsH: 650
     

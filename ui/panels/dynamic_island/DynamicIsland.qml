@@ -33,8 +33,8 @@ Scope {
             color: "transparent"
             
             // Lock the Wayland surface size to the maximum possible bounds to prevent resizing wobble
-            implicitWidth: Math.max(theme.islandMaxW, theme.islandHistoryW || 0, theme.reflectionGridW || 800, theme.islandSettingsW || 800) + (2 * theme.radiusIsland)
-            implicitHeight: Math.max(theme.islandMaxH, theme.islandHistoryH || 0, theme.reflectionGridH || 600, theme.islandSettingsH || 600) + theme.radiusIsland
+            implicitWidth: Math.max(theme.islandMaxW, theme.islandHistoryW || 0, theme.reflectionGridW || 800, theme.islandSettingsW || 800, theme.islandCiderW || 0, theme.islandFilePickerW || 1000) + (2 * theme.radiusIsland)
+            implicitHeight: Math.max(theme.islandMaxH, theme.islandHistoryH || 0, theme.reflectionGridH || 600, theme.islandSettingsH || 600, theme.islandCiderH || 0, theme.islandFilePickerH || 600) + theme.radiusIsland
             
             // Mask the input/visual region exactly to the opaque pixels of the container
             // This perfectly prevents the window from blocking clicks on the desktop!

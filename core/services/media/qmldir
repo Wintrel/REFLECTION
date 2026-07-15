@@ -1,1 +1,2 @@
 singleton CavaService CavaService.qml
+singleton CiderService CiderService.qml

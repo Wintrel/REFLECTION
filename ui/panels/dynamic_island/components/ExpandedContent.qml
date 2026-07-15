@@ -155,22 +155,63 @@ Item {
         Item {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            width: batteryRow.width
+            width: batteryRow.width + expandBtn.width + 16
             height: batteryRow.height
             
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (typeof islandWidget !== "undefined") {
-                        islandWidget.islandState = 9; // Switch to Battery View
+            Row {
+                id: expandRow
+                anchors.right: parent.right
+                spacing: 16
+                
+                Item {
+                    id: expandBtn
+                    width: 24
+                    height: 24
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.mprisPlayer && root.mprisPlayer.identity === "Cider"
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: "open_in_full"
+                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                        font.pixelSize: 18
+                        color: root.theme ? root.theme.textSub : "#A6ADC8"
+                        scale: expandMa.pressed ? 0.9 : (expandMa.containsMouse ? 1.1 : 1)
+                        opacity: expandMa.pressed ? 0.7 : 1
+                        Behavior on scale { NumberAnimation { duration: 150 } }
+                    }
+                    
+                    MouseArea {
+                        id: expandMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (typeof islandWidget !== "undefined") {
+                                islandWidget.islandState = 13;
+                            }
+                        }
                     }
                 }
-            }
-            
-            Row {
-                id: batteryRow
+                
+                Item {
+                    width: batteryRow.width
+                    height: batteryRow.height
+                    anchors.verticalCenter: parent.verticalCenter
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (typeof islandWidget !== "undefined") {
+                                islandWidget.islandState = 9; // Switch to Battery View
+                            }
+                        }
+                    }
+                    
+                    Row {
+                        id: batteryRow
                 spacing: 6
                 Text {
                     text: BatteryService.percentage + "%"
@@ -197,6 +238,8 @@ Item {
             }
         }
     }
+}
+}
     
     // Main Content
     Item {

@@ -10,6 +10,7 @@ import QtMultimedia
 import "../../../core" as Core
 import "../../../core/state" as State
 import "../../../core/services/system"
+import "../../../core/services/media"
 import "../../components" as Components
 import "./components" as IslandComponents
 
@@ -302,85 +303,11 @@ Item {
         }
     }
     
-    // MPRIS Player Tracking
-    property int currentPlayerIndex: 0
-    property var mprisPlayer: null
+    // MPRIS / Cider Player Tracking
+    property var mprisPlayer: CiderService.activePlayer
     
     function cyclePlayer() {
-        if (playerInst) {
-            playerInst.cyclePlayer();
-        }
-    }
-    
-    Instantiator {
-        id: playerInst
-        model: Mpris.players
-        
-        delegate: Item {
-            visible: false
-            property var playerItem: modelData
-            
-            // Re-evaluate whenever playback state changes
-            Connections {
-                target: playerItem
-                function onIsPlayingChanged() { playerInst.updatePlayer(); }
-                function onLengthChanged() { playerInst.updatePlayer(); }
-            }
-            
-            // Auto-pause media when entering Ambient Idle
-            Connections {
-                target: State.GlobalStates
-                function onAmbientIdleActiveChanged() {
-                    if (State.GlobalStates.ambientIdleActive && playerItem && playerItem.isPlaying) {
-                        playerItem.pause();
-                    }
-                }
-            }
-        }
-        
-        function updatePlayer() {
-            if (playerInst.count === 0) {
-                islandWidget.mprisPlayer = null;
-                return;
-            }
-            
-            var bestPlayer = null;
-            var bestScore = -1;
-            
-            for (var i = 0; i < playerInst.count; i++) {
-                var p = playerInst.objectAt(i).playerItem;
-                if (!p) continue;
-                
-                var score = 0;
-                // Priority 1: Actively playing
-                if (p.isPlaying) score = 10;
-                
-                // Priority 2: Has a track loaded (length > 0)
-                if (p.length > 0) score += 2;
-                
-                // Bias towards currently selected player to prevent jitter
-                if (islandWidget.mprisPlayer && islandWidget.mprisPlayer === p) {
-                    score += 0.5;
-                }
-                
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestPlayer = p;
-                    islandWidget.currentPlayerIndex = i;
-                }
-            }
-            
-            islandWidget.mprisPlayer = bestPlayer;
-        }
-        
-        function cyclePlayer() {
-            if (playerInst.count <= 1) return;
-            islandWidget.currentPlayerIndex = (islandWidget.currentPlayerIndex + 1) % playerInst.count;
-            islandWidget.mprisPlayer = playerInst.objectAt(islandWidget.currentPlayerIndex).playerItem;
-        }
-        
-        onObjectAdded: updatePlayer()
-        onObjectRemoved: updatePlayer()
+        // cycling could be implemented in CiderService if multiple fallbacks are needed
     }
 
     // The actual island container (Outer Bezel)
@@ -398,13 +325,13 @@ Item {
                 if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.stop();
                 else if (islandWidget.islandState === 5) osdTimer.stop();
-                else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9) islandWidget.islandState = 1
+                else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9 && islandWidget.islandState !== 13) islandWidget.islandState = 1
             }
             onExited: {
                 if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.restart();
                 else if (islandWidget.islandState === 5) osdTimer.restart();
-                else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9) islandWidget.islandState = 0
+                else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9 && islandWidget.islandState !== 13) islandWidget.islandState = 0
             }
             onClicked: {
                 if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
@@ -429,7 +356,7 @@ Item {
                     islandWidget.previousState = 0;
                 } else if (islandWidget.islandState === 4) {
                     islandWidget.islandState = 0;
-                } else if (islandWidget.islandState === 2 || islandWidget.islandState === 9) {
+                } else if (islandWidget.islandState === 2 || islandWidget.islandState === 9 || islandWidget.islandState === 13) {
                     islandWidget.islandState = containsMouse ? 1 : 0
                 } else {
                     islandWidget.islandState = 2
@@ -450,6 +377,7 @@ Item {
                 if (reflectionContent.currentIntent === 0) return theme.reflectionGridW; // App Grid
                 return theme.reflectionFocusW; // Math / Command Intents
             }
+            if (islandState === 13) return theme.islandCiderW; // Cider Ultra Expanded
             if (islandState === 12) return theme.islandFilePickerW; // File Picker
             if (islandState === 11) return theme.islandSettingsW; // Settings Hub
             if (islandState === 10) return theme.islandMaxW; // Polkit Auth
@@ -473,6 +401,7 @@ Item {
                 else if (reflectionContent.currentIntent === 0) targetH = theme.reflectionGridH; // App Grid
                 else targetH = theme.reflectionFocusH; // Math / Command Intents
             }
+            else if (islandState === 13) targetH = theme.islandCiderH; // Cider Ultra Expanded
             else if (islandState === 12) targetH = theme.islandFilePickerH; // File Picker
             else if (islandState === 11) targetH = theme.islandSettingsH; // Settings Hub
             else if (islandState === 10) targetH = theme.islandMaxH; // Polkit Auth
@@ -601,6 +530,14 @@ Item {
                 theme: theme
                 islandBatteryW: theme.islandBatteryW
                 islandBatteryH: theme.islandBatteryH
+            }
+
+            IslandComponents.CiderHubContent {
+                islandState: islandWidget.islandState
+                mprisPlayer: islandWidget.mprisPlayer
+                theme: theme
+                islandCiderW: theme.islandCiderW
+                islandCiderH: theme.islandCiderH
             }
 
             // Ambient hide shimmer sweep overlay
