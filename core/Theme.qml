@@ -44,8 +44,8 @@ Item {
     property int islandHistoryW: 600
     property int islandHistoryH: 400
     
-    property int islandSettingsW: 1000
-    property int islandSettingsH: 550
+    property int islandSettingsW: 1100
+    property int islandSettingsH: 650
     
     // Reflection State Sizing
     property int reflectionSearchW: 450

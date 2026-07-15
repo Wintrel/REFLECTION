@@ -16,9 +16,7 @@ Item {
     property bool isActive: islandState === 11
     opacity: isActive ? 1 : 0
     visible: opacity > 0
-    Behavior on opacity {
-        NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
-    }
+    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
     
     // State to track selected category
     property int currentCategory: 0
@@ -46,6 +44,24 @@ Item {
             Layout.maximumWidth: 220
             Layout.fillHeight: true
             spacing: 24
+            
+            // Materialization transition
+            opacity: root.isActive ? 1 : 0
+            transform: Translate {
+                y: root.isActive ? 0 : 15
+                Behavior on y {
+                    SequentialAnimation {
+                        PauseAnimation { duration: root.isActive ? 0 : 100 }
+                        NumberAnimation { duration: 400; easing.type: Easing.OutExpo }
+                    }
+                }
+            }
+            Behavior on opacity {
+                SequentialAnimation {
+                    PauseAnimation { duration: root.isActive ? 0 : 100 }
+                    NumberAnimation { duration: 300; easing.type: Easing.OutSine }
+                }
+            }
             
             // Profile Section
             RowLayout {
@@ -181,12 +197,39 @@ Item {
             Layout.fillHeight: true
             width: 1
             color: Qt.rgba(255, 255, 255, 0.1)
+            
+            // Materialization transition
+            opacity: root.isActive ? 1 : 0
+            Behavior on opacity {
+                SequentialAnimation {
+                    PauseAnimation { duration: root.isActive ? 50 : 50 }
+                    NumberAnimation { duration: 300; easing.type: Easing.OutSine }
+                }
+            }
         }
         
         // Right Content Area
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            
+            // Materialization transition
+            opacity: root.isActive ? 1 : 0
+            transform: Translate {
+                y: root.isActive ? 0 : 15
+                Behavior on y {
+                    SequentialAnimation {
+                        PauseAnimation { duration: root.isActive ? 100 : 0 }
+                        NumberAnimation { duration: 400; easing.type: Easing.OutExpo }
+                    }
+                }
+            }
+            Behavior on opacity {
+                SequentialAnimation {
+                    PauseAnimation { duration: root.isActive ? 100 : 0 }
+                    NumberAnimation { duration: 300; easing.type: Easing.OutSine }
+                }
+            }
             
             // Content Header
             Text {
