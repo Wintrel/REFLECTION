@@ -28,8 +28,8 @@ Item {
     
     onIslandStateChanged: {
         // Keep global state synced if the island closes or morphs away from settings
-        // Do not close settings if transitioning to transient states (3: Notif, 5: OSD, 6: Prompt, 7: Progress, 10: Polkit)
-        if (islandState !== 11 && islandState !== 10 && islandState !== 7 && islandState !== 6 && islandState !== 5 && islandState !== 3 && State.GlobalStates.settingsOpen) {
+        // Do not close settings if transitioning to transient states (3: Notif, 5: OSD, 6: Prompt, 7: Progress, 10: Polkit, 12: FilePicker)
+        if (islandState !== 12 && islandState !== 11 && islandState !== 10 && islandState !== 7 && islandState !== 6 && islandState !== 5 && islandState !== 3 && State.GlobalStates.settingsOpen) {
             State.GlobalStates.settingsOpen = false;
         }
     }
@@ -394,13 +394,13 @@ Item {
             hoverEnabled: true
             
             onEntered: {
-                if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.stop();
                 else if (islandWidget.islandState === 5) osdTimer.stop();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9) islandWidget.islandState = 1
             }
             onExited: {
-                if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) notifTimer.restart();
                 else if (islandWidget.islandState === 5) osdTimer.restart();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9) islandWidget.islandState = 0
@@ -408,8 +408,9 @@ Item {
             onClicked: {
                 if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 
-                if (islandWidget.islandState === 11) {
+                if (islandWidget.islandState === 11 || islandWidget.islandState === 12) {
                     State.GlobalStates.settingsOpen = false;
+                    State.GlobalStates.closeFilePicker();
                     return;
                 }
                 if (islandWidget.islandState === 3) {

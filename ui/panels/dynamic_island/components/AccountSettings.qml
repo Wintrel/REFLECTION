@@ -5,6 +5,7 @@ import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
 import "../../../../core/services/system"
+import "../../../../core/state" as State
 
 Item {
     id: root
@@ -1199,7 +1200,7 @@ Item {
                 }
             }
 
-            // 8. Active Login Sessions.
+            // 8. Active Login Sessions..
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 8
