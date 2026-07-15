@@ -70,11 +70,20 @@ function updateQueue() {
             state.queue = data.map(item => {
                 var attr = item.attributes || {};
                 var artwork = attr.artwork ? attr.artwork.url.replace("{w}", "100").replace("{h}", "100") : "";
+                
+                var totalSeconds = Math.floor((attr.durationInMillis || 0) / 1000);
+                var durationStr = Math.floor(totalSeconds / 60) + ":" + ((totalSeconds % 60) < 10 ? "0" : "") + (totalSeconds % 60);
+                
                 return {
                     id: item.id || "",
                     title: attr.name || "",
                     artist: attr.artistName || "",
-                    artwork: artwork
+                    album: attr.albumName || "",
+                    artwork: artwork,
+                    duration: durationStr,
+                    isExplicit: attr.contentRating === "explicit",
+                    inFavorites: !!attr.inFavorites,
+                    traits: attr.audioTraits || []
                 };
             });
             printState();
