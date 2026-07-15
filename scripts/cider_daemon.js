@@ -47,6 +47,7 @@ function updateNowPlaying() {
             state.trackTitle = data.info.name || "";
             state.trackArtist = data.info.artistName || "";
             state.trackArtUrl = data.info.artwork ? data.info.artwork.url.replace("{w}", "600").replace("{h}", "600") : "";
+            state.trackId = data.info.playParams && data.info.playParams.id ? data.info.playParams.id : "";
             state.length = Math.floor((data.info.durationInMillis || 0) * 1000); 
             state.shuffleMode = data.info.shuffleMode || 0;
             state.repeatMode = data.info.repeatMode || 0;
@@ -147,6 +148,58 @@ rl.on('line', function(line){
             method: "POST", 
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "position": val / 1000000.0 })
+        });
+    } else if (line.startsWith("skipToId ")) {
+        const targetId = line.split(" ")[1];
+        if (state.queue && state.trackId) {
+            const currentIndex = state.queue.findIndex(item => item.id === state.trackId);
+            const targetIndex = state.queue.findIndex(item => item.id === targetId);
+            
+            if (currentIndex !== -1 && targetIndex !== -1) {
+                const diff = targetIndex - currentIndex;
+                if (diff !== 0) {
+                    const endpoint = diff > 0 ? "next" : "previous";
+                    const steps = Math.abs(diff);
+                    let p = Promise.resolve();
+                    for (let i = 0; i < steps; i++) {
+                        p = p.then(() => fetch("http://127.0.0.1:10767/api/v1/playback/" + endpoint, { method: "POST", headers: { "apptoken": TOKEN }}));
+                    }
+                }
+            }
+        }
+    } else if (line.startsWith("search ")) {
+        const query = line.substring(7).trim();
+        fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
+            method: "POST",
+            headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
+            body: JSON.stringify({ "path": "/v1/catalog/us/search?term=" + encodeURIComponent(query) + "&types=songs" })
+        }).then(res => res.json()).then(data => {
+            let results = [];
+            try {
+                if (data.results && data.results.songs && data.results.songs.data) {
+                    results = data.results.songs.data.map(song => {
+                        const attr = song.attributes || {};
+                        return {
+                            id: song.id || (attr.playParams ? attr.playParams.id : ""),
+                            name: attr.name || "",
+                            artistName: attr.artistName || "",
+                            albumName: attr.albumName || "",
+                            durationInMillis: attr.durationInMillis || 0,
+                            contentRating: attr.contentRating || "",
+                            audioTraits: attr.audioTraits || [],
+                            artwork: attr.artwork ? attr.artwork.url.replace("{w}", "600").replace("{h}", "600") : ""
+                        };
+                    });
+                }
+            } catch (e) {}
+            console.log(JSON.stringify({ __type: "search", results: results }));
+        }).catch((e) => { console.error("Search error:", e); });
+    } else if (line.startsWith("playTrack ")) {
+        const id = line.split(" ")[1];
+        fetch("http://127.0.0.1:10767/api/v1/playback/play-item", {
+            method: "POST",
+            headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
+            body: JSON.stringify({ "type": "songs", "id": id })
         });
     } else if (line.trim() === "queue") {
         updateQueue();

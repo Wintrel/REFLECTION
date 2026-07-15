@@ -19,7 +19,7 @@ Scope {
             required property var modelData
             screen: modelData
 
-            WlrLayershell.keyboardFocus: (widget.islandState === 6 || widget.islandState === 8 || widget.islandState === 10) ? WlrKeyboardFocus.Exclusive : ((widget.islandState === 11 || widget.islandState === 12) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None)
+            WlrLayershell.keyboardFocus: (widget.islandState === 6 || widget.islandState === 8 || widget.islandState === 10) ? WlrKeyboardFocus.Exclusive : ((widget.islandState === 11 || widget.islandState === 12 || widget.islandState === 13) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None)
             
             // Anchor only to the top, so it centers horizontally by default
             anchors {

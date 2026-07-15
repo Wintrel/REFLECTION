@@ -18,6 +18,7 @@ Singleton {
     property bool canSeek: true
     property string identity: "Cider"
     property var queue: []
+    property var searchResults: []
     property int shuffleMode: 0
     property int repeatMode: 0
     property bool inFavorites: false
@@ -90,7 +91,10 @@ Singleton {
                 if (line.trim() === "") return;
                 try {
                     var parsed = JSON.parse(line);
-                    if (parsed.trackTitle !== undefined) {
+                    if (parsed.__type === "search") {
+                        root.searchResults = []; // Force change signal
+                        root.searchResults = parsed.results || [];
+                    } else if (parsed.trackTitle !== undefined) {
                         root._isDaemonUpdate = true;
                         root.isPlaying = parsed.isPlaying;
                         root.trackTitle = parsed.trackTitle;
@@ -139,6 +143,18 @@ Singleton {
     
     function toggleRepeat() {
         ciderDaemon.write("toggleRepeat\n");
+    }
+    
+    function skipToId(id) {
+        if (id) ciderDaemon.write("skipToId " + id + "\n");
+    }
+    
+    function playTrack(id) {
+        if (id) ciderDaemon.write("playTrack " + id + "\n");
+    }
+    
+    function search(query) {
+        if (query) ciderDaemon.write("search " + query + "\n");
     }
     
     function setVolume(v) {

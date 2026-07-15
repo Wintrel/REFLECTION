@@ -166,7 +166,9 @@ Rectangle {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    // Potentially send playtrack command
+                    if (root.mprisPlayer && typeof root.mprisPlayer.skipToId === 'function') {
+                        root.mprisPlayer.skipToId(modelData.id);
+                    }
                 }
             }
         }
