@@ -13,6 +13,7 @@ Singleton {
     property string homeDir: Quickshell.env("HOME") || ""
     property string groups: ""
     property string profilePicture: ""
+    property string bannerPicture: ""
     
     property bool isLoaded: false
     
@@ -59,6 +60,35 @@ Singleton {
         }
     }
     
+    // Static Process for checking banner
+    Process {
+        id: procBannerCheck
+        command: ["sh", "-c", "if [ -f ~/.face_banner ]; then echo \"file://$HOME/.face_banner\"; fi"]
+        stdout: SplitParser {
+            onRead: data => {
+                var path = data.trim();
+                if (path.length > 0) {
+                    root.bannerPicture = path + "?t=" + new Date().getTime();
+                } else {
+                    root.bannerPicture = "";
+                }
+            }
+        }
+    }
+    
+    // Static Process for picking and setting banner
+    Process {
+        id: procSetBanner
+        command: ["sh", "-c", "FILE=$(zenity --file-selection --title=\"Select Banner Picture\" 2>/dev/null); if [ -n \"$FILE\" ]; then cp \"$FILE\" ~/.face_banner; echo \"SUCCESS\"; fi"]
+        stdout: SplitParser {
+            onRead: data => {
+                if (data.trim() === "SUCCESS") {
+                    root.refreshInfo();
+                }
+            }
+        }
+    }
+    
     Component.onCompleted: {
         refreshInfo();
     }
@@ -66,6 +96,7 @@ Singleton {
     function refreshInfo() {
         procInfo.running = true;
         procPicCheck.running = true;
+        procBannerCheck.running = true;
         root.isLoaded = true;
     }
     
@@ -85,6 +116,10 @@ Singleton {
     
     function pickAndSetProfilePicture() {
         procSetPic.running = true;
+    }
+    
+    function pickAndSetBannerPicture() {
+        procSetBanner.running = true;
     }
     
     function setPassword(newPass) {

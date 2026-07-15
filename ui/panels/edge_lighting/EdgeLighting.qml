@@ -6,10 +6,11 @@ import "../../components" as Components
 import "../../../core" as Core
 import "../../../core/state" as State
 import "../../../core/services/system"
+import "../../../core/monitors"
 
 Scope {
     Variants {
-        model: Quickshell.screens
+        model: MonitorService.anchorScreens
 
         delegate: PanelWindow {
             id: edgeWindow
@@ -37,9 +38,14 @@ Scope {
             Connections {
                 target: State.GlobalStates
                 function onNotificationTriggered() {
-                    if (edgeWindow.isPromptActive) return; // Don't interrupt prompt lighting
+                    console.log("EdgeLighting: notificationTriggered signal received!");
+                    if (edgeWindow.isPromptActive) {
+                        console.log("EdgeLighting: prompt is active, ignoring notification");
+                        return;
+                    }
                     edgeWindow.currentColor = theme.colorNotification;
                     edgeWindow.isActive = true;
+                    console.log("EdgeLighting: isActive set to true (notification), currentColor:", edgeWindow.currentColor);
                     hideTimer.restart();
                 }
             }
@@ -49,16 +55,19 @@ Scope {
             Connections {
                 target: PromptService
                 function onPromptRequested() {
+                    console.log("EdgeLighting: promptRequested signal received!");
                     edgeWindow.isPromptActive = true;
                     edgeWindow.currentColor = theme.accentPrimary;
                     edgeWindow.isActive = true;
                     hideTimer.stop();
                 }
                 function onCanceled() {
+                    console.log("EdgeLighting: prompt canceled");
                     edgeWindow.isPromptActive = false;
                     edgeWindow.isActive = false;
                 }
                 function onSubmitted() {
+                    console.log("EdgeLighting: prompt submitted");
                     edgeWindow.isPromptActive = false;
                     edgeWindow.isActive = false;
                 }
@@ -67,20 +76,26 @@ Scope {
             Connections {
                 target: PolkitAuthService
                 function onPolkitRequestStarted() {
+                    console.log("EdgeLighting: polkitRequestStarted signal received!");
                     edgeWindow.isPromptActive = true;
                     edgeWindow.currentColor = "#ff4444"; // Aggressive red for Polkit
                     edgeWindow.isActive = true;
                     hideTimer.stop();
                 }
                 function onPolkitRequestFinished() {
+                    console.log("EdgeLighting: polkitRequestFinished");
                     edgeWindow.isPromptActive = false;
                     edgeWindow.isActive = false;
                 }
             }
+            
+            onIsActiveChanged: {
+                console.log("EdgeLighting isActive changed to:", isActive, "dimensions:", width, "x", height, "currentColor:", currentColor);
+            }
 
             Timer {
                 id: hideTimer
-                interval: 5000 // 5 seconds of edge glow
+                interval: 5000 // 5 seconds of edge glow.
                 onTriggered: {
                     if (!edgeWindow.isPromptActive) {
                         edgeWindow.isActive = false;
@@ -92,6 +107,7 @@ Scope {
                 id: visualContainer
                 anchors.fill: parent
                 opacity: edgeWindow.isActive ? 1 : 0
+                visible: opacity > 0
                 Behavior on opacity {
                     NumberAnimation {
                         duration: 800
@@ -99,52 +115,140 @@ Scope {
                     }
                 }
 
-                // Deep Void Glow (Using two rectangles for an intense soft glow)
+                // Top Edge Glow
                 Rectangle {
-                    anchors.fill: parent
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 100
                     color: "transparent"
-                    border.width: 15
-                    border.color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, 0.5)
-                    
-                    layer.enabled: true
-                    layer.effect: GaussianBlur {
-                        radius: 80
-                        samples: 128
-                        transparentBorder: true
-                    }
-                }
-                
-                Rectangle {
-                    anchors.fill: parent
-                    color: "transparent"
-                    border.width: 4
-                    border.color: edgeWindow.currentColor
-                    
-                    layer.enabled: true
-                    layer.effect: GaussianBlur {
-                        radius: 20
-                        samples: 32
-                        transparentBorder: true
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, 0.6) }
+                        GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
 
-                // Edge Starfield
-                Item {
-                    anchors.fill: parent
-                    layer.enabled: true
-                    layer.effect: OpacityMask {
-                        maskSource: Rectangle {
-                            width: visualContainer.width
-                            height: visualContainer.height
-                            color: "transparent"
-                            border.color: "black"
-                            border.width: 150 // The stars will only show within 150px of the edge
-                        }
+                // Bottom Edge Glow
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 100
+                    color: "transparent"
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: "transparent" }
+                        GradientStop { position: 1.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, 0.6) }
                     }
-                    
+                }
+
+                // Left Edge Glow
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 100
+                    color: "transparent"
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, 0.6) }
+                        GradientStop { position: 1.0; color: "transparent" }
+                    }
+                }
+
+                // Right Edge Glow
+                Rectangle {
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 100
+                    color: "transparent"
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: "transparent" }
+                        GradientStop { position: 1.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, 0.6) }
+                    }
+                }
+
+                // Inner sharp focus border lines (4px)
+                Rectangle {
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 4
+                    color: edgeWindow.currentColor
+                }
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 4
+                    color: edgeWindow.currentColor
+                }
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 4
+                    color: edgeWindow.currentColor
+                }
+                Rectangle {
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 4
+                    color: edgeWindow.currentColor
+                }
+
+                // Segmented Edge Starfields (avoiding OpacityMask shader compiler issues)
+                // Top Starfield
+                Item {
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 150
+                    clip: true
                     Components.Starfield {
                         anchors.fill: parent
-                        starCount: 150 // Dense starry edge
+                        starCount: 40
+                        starColor: theme.textMain
+                    }
+                }
+                // Bottom Starfield
+                Item {
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 150
+                    clip: true
+                    Components.Starfield {
+                        anchors.fill: parent
+                        starCount: 40
+                        starColor: theme.textMain
+                    }
+                }
+                // Left Starfield
+                Item {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 150
+                    clip: true
+                    Components.Starfield {
+                        anchors.fill: parent
+                        starCount: 40
+                        starColor: theme.textMain
+                    }
+                }
+                // Right Starfield
+                Item {
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: 150
+                    clip: true
+                    Components.Starfield {
+                        anchors.fill: parent
+                        starCount: 40
                         starColor: theme.textMain
                     }
                 }
