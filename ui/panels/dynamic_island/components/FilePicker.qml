@@ -9,6 +9,7 @@ import "../../../../core/state" as State
 
 Item {
     id: root
+    anchors.fill: parent
 
     property var theme
     property int islandState
@@ -23,12 +24,19 @@ Item {
     opacity: isActive ? 1 : 0
     Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
 
+    Timer {
+        id: startTimer
+        interval: 10
+        onTriggered: procLister.running = true
+    }
+
     onIsActiveChanged: {
         if (isActive) {
             if (currentPath === "") {
                 currentPath = AccountService.homeDir || "/home/" + (Quickshell.env("USER") || "fuyumi");
             } else {
-                procLister.running = true;
+                procLister.running = false;
+                startTimer.restart();
             }
             selectedFile = "";
         }
@@ -36,7 +44,8 @@ Item {
 
     onCurrentPathChanged: {
         if (isActive && currentPath !== "") {
-            procLister.running = true;
+            procLister.running = false;
+            startTimer.restart();
         }
     }
 
@@ -111,9 +120,12 @@ Item {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             var p = root.currentPath.split("/");
-                            if (p.length > 2) {
+                            if (p.length > 1) {
                                 p.pop();
-                                root.currentPath = p.join("/");
+                                var newPath = p.join("/") || "/";
+                                if (newPath !== root.currentPath) {
+                                    root.currentPath = newPath;
+                                }
                             }
                         }
                     }
@@ -214,309 +226,192 @@ Item {
                 }
             }
 
-            // 2. MAIN WORKSPACE (Sidebar, Grid Explorer, Details Panel)
+            // 1.5. PLACES SHORTCUTS
             RowLayout {
                 Layout.fillWidth: true
+                spacing: 8
+                
+                Text {
+                    text: "PLACES"
+                    font.family: "Inter"
+                    font.pixelSize: 10
+                    font.weight: Font.Medium
+                    color: Qt.rgba(255, 255, 255, 0.4)
+                    Layout.rightMargin: 8
+                }
+                
+                Repeater {
+                    model: [
+                        { name: "Home", icon: "home", path: AccountService.homeDir },
+                        { name: "Pictures", icon: "image", path: AccountService.homeDir + "/Pictures" },
+                        { name: "Downloads", icon: "download", path: AccountService.homeDir + "/Downloads" },
+                        { name: "Documents", icon: "description", path: AccountService.homeDir + "/Documents" }
+                    ]
+
+                    delegate: Rectangle {
+                        implicitHeight: 28
+                        implicitWidth: placeRow.implicitWidth + 24
+                        radius: 14
+                        color: root.currentPath === modelData.path ? Qt.rgba(255, 255, 255, 0.1) : (maShort.containsMouse ? Qt.rgba(255, 255, 255, 0.05) : "transparent")
+                        border.width: 1
+                        border.color: root.currentPath === modelData.path ? (root.theme ? root.theme.accentPrimary : "#AAA") : Qt.rgba(255, 255, 255, 0.1)
+
+                        RowLayout {
+                            id: placeRow
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            Text {
+                                text: modelData.icon
+                                font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                font.pixelSize: 14
+                                color: root.currentPath === modelData.path ? (root.theme ? root.theme.accentPrimary : "#AAA") : Qt.rgba(255, 255, 255, 0.7)
+                            }
+
+                            Text {
+                                text: modelData.name
+                                font.family: "Inter"
+                                font.pixelSize: 11
+                                font.weight: Font.Medium
+                                color: root.currentPath === modelData.path ? "#FFF" : Qt.rgba(255, 255, 255, 0.8)
+                            }
+                        }
+
+                        MouseArea {
+                            id: maShort
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                root.currentPath = modelData.path;
+                            }
+                        }
+                    }
+                }
+                
+                Item { Layout.fillWidth: true } // spacer
+            }
+
+            // 2. MAIN WORKSPACE (Grid Explorer Only)
+            Item {
+                Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: 12
 
-                // A. Left Shortcuts Sidebar
-                ColumnLayout {
-                    Layout.preferredWidth: 140
-                    Layout.fillHeight: true
-                    spacing: 4
-
-                    Text {
-                        text: "PLACES"
-                        font.family: "Inter"
-                        font.pixelSize: 10
-                        font.weight: Font.Light
-                        color: Qt.rgba(255, 255, 255, 0.3)
-                        Layout.bottomMargin: 4
+                ScrollView {
+                    anchors.fill: parent
+                    clip: true
+                    
+                    // Added a subtle background for the grid area to make it distinct
+                    Rectangle {
+                        anchors.fill: parent
+                        color: Qt.rgba(0, 0, 0, 0.2)
+                        radius: 8
+                        border.width: 1
+                        border.color: Qt.rgba(255, 255, 255, 0.03)
                     }
 
-                    Repeater {
-                        model: [
-                            { name: "Home", icon: "home", path: AccountService.homeDir },
-                            { name: "Pictures", icon: "image", path: AccountService.homeDir + "/Pictures" },
-                            { name: "Downloads", icon: "download", path: AccountService.homeDir + "/Downloads" },
-                            { name: "Documents", icon: "description", path: AccountService.homeDir + "/Documents" },
-                            { name: "Desktop", icon: "desktop_windows", path: AccountService.homeDir + "/Desktop" }
-                        ]
+                    GridView {
+                        id: gridView
+                        anchors.fill: parent
+                        anchors.margins: 16
+                        model: fileModel
+                        cellWidth: 154
+                        cellHeight: 168
+                        clip: true
 
                         delegate: Rectangle {
-                            Layout.fillWidth: true
-                            implicitHeight: 34
-                            radius: 6
-                            color: root.currentPath === modelData.path ? Qt.rgba(255, 255, 255, 0.06) : (maShort.containsMouse ? Qt.rgba(255, 255, 255, 0.03) : "transparent")
+                            width: 142
+                            height: 156
+                            radius: 12
+                            color: root.selectedFile === model.path ? Qt.rgba(255, 255, 255, 0.08) : (maCell.containsMouse ? Qt.rgba(255, 255, 255, 0.03) : "transparent")
                             border.width: 1
-                            border.color: root.currentPath === modelData.path ? (root.theme ? root.theme.accentPrimary : "#AAA") : "transparent"
+                            border.color: root.selectedFile === model.path ? (root.theme ? root.theme.accentPrimary : "#AAA") : "transparent"
 
-                            RowLayout {
+                            ColumnLayout {
                                 anchors.fill: parent
-                                anchors.leftMargin: 8
-                                anchors.rightMargin: 8
+                                anchors.margins: 8
                                 spacing: 8
 
-                                Text {
-                                    text: modelData.icon
-                                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                                    font.pixelSize: 16
-                                    color: root.currentPath === modelData.path ? (root.theme ? root.theme.accentPrimary : "#AAA") : Qt.rgba(255, 255, 255, 0.7)
+                                // Thumbnail or Folder icon
+                                Item {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+
+                                    // Folder Icon
+                                    Text {
+                                        visible: model.isDir
+                                        anchors.centerIn: parent
+                                        text: "folder"
+                                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                        font.pixelSize: 64
+                                        color: root.theme ? root.theme.accentPrimary : "#4b96ff"
+                                    }
+
+                                    // File Icon (if not an image)
+                                    Text {
+                                        visible: !model.isDir && root.filterMode !== "images"
+                                        anchors.centerIn: parent
+                                        text: "insert_drive_file"
+                                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                        font.pixelSize: 64
+                                        color: Qt.rgba(255, 255, 255, 0.4)
+                                    }
+
+                                    // Image thumbnail
+                                    Image {
+                                        visible: !model.isDir && root.filterMode === "images"
+                                        anchors.fill: parent
+                                        source: (!model.isDir && root.filterMode === "images") ? "file://" + model.path : ""
+                                        fillMode: Image.PreserveAspectCrop
+                                        asynchronous: true
+                                        cache: true
+                                        clip: true
+                                        
+                                        // Smooth rounded mask for thumbnails
+                                        layer.enabled: true
+                                        layer.effect: OpacityMask {
+                                            maskSource: Rectangle {
+                                                width: 126
+                                                height: 110
+                                                radius: 8
+                                            }
+                                        }
+                                    }
                                 }
 
+                                // Item Label Name
                                 Text {
-                                    text: modelData.name
+                                    text: model.name
                                     font.family: "Inter"
                                     font.pixelSize: 12
-                                    color: root.currentPath === modelData.path ? "#FFF" : Qt.rgba(255, 255, 255, 0.8)
+                                    font.weight: root.selectedFile === model.path ? Font.Medium : Font.Normal
+                                    color: root.selectedFile === model.path ? "#FFF" : Qt.rgba(255, 255, 255, 0.8)
                                     Layout.fillWidth: true
-                                    elide: Text.ElideRight
+                                    horizontalAlignment: Text.AlignHCenter
+                                    elide: Text.ElideMiddle
                                 }
                             }
 
                             MouseArea {
-                                id: maShort
+                                id: maCell
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    root.currentPath = modelData.path;
-                                }
-                            }
-                        }
-                    }
-
-                    Item { Layout.fillHeight: true } // spacer
-                }
-
-                // Divider line
-                Rectangle {
-                    width: 1
-                    Layout.fillHeight: true
-                    color: Qt.rgba(255, 255, 255, 0.06)
-                }
-
-                // B. Middle File Grid Explorer
-                Item {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    ScrollView {
-                        anchors.fill: parent
-                        clip: true
-
-                        GridView {
-                            id: gridView
-                            anchors.fill: parent
-                            model: fileModel
-                            cellWidth: 88
-                            cellHeight: 96
-                            clip: true
-
-                            delegate: Rectangle {
-                                width: 80
-                                height: 88
-                                radius: 8
-                                color: root.selectedFile === path ? Qt.rgba(255, 255, 255, 0.08) : (maCell.containsMouse ? Qt.rgba(255, 255, 255, 0.03) : "transparent")
-                                border.width: 1
-                                border.color: root.selectedFile === path ? (root.theme ? root.theme.accentPrimary : "#AAA") : "transparent"
-
-                                ColumnLayout {
-                                    anchors.fill: parent
-                                    anchors.margins: 6
-                                    spacing: 4
-
-                                    // Thumbnail or Folder icon
-                                    Item {
-                                        Layout.fillWidth: true
-                                        Layout.fillHeight: true
-
-                                        // Folder Icon
-                                        Text {
-                                            visible: isDir
-                                            anchors.centerIn: parent
-                                            text: "folder"
-                                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                                            font.pixelSize: 42
-                                            color: root.theme ? root.theme.accentPrimary : "#4b96ff"
-                                        }
-
-                                        // File Icon (if not an image)
-                                        Text {
-                                            visible: !isDir && root.filterMode !== "images"
-                                            anchors.centerIn: parent
-                                            text: "insert_drive_file"
-                                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                                            font.pixelSize: 42
-                                            color: Qt.rgba(255, 255, 255, 0.4)
-                                        }
-
-                                        // Image thumbnail
-                                        Image {
-                                            visible: !isDir
-                                            anchors.fill: parent
-                                            source: "file://" + path
-                                            fillMode: Image.PreserveAspectCrop
-                                            asynchronous: true
-                                            cache: true
-                                            clip: true
-                                            
-                                            // Smooth rounded mask for thumbnails
-                                            layer.enabled: true
-                                            layer.effect: OpacityMask {
-                                                maskSource: Rectangle {
-                                                    width: 68
-                                                    height: 52
-                                                    radius: 4
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    // Item Label Name
-                                    Text {
-                                        text: name
-                                        font.family: "Inter"
-                                        font.pixelSize: 11
-                                        color: root.selectedFile === path ? "#FFF" : Qt.rgba(255, 255, 255, 0.8)
-                                        Layout.fillWidth: true
-                                        horizontalAlignment: Text.AlignHCenter
-                                        elide: Text.ElideMiddle
+                                    if (model.isDir) {
+                                        root.currentPath = model.path;
+                                    } else {
+                                        root.selectedFile = model.path;
                                     }
                                 }
-
-                                MouseArea {
-                                    id: maCell
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        if (isDir) {
-                                            root.currentPath = path;
-                                        } else {
-                                            root.selectedFile = path;
-                                        }
+                                onDoubleClicked: {
+                                    if (!model.isDir) {
+                                        root.selectedFile = model.path;
+                                        if (root.callback) root.callback(root.selectedFile);
+                                        State.GlobalStates.closeFilePicker();
                                     }
                                 }
                             }
-                        }
-                    }
-                }
-
-                // Divider line
-                Rectangle {
-                    width: 1
-                    Layout.fillHeight: true
-                    color: Qt.rgba(255, 255, 255, 0.06)
-                }
-
-                // C. Right Details Panel (Displays details & preview for selected file)
-                Rectangle {
-                    Layout.preferredWidth: 200
-                    Layout.fillHeight: true
-                    radius: 8
-                    color: Qt.rgba(255, 255, 255, 0.015)
-                    border.width: 1
-                    border.color: Qt.rgba(255, 255, 255, 0.04)
-
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 12
-
-                        Text {
-                            text: "PREVIEW"
-                            font.family: "Inter"
-                            font.pixelSize: 10
-                            font.weight: Font.Bold
-                            color: Qt.rgba(255, 255, 255, 0.3)
-                        }
-
-                        // Placeholder when no file is selected
-                        ColumnLayout {
-                            visible: root.selectedFile === ""
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            spacing: 8
-                            
-                            Item { Layout.fillHeight: true }
-                            
-                            Text {
-                                text: "image"
-                                font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                                font.pixelSize: 48
-                                color: Qt.rgba(255, 255, 255, 0.1)
-                                Layout.alignment: Qt.AlignHCenter
-                            }
-                            Text {
-                                text: "Select an image"
-                                font.family: "Inter"
-                                font.pixelSize: 12
-                                color: Qt.rgba(255, 255, 255, 0.4)
-                                Layout.alignment: Qt.AlignHCenter
-                            }
-                            
-                            Item { Layout.fillHeight: true }
-                        }
-
-                        // File details view
-                        ColumnLayout {
-                            visible: root.selectedFile !== ""
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            spacing: 8
-
-                            // Large image preview container
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 120
-                                radius: 6
-                                color: "#000"
-                                clip: true
-
-                                Image {
-                                    id: previewImg
-                                    anchors.fill: parent
-                                    source: root.selectedFile !== "" ? "file://" + root.selectedFile : ""
-                                    fillMode: Image.PreserveAspectFit
-                                    asynchronous: true
-                                }
-                            }
-
-                            // File Name
-                            Text {
-                                text: {
-                                    var p = root.selectedFile.split("/");
-                                    return p[p.length - 1];
-                                }
-                                font.family: "Inter"
-                                font.pixelSize: 12
-                                font.weight: Font.Medium
-                                color: "#FFF"
-                                Layout.fillWidth: true
-                                wrapMode: Text.Wrap
-                            }
-
-                            // File Size
-                            Text {
-                                text: {
-                                    // Search model for matching item size
-                                    for (var i = 0; i < fileModel.count; i++) {
-                                        var item = fileModel.get(i);
-                                        if (item.path === root.selectedFile) {
-                                            return "Size: " + item.size;
-                                        }
-                                    }
-                                    return "";
-                                }
-                                font.family: "Inter"
-                                font.pixelSize: 11
-                                color: Qt.rgba(255, 255, 255, 0.5)
-                                Layout.fillWidth: true
-                            }
-
-                            Item { Layout.fillHeight: true }
                         }
                     }
                 }
@@ -569,7 +464,7 @@ Item {
                     width: 70
                     height: 32
                     radius: 6
-                    color: root.selectedFile !== "" ? (maSelectBtn.containsMouse ? (root.theme ? root.theme.accentPrimary : "#AAA") : Qt.rgba(root.theme ? root.theme.accentPrimary : "#AAA", 0.8)) : Qt.rgba(255, 255, 255, 0.02)
+                    color: root.selectedFile !== "" ? (maSelectBtn.containsMouse ? (root.theme ? root.theme.accentPrimary : "#AAA") : Qt.alpha(root.theme ? root.theme.accentPrimary : "#AAA", 0.8)) : Qt.rgba(255, 255, 255, 0.02)
                     border.width: 1
                     border.color: root.selectedFile !== "" ? "transparent" : Qt.rgba(255, 255, 255, 0.04)
 

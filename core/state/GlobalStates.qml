@@ -168,6 +168,7 @@ Singleton {
         root.filePickerTitle = title || "Select File";
         root.filePickerFilterMode = filterMode || "all";
         root.filePickerCallback = callback;
+        if (root.filePickerOpen) root.filePickerOpen = false;
         root.filePickerOpen = true;
     }
     

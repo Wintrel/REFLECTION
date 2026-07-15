@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 import os
 import sys
 import json
@@ -25,6 +25,7 @@ def main():
     path = os.path.abspath(path)
     if not os.path.exists(path) or not os.path.isdir(path):
         print(json.dumps({"error": "Directory does not exist", "path": path, "items": []}))
+        sys.stdout.flush()
         return
 
     try:
@@ -56,8 +57,10 @@ def main():
         # Sort directories first, then files
         items.sort(key=lambda x: (not x["isDir"], x["name"].lower()))
         print(json.dumps({"path": path, "items": items}))
+        sys.stdout.flush()
     except Exception as e:
         print(json.dumps({"error": str(e), "path": path, "items": []}))
+        sys.stdout.flush()
 
 if __name__ == "__main__":
     main()

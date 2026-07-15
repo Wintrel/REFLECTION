@@ -29,8 +29,9 @@ Item {
     onIslandStateChanged: {
         // Keep global state synced if the island closes or morphs away from settings
         // Do not close settings if transitioning to transient states (3: Notif, 5: OSD, 6: Prompt, 7: Progress, 10: Polkit, 12: FilePicker)
-        if (islandState !== 12 && islandState !== 11 && islandState !== 10 && islandState !== 7 && islandState !== 6 && islandState !== 5 && islandState !== 3 && State.GlobalStates.settingsOpen) {
-            State.GlobalStates.settingsOpen = false;
+        if (islandState !== 12 && islandState !== 11 && islandState !== 10 && islandState !== 7 && islandState !== 6 && islandState !== 5 && islandState !== 3) {
+            if (State.GlobalStates.settingsOpen) State.GlobalStates.settingsOpen = false;
+            if (State.GlobalStates.filePickerOpen) State.GlobalStates.closeFilePicker();
         }
     }
     
@@ -408,9 +409,12 @@ Item {
             onClicked: {
                 if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 
-                if (islandWidget.islandState === 11 || islandWidget.islandState === 12) {
-                    State.GlobalStates.settingsOpen = false;
+                if (islandWidget.islandState === 12) {
                     State.GlobalStates.closeFilePicker();
+                    return;
+                }
+                if (islandWidget.islandState === 11) {
+                    State.GlobalStates.settingsOpen = false;
                     return;
                 }
                 if (islandWidget.islandState === 3) {
