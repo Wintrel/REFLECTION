@@ -32,6 +32,11 @@ Singleton {
     property bool workspaceShowNumbers: false
     property bool bottomPanelOpen: false
     property bool dndEnabled: false
+    
+    property bool filePickerOpen: false
+    property string filePickerTitle: "Select File"
+    property string filePickerFilterMode: "all"
+    property var filePickerCallback: null
 
     property alias notificationHistory: historyModel
     ListModel {
@@ -157,5 +162,16 @@ Singleton {
         function toggle() {
             root.settingsOpen = !root.settingsOpen;
         }
+    }
+
+    function openFilePicker(title, filterMode, callback) {
+        root.filePickerTitle = title || "Select File";
+        root.filePickerFilterMode = filterMode || "all";
+        root.filePickerCallback = callback;
+        root.filePickerOpen = true;
+    }
+    
+    function closeFilePicker() {
+        root.filePickerOpen = false;
     }
 }

@@ -47,6 +47,9 @@ Item {
     property int islandSettingsW: 1100
     property int islandSettingsH: 650
     
+    property int islandFilePickerW: 1000
+    property int islandFilePickerH: 600
+    
     // Reflection State Sizing
     property int reflectionSearchW: 450
     property int reflectionSearchH: 80

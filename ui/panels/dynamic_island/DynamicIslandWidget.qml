@@ -202,6 +202,20 @@ Item {
                 }
             }
         }
+        function onFilePickerOpenChanged() {
+            if (State.GlobalStates.filePickerOpen) {
+                if (islandWidget.islandState !== 12 && islandWidget.islandState !== 3) {
+                    islandWidget.previousState = islandWidget.islandState;
+                }
+                islandWidget.islandState = 12;
+            } else {
+                if (islandWidget.islandState === 12) {
+                    var targetState = islandWidget.previousState;
+                    if (targetState === 12) targetState = 0;
+                    islandWidget.islandState = targetState || 0;
+                }
+            }
+        }
     }
     
     // Auto-dismiss timer for Action Progress success state
@@ -431,6 +445,7 @@ Item {
                 if (reflectionContent.currentIntent === 0) return theme.reflectionGridW; // App Grid
                 return theme.reflectionFocusW; // Math / Command Intents
             }
+            if (islandState === 12) return theme.islandFilePickerW; // File Picker
             if (islandState === 11) return theme.islandSettingsW; // Settings Hub
             if (islandState === 10) return theme.islandMaxW; // Polkit Auth
             if (islandState === 7) return theme.islandProgressW; // Action Progress
@@ -453,6 +468,7 @@ Item {
                 else if (reflectionContent.currentIntent === 0) targetH = theme.reflectionGridH; // App Grid
                 else targetH = theme.reflectionFocusH; // Math / Command Intents
             }
+            else if (islandState === 12) targetH = theme.islandFilePickerH; // File Picker
             else if (islandState === 11) targetH = theme.islandSettingsH; // Settings Hub
             else if (islandState === 10) targetH = theme.islandMaxH; // Polkit Auth
             else if (islandState === 7) targetH = theme.islandProgressH; // Action Progress
@@ -565,6 +581,12 @@ Item {
             
             IslandComponents.SettingsContent {
                 id: settingsContent
+                islandState: islandWidget.islandState
+                theme: theme
+            }
+            
+            IslandComponents.FilePicker {
+                id: filePickerContent
                 islandState: islandWidget.islandState
                 theme: theme
             }

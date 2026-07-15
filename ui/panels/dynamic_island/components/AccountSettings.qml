@@ -142,17 +142,9 @@ Item {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
-                            p.command = ["zenity", "--file-selection", "--title=Select Banner Picture"];
-                            p.stdout = Qt.createQmlObject('import Quickshell.Io; SplitParser { }', p);
-                            p.stdout.read.connect(function(data) {
-                                var file = data.trim();
-                                if (file.length > 0) {
-                                    bannerCropper.imageSource = "file://" + file;
-                                }
+                            State.GlobalStates.openFilePicker("Select Banner Picture", "images", function(file) {
+                                bannerCropper.imageSource = "file://" + file;
                             });
-                            p.exited.connect(function() { p.destroy(); });
-                            p.running = true;
                         }
                     }
                 }
@@ -241,17 +233,9 @@ Item {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
-                                p.command = ["zenity", "--file-selection", "--title=Select Profile Picture"];
-                                p.stdout = Qt.createQmlObject('import Quickshell.Io; SplitParser { }', p);
-                                p.stdout.read.connect(function(data) {
-                                    var file = data.trim();
-                                    if (file.length > 0) {
-                                        avatarCropper.imageSource = "file://" + file;
-                                    }
+                                State.GlobalStates.openFilePicker("Select Profile Picture", "images", function(file) {
+                                    avatarCropper.imageSource = "file://" + file;
                                 });
-                                p.exited.connect(function() { p.destroy(); });
-                                p.running = true;
                             }
                         }
                     }
@@ -1215,7 +1199,7 @@ Item {
                 }
             }
 
-            // 8. Active Login Sessions
+            // 8. Active Login Sessions.
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 8
