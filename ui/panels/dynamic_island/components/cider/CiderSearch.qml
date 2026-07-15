@@ -7,6 +7,7 @@ Rectangle {
     
     property var mprisPlayer: null
     property var theme: null
+    property int searchMode: 0 // 0: All, 1: Artist, 2: Album
     
     color: Qt.rgba(0, 0, 0, 0.3)
     radius: 12
@@ -58,7 +59,10 @@ Rectangle {
                     Keys.onPressed: (event) => {
                         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                             if (root.mprisPlayer && typeof root.mprisPlayer.search === 'function') {
-                                root.mprisPlayer.search(searchInput.text);
+                                let q = searchInput.text;
+                                if (root.searchMode === 1) q = "artist:" + q;
+                                else if (root.searchMode === 2) q = "album:" + q;
+                                root.mprisPlayer.search(q);
                             }
                             event.accepted = true;
                         }
@@ -88,9 +92,44 @@ Rectangle {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             if (root.mprisPlayer && typeof root.mprisPlayer.search === 'function') {
-                                root.mprisPlayer.search(searchInput.text);
+                                let q = searchInput.text;
+                                if (root.searchMode === 1) q = "artist:" + q;
+                                else if (root.searchMode === 2) q = "album:" + q;
+                                root.mprisPlayer.search(q);
                             }
                         }
+                    }
+                }
+            }
+        }
+        
+        Row {
+            spacing: 8
+            anchors.horizontalCenter: parent.horizontalCenter
+            
+            Repeater {
+                model: ["Any", "Artist", "Album"]
+                delegate: Rectangle {
+                    width: filterText.width + 24
+                    height: 24
+                    radius: 12
+                    color: root.searchMode === index ? (root.theme ? root.theme.accentPrimary : "#CBA6F7") : Qt.rgba(255, 255, 255, 0.05)
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                    
+                    Text {
+                        id: filterText
+                        anchors.centerIn: parent
+                        text: modelData
+                        font.family: root.theme ? root.theme.fontMain : "Inter"
+                        font.pixelSize: 12
+                        font.bold: root.searchMode === index
+                        color: root.searchMode === index ? "#11111b" : (root.theme ? root.theme.textMain : "#FFF")
+                    }
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.searchMode = index
                     }
                 }
             }
@@ -99,10 +138,21 @@ Rectangle {
         ListView {
             id: searchList
             width: parent.width
-            height: parent.height - 48
+            height: parent.height - 40 - 24 - 16 // searchbar - chips - spacing
             spacing: 8
             clip: true
             model: root.mprisPlayer ? root.mprisPlayer.searchResults : []
+            
+            ScrollBar.vertical: ScrollBar {
+                active: true
+                policy: ScrollBar.AsNeeded
+                contentItem: Rectangle {
+                    implicitWidth: 4
+                    radius: 2
+                    color: root.theme ? root.theme.textSub : "#888"
+                    opacity: 0.5
+                }
+            }
             
             delegate: Item {
                 width: searchList.width

@@ -19,6 +19,11 @@ Singleton {
     property string identity: "Cider"
     property var queue: []
     property var searchResults: []
+    
+    // Lyrics Properties
+    property string currentLyrics: ""
+    property bool hasSyncedLyrics: false
+    property var parsedLyrics: []
     property int shuffleMode: 0
     property int repeatMode: 0
     property bool inFavorites: false
@@ -92,8 +97,26 @@ Singleton {
                 try {
                     var parsed = JSON.parse(line);
                     if (parsed.__type === "search") {
-                        root.searchResults = []; // Force change signal
+                        root.searchResults = [];
                         root.searchResults = parsed.results || [];
+                    } else if (parsed.__type === "lyrics") {
+                        root.currentLyrics = parsed.text || "";
+                        root.hasSyncedLyrics = !!parsed.synced;
+                        let arr = [];
+                        if (parsed.synced && parsed.text) {
+                            var lines = parsed.text.split('\n');
+                            for (var i = 0; i < lines.length; i++) {
+                                // Match [mm:ss.xx]
+                                var match = lines[i].match(/\[(\d+):(\d+\.\d+)\](.*)/);
+                                if (match) {
+                                    var mins = parseInt(match[1]);
+                                    var secs = parseFloat(match[2]);
+                                    var time = (mins * 60) + secs;
+                                    arr.push({ time: time, text: match[3].trim() });
+                                }
+                            }
+                        }
+                        root.parsedLyrics = arr;
                     } else if (parsed.trackTitle !== undefined) {
                         root._isDaemonUpdate = true;
                         root.isPlaying = parsed.isPlaying;

@@ -13,16 +13,39 @@ let state = {
     trackTitle: "",
     trackArtist: "",
     trackArtUrl: "",
-    position: 0,
+    trackId: "",
     length: 0,
-    canSeek: true,
-    identity: "Cider",
-    queue: [],
+    position: 0,
+    volume: 0,
     shuffleMode: 0,
     repeatMode: 0,
     inFavorites: false,
-    volume: 1.0
+    queue: []
 };
+
+let lastFetchedLyricsId = "";
+
+function fetchLyrics(artist, title) {
+    if (!artist || !title) return;
+    const q = encodeURIComponent(title + " " + artist);
+    fetch(`https://lrclib.net/api/search?q=${q}`)
+        .then(res => res.json())
+        .then(data => {
+            if (Array.isArray(data) && data.length > 0) {
+                const bestMatch = data.find(d => d.syncedLyrics) || data[0];
+                console.log(JSON.stringify({ 
+                    __type: "lyrics", 
+                    synced: !!bestMatch.syncedLyrics, 
+                    text: bestMatch.syncedLyrics || bestMatch.plainLyrics 
+                }));
+            } else {
+                console.log(JSON.stringify({ __type: "lyrics", synced: false, text: "" }));
+            }
+        })
+        .catch(() => {
+            console.log(JSON.stringify({ __type: "lyrics", synced: false, text: "" }));
+        });
+}
 
 function printState() {
     console.log(JSON.stringify(state));
@@ -52,6 +75,12 @@ function updateNowPlaying() {
             state.shuffleMode = data.info.shuffleMode || 0;
             state.repeatMode = data.info.repeatMode || 0;
             state.inFavorites = !!data.info.inFavorites;
+            
+            if (state.trackId && state.trackId !== lastFetchedLyricsId) {
+                lastFetchedLyricsId = state.trackId;
+                fetchLyrics(state.trackArtist, state.trackTitle);
+            }
+            
             printState();
         }
     }).catch(() => {});
@@ -168,16 +197,40 @@ rl.on('line', function(line){
             }
         }
     } else if (line.startsWith("search ")) {
-        const query = line.substring(7).trim();
+        const rawQuery = line.substring(7).trim();
+        let apiQuery = rawQuery;
+        let artistFilter = null;
+        let albumFilter = null;
+        
+        // Extract artist=XYZ or artist:XYZ
+        const artistMatch = rawQuery.match(/artist[=:]("([^"]+)"|([^\s]+))/i);
+        if (artistMatch) {
+            artistFilter = (artistMatch[2] || artistMatch[3]).toLowerCase();
+            apiQuery = apiQuery.replace(artistMatch[0], "").trim();
+        }
+
+        // Extract album=XYZ or album:XYZ
+        const albumMatch = rawQuery.match(/album[=:]("([^"]+)"|([^\s]+))/i);
+        if (albumMatch) {
+            albumFilter = (albumMatch[2] || albumMatch[3]).toLowerCase();
+            apiQuery = apiQuery.replace(albumMatch[0], "").trim();
+        }
+        
+        // If they only typed the filters, use them as the search term
+        if (apiQuery.length === 0) {
+            apiQuery = (artistFilter || "") + " " + (albumFilter || "");
+            apiQuery = apiQuery.trim();
+        }
+        
         fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
             method: "POST",
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
-            body: JSON.stringify({ "path": "/v1/catalog/us/search?term=" + encodeURIComponent(query) + "&types=songs" })
+            body: JSON.stringify({ "path": "/v1/catalog/us/search?term=" + encodeURIComponent(apiQuery) + "&types=songs&limit=25" })
         }).then(res => res.json()).then(data => {
             let results = [];
             try {
-                if (data.results && data.results.songs && data.results.songs.data) {
-                    results = data.results.songs.data.map(song => {
+                if (data.data && data.data.results && data.data.results.songs && data.data.results.songs.data) {
+                    results = data.data.results.songs.data.map(song => {
                         const attr = song.attributes || {};
                         return {
                             id: song.id || (attr.playParams ? attr.playParams.id : ""),
@@ -190,6 +243,13 @@ rl.on('line', function(line){
                             artwork: attr.artwork ? attr.artwork.url.replace("{w}", "600").replace("{h}", "600") : ""
                         };
                     });
+                    
+                    if (artistFilter) {
+                        results = results.filter(r => r.artistName.toLowerCase().includes(artistFilter));
+                    }
+                    if (albumFilter) {
+                        results = results.filter(r => r.albumName.toLowerCase().includes(albumFilter));
+                    }
                 }
             } catch (e) {}
             console.log(JSON.stringify({ __type: "search", results: results }));
