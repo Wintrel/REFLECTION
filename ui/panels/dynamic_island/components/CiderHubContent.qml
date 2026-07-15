@@ -492,12 +492,36 @@ Item {
                 }
             }
             
-            // Right: Playback Controls
+            // Center: Playback Controls (Shuffle, Prev, Play, Next, Repeat)
             Row {
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 16
+                anchors.centerIn: parent
+                spacing: 20
                 
+                Text { 
+                    id: btnShuffle
+                    text: "shuffle"
+                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                    font.pixelSize: 28
+                    property bool isActive: root.mprisPlayer && root.mprisPlayer.shuffleMode > 0
+                    color: isActive ? "#FFFFFF" : Qt.rgba(255, 255, 255, 0.3)
+                    anchors.verticalCenter: parent.verticalCenter 
+                    
+                    scale: maShuffle.pressed ? 0.85 : (maShuffle.containsMouse ? 1.1 : 1)
+                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                    
+                    MouseArea { 
+                        id: maShuffle
+                        anchors.fill: parent; anchors.margins: -10; hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (root.mprisPlayer && root.canSendMpris() && typeof root.mprisPlayer.toggleShuffle === 'function') {
+                                root.mprisPlayer.toggleShuffle();
+                            }
+                        }
+                    }
+                }
+
                 Text { 
                     id: btnPrev
                     text: "skip_previous"
@@ -567,6 +591,114 @@ Item {
                             if (root.mprisPlayer && root.canSendMpris()) {
                                 root.mprisPlayer.next();
                             }
+                        }
+                    }
+                }
+                
+                Text { 
+                    id: btnRepeat
+                    text: (root.mprisPlayer && root.mprisPlayer.repeatMode === 1) ? "repeat_one" : "repeat"
+                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                    font.pixelSize: 28
+                    property bool isActive: root.mprisPlayer && root.mprisPlayer.repeatMode > 0
+                    color: isActive ? "#FFFFFF" : Qt.rgba(255, 255, 255, 0.3)
+                    anchors.verticalCenter: parent.verticalCenter 
+                    
+                    scale: maRepeat.pressed ? 0.85 : (maRepeat.containsMouse ? 1.1 : 1)
+                    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                    
+                    MouseArea { 
+                        id: maRepeat
+                        anchors.fill: parent; anchors.margins: -10; hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (root.mprisPlayer && root.canSendMpris() && typeof root.mprisPlayer.toggleRepeat === 'function') {
+                                root.mprisPlayer.toggleRepeat();
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Right: Volume & Favorite
+            Row {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 24
+                
+                // Read-only Favorite Icon
+                Text {
+                    id: iconFavorite
+                    text: (root.mprisPlayer && root.mprisPlayer.inFavorites) ? "favorite" : "favorite_border"
+                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                    font.pixelSize: 26
+                    color: (root.mprisPlayer && root.mprisPlayer.inFavorites) ? "#F38BA8" : (root.theme ? root.theme.textSub : "#A6ADC8")
+                    anchors.verticalCenter: parent.verticalCenter
+                    Behavior on color { ColorAnimation { duration: 200 } }
+                    
+                    // Simple hover effect, read-only
+                    scale: favMa.containsMouse ? 1.1 : 1
+                    Behavior on scale { NumberAnimation { duration: 150 } }
+                    MouseArea { id: favMa; anchors.fill: parent; anchors.margins: -5; hoverEnabled: true }
+                }
+                
+                // Volume Control
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 12
+                    
+                    Text {
+                        text: {
+                            if (!root.mprisPlayer) return "volume_up";
+                            if (root.mprisPlayer.volume === 0) return "volume_mute";
+                            if (root.mprisPlayer.volume < 0.5) return "volume_down";
+                            return "volume_up";
+                        }
+                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                        font.pixelSize: 24
+                        color: root.theme ? root.theme.textSub : "#A6ADC8"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    
+                    Rectangle {
+                        id: volTrack
+                        width: 100
+                        height: volMa.containsMouse || volMa.isDragging ? 8 : 4
+                        radius: height / 2
+                        color: Qt.rgba(255, 255, 255, 0.15)
+                        anchors.verticalCenter: parent.verticalCenter
+                        Behavior on height { NumberAnimation { duration: 150 } }
+                        
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            radius: parent.radius
+                            color: root.theme ? root.theme.textMain : "#FFF"
+                            width: root.mprisPlayer ? parent.width * root.mprisPlayer.volume : 0
+                            Behavior on width { NumberAnimation { duration: 150 } }
+                        }
+                        
+                        MouseArea {
+                            id: volMa
+                            anchors.fill: parent
+                            anchors.margins: -10
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            
+                            property bool isDragging: false
+                            
+                            function updateVol(mouse) {
+                                var ratio = Math.max(0, Math.min(1, mouse.x / volTrack.width));
+                                if (root.mprisPlayer && typeof root.mprisPlayer.setVolume === 'function') {
+                                    root.mprisPlayer.setVolume(ratio);
+                                }
+                            }
+                            
+                            onPressed: (mouse) => { isDragging = true; updateVol(mouse); }
+                            onPositionChanged: (mouse) => { if (isDragging) updateVol(mouse); }
+                            onReleased: (mouse) => { if (isDragging) { updateVol(mouse); isDragging = false; } }
                         }
                     }
                 }

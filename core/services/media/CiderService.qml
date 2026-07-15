@@ -18,7 +18,10 @@ Singleton {
     property bool canSeek: true
     property string identity: "Cider"
     property var queue: []
-    
+    property int shuffleMode: 0
+    property int repeatMode: 0
+    property bool inFavorites: false
+    property real volume: 1.0
     
     property bool ciderActive: trackTitle !== "" || isPlaying
     
@@ -97,6 +100,10 @@ Singleton {
                         root.length = parsed.length;
                         root.canSeek = parsed.canSeek;
                         if (parsed.queue !== undefined) root.queue = parsed.queue;
+                        if (parsed.shuffleMode !== undefined) root.shuffleMode = parsed.shuffleMode;
+                        if (parsed.repeatMode !== undefined) root.repeatMode = parsed.repeatMode;
+                        if (parsed.inFavorites !== undefined) root.inFavorites = parsed.inFavorites;
+                        if (parsed.volume !== undefined) root.volume = parsed.volume;
                         root._isDaemonUpdate = false;
                     }
                 } catch (e) {}
@@ -124,5 +131,17 @@ Singleton {
     
     function previous() {
         ciderDaemon.write("previous\n");
+    }
+
+    function toggleShuffle() {
+        ciderDaemon.write("toggleShuffle\n");
+    }
+    
+    function toggleRepeat() {
+        ciderDaemon.write("toggleRepeat\n");
+    }
+    
+    function setVolume(v) {
+        ciderDaemon.write("setVolume " + v + "\n");
     }
 }

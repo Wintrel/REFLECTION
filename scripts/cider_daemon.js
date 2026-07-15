@@ -17,11 +17,26 @@ let state = {
     length: 0,
     canSeek: true,
     identity: "Cider",
-    queue: []
+    queue: [],
+    shuffleMode: 0,
+    repeatMode: 0,
+    inFavorites: false,
+    volume: 1.0
 };
 
 function printState() {
     console.log(JSON.stringify(state));
+}
+
+function updateVolume() {
+    fetch("http://127.0.0.1:10767/api/v1/playback/volume", {
+        headers: { "apptoken": TOKEN }
+    }).then(res => res.json()).then(data => {
+        if (data && data.volume !== undefined) {
+            state.volume = data.volume;
+            printState();
+        }
+    }).catch(() => {});
 }
 
 function updateNowPlaying() {
@@ -33,6 +48,9 @@ function updateNowPlaying() {
             state.trackArtist = data.info.artistName || "";
             state.trackArtUrl = data.info.artwork ? data.info.artwork.url.replace("{w}", "600").replace("{h}", "600") : "";
             state.length = Math.floor((data.info.durationInMillis || 0) * 1000); 
+            state.shuffleMode = data.info.shuffleMode || 0;
+            state.repeatMode = data.info.repeatMode || 0;
+            state.inFavorites = !!data.info.inFavorites;
             printState();
         }
     }).catch(() => {});
@@ -41,6 +59,7 @@ function updateNowPlaying() {
 socket.on("connect", () => {
     updateNowPlaying();
     updateQueue();
+    updateVolume();
 });
 
 function updateQueue() {
@@ -102,17 +121,24 @@ rl.on('line', function(line){
         fetch("http://127.0.0.1:10767/api/v1/playback/previous", { method: "POST", headers: { "apptoken": TOKEN }});
     } else if (line.trim() === "pause") {
         fetch("http://127.0.0.1:10767/api/v1/playback/pause", { method: "POST", headers: { "apptoken": TOKEN }});
+    } else if (line.trim() === "toggleShuffle") {
+        fetch("http://127.0.0.1:10767/api/v1/playback/toggle-shuffle", { method: "POST", headers: { "apptoken": TOKEN }}).then(() => updateNowPlaying());
+    } else if (line.trim() === "toggleRepeat") {
+        fetch("http://127.0.0.1:10767/api/v1/playback/toggle-repeat", { method: "POST", headers: { "apptoken": TOKEN }}).then(() => updateNowPlaying());
+    } else if (line.startsWith("setVolume ")) {
+        const val = parseFloat(line.split(" ")[1]);
+        fetch("http://127.0.0.1:10767/api/v1/playback/volume", { 
+            method: "POST", 
+            headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
+            body: JSON.stringify({ "volume": val })
+        }).then(() => { state.volume = val; printState(); });
     } else if (line.startsWith("seek ")) {
         const val = parseInt(line.split(" ")[1], 10);
-        // val is in microseconds, cider expects seconds
         fetch("http://127.0.0.1:10767/api/v1/playback/seek", { 
             method: "POST", 
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "position": val / 1000000.0 })
         });
-    } else if (line.startsWith("playtrack ")) {
-        // play specific track from queue via its index or maybe Cider has an API for that?
-        // Note: Cider playback/queue API might need investigation, but let's leave playtrack out or fetch queue instead.
     } else if (line.trim() === "queue") {
         updateQueue();
     }
