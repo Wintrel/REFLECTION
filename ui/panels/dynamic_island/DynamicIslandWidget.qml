@@ -105,12 +105,20 @@ Item {
             if (priority === 3) duration = 8000;
             osdTimer.interval = duration;
             
-            if (islandWidget.islandState !== 5 && islandWidget.islandState !== 3) {
-                islandWidget.previousState = islandWidget.islandState;
-            }
-            
             // Only interrupt notifications for Tier 2 and Tier 3 events
             if (islandWidget.islandState !== 3 || priority >= 2) {
+                // Ignore low priority OSDs (like volume/brightness) if a heavy modal is open
+                if (priority === 1) {
+                    var modalStates = [6, 7, 8, 10, 11, 12, 13];
+                    if (modalStates.indexOf(islandWidget.islandState) !== -1) {
+                        return;
+                    }
+                }
+
+                if (islandWidget.islandState !== 5 && islandWidget.islandState !== 3) {
+                    islandWidget.previousState = islandWidget.islandState;
+                }
+                
                 islandWidget.islandState = 5;
                 osdTimer.restart();
             }

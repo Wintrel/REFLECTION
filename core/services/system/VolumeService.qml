@@ -37,10 +37,11 @@ Item {
         var p = _pendingVolume;
         _pendingVolume = -1;
         
-        // Optimistically update UI
-        root.volume = p / 100.0;
-        
         var volStr = (p / 100.0).toFixed(2);
+        
+        // Optimistically update UI using the exact value sent to wpctl
+        root.volume = parseFloat(volStr);
+        
         var cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ " + volStr;
         var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
         proc.exited.connect(function() {

@@ -1,6 +1,6 @@
 const io = require("socket.io-client");
 
-const TOKEN = "ut8sjz8mmzcp232zqy51m25n";
+const TOKEN = "t1a6dic8w4lrz2s6nloinvg4"; //enabled Playback, queue, Library, audio, config and lyrics
 const socket = io("http://127.0.0.1:10767", {
     extraHeaders: {
         "apptoken": TOKEN,
@@ -87,11 +87,46 @@ function updateNowPlaying() {
     }).catch(() => {});
 }
 
+function fetchConfig() {
+    fetch("http://127.0.0.1:10767/api/v2/config", {
+        headers: { "apptoken": TOKEN }
+    }).then(res => res.json()).then(data => {
+        if (data && data.data && data.data.audio) {
+            console.log(JSON.stringify({ __type: "config", audio: data.data.audio }));
+        }
+    }).catch(() => {});
+}
+
+function toggleAudioFeature(feature, state) {
+    let payload = { enabled: state === 'true' };
+    if (feature === 'atmos') {
+        payload.binaural = state === 'true';
+    }
+    
+    fetch(`http://127.0.0.1:10767/api/v2/audio/${feature}`, {
+        method: "PATCH",
+        headers: {
+            "apptoken": TOKEN,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    }).then(() => fetchConfig()).catch(() => {});
+}
+
 socket.on("connect", () => {
     updateNowPlaying();
     updateQueue();
     updateVolume();
+    fetchConfig();
 });
+
+// Poll volume and config periodically since Cider does not emit socket events for them
+setInterval(() => {
+    if (socket.connected) {
+        updateVolume();
+        fetchConfig();
+    }
+}, 3000);
 
 function updateQueue() {
     fetch("http://127.0.0.1:10767/api/v1/playback/queue", {
@@ -313,6 +348,13 @@ rl.on('line', function(line){
         });
     } else if (line.trim() === "queue") {
         updateQueue();
+    } else if (line.trim() === "fetchConfig") {
+        fetchConfig();
+    } else if (line.startsWith("toggleAudioFeature ")) {
+        let parts = line.split(" ");
+        if (parts.length === 3) {
+            toggleAudioFeature(parts[1], parts[2]);
+        }
     } else if (line.trim() === "playlists") {
         updatePlaylists();
     } else if (line.trim() === "foryou") {

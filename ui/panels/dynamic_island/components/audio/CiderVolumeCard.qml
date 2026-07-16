@@ -1,0 +1,43 @@
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import "../../../control_center/components" as CC
+import "../../../../../core/services/media"
+
+ColumnLayout {
+    id: root
+    property var theme
+    Layout.fillWidth: true
+    spacing: 8
+    
+    Text {
+        text: "Playback Volume"
+        font.family: root.theme ? root.theme.fontMain : "Inter"
+        font.pixelSize: 14
+        font.weight: Font.DemiBold
+        color: root.theme ? root.theme.textMain : "#FFF"
+    }
+    
+    Text {
+        text: "Adjust the master volume for Cider playback."
+        font.family: root.theme ? root.theme.fontMain : "Inter"
+        font.pixelSize: 12
+        color: root.theme ? root.theme.textSub : "#888"
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+    }
+    
+    CC.ThickSlider {
+        Layout.fillWidth: true
+        theme: root.theme
+        icon: "volume_up"
+        
+        property real internalValue: CiderService.volume * 100
+        value: internalValue
+        
+        onValueChangedByUser: (val) => {
+            internalValue = val;
+            CiderService.setVolume(val / 100);
+        }
+    }
+}

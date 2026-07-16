@@ -33,6 +33,11 @@ Singleton {
     property bool inFavorites: false
     property real volume: 1.0
     
+    // Audio Lab Properties (Read-Only)
+    property bool atmosEnabled: false
+    property bool crossfadeEnabled: false
+    property bool normalizationEnabled: false
+    
     property bool ciderActive: trackTitle !== "" || isPlaying
     
     property var activePlayer: ciderActive ? root : mprisFallbackPlayer
@@ -130,6 +135,12 @@ Singleton {
                     } else if (parsed.__type === "playlistTracks") {
                         root.currentPlaylistTracks = [];
                         root.currentPlaylistTracks = parsed.results || [];
+                    } else if (parsed.__type === "config") {
+                        if (parsed.audio) {
+                            if (parsed.audio.atmos !== undefined) root.atmosEnabled = !!parsed.audio.atmos.enabled;
+                            if (parsed.audio.crossfade !== undefined) root.crossfadeEnabled = !!parsed.audio.crossfade.enabled;
+                            if (parsed.audio.normalization !== undefined) root.normalizationEnabled = !!parsed.audio.normalization;
+                        }
                     } else if (parsed.__type === "lyrics") {
                         root.currentLyrics = parsed.text || "";
                         root.hasSyncedLyrics = !!parsed.synced;
@@ -221,6 +232,22 @@ Singleton {
     
     function setVolume(v) {
         ciderDaemon.write("setVolume " + v + "\n");
+    }
+    
+    function fetchConfig() {
+        ciderDaemon.write("fetchConfig\n");
+    }
+    
+    function toggleAtmos(state) {
+        ciderDaemon.write("toggleAudioFeature atmos " + state + "\n");
+    }
+    
+    function toggleCrossfade(state) {
+        ciderDaemon.write("toggleAudioFeature crossfade " + state + "\n");
+    }
+    
+    function toggleNormalization(state) {
+        ciderDaemon.write("toggleAudioFeature normalization " + state + "\n");
     }
     
     function fetchPlaylists() {
