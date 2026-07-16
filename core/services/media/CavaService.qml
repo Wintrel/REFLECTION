@@ -6,8 +6,12 @@ import Quickshell.Io
 QtObject {
     id: root
     
-    // Toggle this property to start/stop the Cava process
-    property bool active: false
+    // Reference counting for active visualizers
+    property int requestCount: 0
+    property bool active: requestCount > 0
+    
+    function request() { requestCount++; }
+    function release() { if (requestCount > 0) requestCount--; }
     
     // The live array of audio frequency values (0.0 to 1.0)
     property var values: []

@@ -11,11 +11,21 @@ Item {
     
     property bool hasCava: CavaService.values && CavaService.values.length > 0
     
-    Binding {
-        target: CavaService
-        property: "active"
-        value: root.visible && root.isPlaying
-        restoreMode: Binding.RestoreBindingOrValue
+    property bool _isActive: root.visible && root.isPlaying
+    on_IsActiveChanged: {
+        if (_isActive) {
+            CavaService.request();
+        } else {
+            CavaService.release();
+        }
+    }
+    
+    Component.onCompleted: {
+        if (_isActive) CavaService.request();
+    }
+    
+    Component.onDestruction: {
+        if (_isActive) CavaService.release();
     }
     
     property int barCount: Math.max(0, Math.floor((root.width + 6) / 14))

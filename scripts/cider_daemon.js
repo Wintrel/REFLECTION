@@ -191,7 +191,13 @@ rl.on('line', function(line){
                     const steps = Math.abs(diff);
                     let p = Promise.resolve();
                     for (let i = 0; i < steps; i++) {
-                        p = p.then(() => fetch("http://127.0.0.1:10767/api/v1/playback/" + endpoint, { method: "POST", headers: { "apptoken": TOKEN }}));
+                        p = p.then(() => {
+                            return new Promise(resolve => {
+                                fetch("http://127.0.0.1:10767/api/v1/playback/" + endpoint, { method: "POST", headers: { "apptoken": TOKEN }})
+                                .then(() => setTimeout(resolve, 350))
+                                .catch(() => setTimeout(resolve, 350));
+                            });
+                        });
                     }
                 }
             }

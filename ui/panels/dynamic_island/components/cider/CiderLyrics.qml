@@ -26,7 +26,7 @@ Item {
         return idx;
     }
     
-    // Auto-scroll logic
+    // Auto-scroll logic.
     onActiveLyricIndexChanged: {
         if (activeLyricIndex >= 0 && syncedView.contentHeight > syncedView.height && !syncedView.dragging && !syncedView.flicking) {
             let oldY = syncedView.contentY;
