@@ -149,6 +149,20 @@ Item {
         }
     }
 
+    // Heartbeat timer to keep the connection to the daemon alive
+    Timer {
+        id: heartbeatTimer
+        interval: 30000 // 30 seconds
+        repeat: true
+        running: socket.connected
+        onTriggered: {
+            var message = {
+                "type": "heartbeat"
+            }
+            socket.write(JSON.stringify(message) + "\n")
+        }
+    }
+
     // Auto-connect on component creation
     Component.onCompleted: {
         socket.connectToAgent()
