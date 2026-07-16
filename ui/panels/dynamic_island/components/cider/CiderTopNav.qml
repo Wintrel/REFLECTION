@@ -44,7 +44,7 @@ Item {
         spacing: 24
         
         Repeater {
-            model: ["Up Next", "Search", "Lyrics"]
+            model: ["Up Next", "Playlists", "For You", "Search", "Lyrics"]
             delegate: Item {
                 width: tabTxt.width + 16
                 height: 30

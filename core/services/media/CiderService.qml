@@ -19,6 +19,10 @@ Singleton {
     property string identity: "Cider"
     property var queue: []
     property var searchResults: []
+    property var userPlaylists: []
+    property var forYouPlaylists: []
+    property var currentPlaylistTracks: []
+    property var currentPlaylist: null
     
     // Lyrics Properties
     property string currentLyrics: ""
@@ -99,6 +103,15 @@ Singleton {
                     if (parsed.__type === "search") {
                         root.searchResults = [];
                         root.searchResults = parsed.results || [];
+                    } else if (parsed.__type === "playlists") {
+                        root.userPlaylists = [];
+                        root.userPlaylists = parsed.results || [];
+                    } else if (parsed.__type === "forYou") {
+                        root.forYouPlaylists = [];
+                        root.forYouPlaylists = parsed.results || [];
+                    } else if (parsed.__type === "playlistTracks") {
+                        root.currentPlaylistTracks = [];
+                        root.currentPlaylistTracks = parsed.results || [];
                     } else if (parsed.__type === "lyrics") {
                         root.currentLyrics = parsed.text || "";
                         root.hasSyncedLyrics = !!parsed.synced;
@@ -184,5 +197,21 @@ Singleton {
     
     function setVolume(v) {
         ciderDaemon.write("setVolume " + v + "\n");
+    }
+    
+    function fetchPlaylists() {
+        ciderDaemon.write("playlists\n");
+    }
+    
+    function fetchForYouPlaylists() {
+        ciderDaemon.write("foryou\n");
+    }
+    
+    function fetchPlaylistTracks(href) {
+        if (href) ciderDaemon.write("playlistTracks " + href + "\n");
+    }
+    
+    function playPlaylist(type, id) {
+        if (id) ciderDaemon.write("playPlaylist " + type + " " + id + "\n");
     }
 }

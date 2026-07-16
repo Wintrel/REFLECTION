@@ -14,7 +14,7 @@ Item {
     property real islandCiderW: 800
     property real islandCiderH: 550
     
-    property int currentTab: 0 // 0: Queue, 1: Search, 2: Lyrics
+    property int currentTab: 0 // 0: Queue, 1: Search, 2: Lyrics.
     
     width: islandCiderW - 32
     height: islandCiderH - 32
@@ -90,7 +90,7 @@ Item {
             Behavior on opacity { NumberAnimation { duration: 200 } }
         }
         
-        Cider.CiderSearch {
+        Cider.CiderPlaylists {
             anchors.fill: parent
             theme: root.theme
             mprisPlayer: root.mprisPlayer
@@ -99,11 +99,29 @@ Item {
             Behavior on opacity { NumberAnimation { duration: 200 } }
         }
         
-        Cider.CiderLyrics {
+        Cider.CiderForYou {
             anchors.fill: parent
             theme: root.theme
             mprisPlayer: root.mprisPlayer
             opacity: root.currentTab === 2 ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+        }
+        
+        Cider.CiderSearch {
+            anchors.fill: parent
+            theme: root.theme
+            mprisPlayer: root.mprisPlayer
+            opacity: root.currentTab === 3 ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+        }
+        
+        Cider.CiderLyrics {
+            anchors.fill: parent
+            theme: root.theme
+            mprisPlayer: root.mprisPlayer
+            opacity: root.currentTab === 4 ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
         }

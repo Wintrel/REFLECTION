@@ -121,6 +121,68 @@ function updateQueue() {
     }).catch(() => {});
 }
 
+function updatePlaylists() {
+    fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
+        method: "POST",
+        headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
+        body: JSON.stringify({ "path": "/v1/me/library/playlists" })
+    }).then(res => res.json()).then(data => {
+        let playlists = [];
+        if (data.data && data.data.data && Array.isArray(data.data.data)) {
+            playlists = data.data.data.map(p => {
+                const attr = p.attributes || {};
+                return {
+                    id: p.id,
+                    type: p.type || "library-playlists",
+                    href: p.href || ("/v1/me/library/playlists/" + p.id),
+                    name: attr.name || "",
+                    artwork: attr.artwork ? attr.artwork.url.replace("{w}", "600").replace("{h}", "600") : "",
+                    dateAdded: attr.dateAdded || ""
+                };
+            });
+        }
+        console.log(JSON.stringify({ __type: "playlists", results: playlists }));
+    }).catch((e) => {
+        console.error("Playlists error:", e);
+    });
+}
+
+function updateForYou() {
+    fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
+        method: "POST",
+        headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
+        body: JSON.stringify({ "path": "/v1/me/recommendations" })
+    }).then(res => res.json()).then(data => {
+        let categories = [];
+        if (data.data && data.data.data) {
+            categories = data.data.data.map(group => {
+                const title = group.attributes && group.attributes.title ? group.attributes.title.stringForDisplay : "Recommendations";
+                let items = [];
+                if (group.relationships && group.relationships.contents && group.relationships.contents.data) {
+                    items = group.relationships.contents.data.map(p => {
+                        const attr = p.attributes || {};
+                        return {
+                            id: p.id,
+                            type: p.type || "playlists",
+                            href: p.href || "",
+                            name: attr.name || "",
+                            artwork: attr.artwork ? attr.artwork.url.replace("{w}", "600").replace("{h}", "600") : "",
+                            dateAdded: attr.dateAdded || ""
+                        };
+                    });
+                }
+                return {
+                    title: title,
+                    items: items
+                };
+            }).filter(c => c.items.length > 0);
+        }
+        console.log(JSON.stringify({ __type: "forYou", results: categories }));
+    }).catch((e) => {
+        console.error("For You error:", e);
+    });
+}
+
 const onevent = socket.onevent;
 socket.onevent = function (packet) {
     const args = packet.data || [];
@@ -266,8 +328,65 @@ rl.on('line', function(line){
             method: "POST",
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "type": "songs", "id": id })
+        }).then(() => {
+            setTimeout(() => {
+                updateNowPlaying();
+                updateQueue();
+            }, 250);
         });
     } else if (line.trim() === "queue") {
         updateQueue();
+    } else if (line.trim() === "playlists") {
+        updatePlaylists();
+    } else if (line.trim() === "foryou") {
+        updateForYou();
+    } else if (line.startsWith("playPlaylist ")) {
+        const parts = line.trim().split(" ");
+        const type = parts.length >= 3 ? parts[1] : "library-playlists";
+        const id = parts.length >= 3 ? parts[2] : parts[1];
+        fetch("http://127.0.0.1:10767/api/v1/playback/play-item", {
+            method: "POST",
+            headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
+            body: JSON.stringify({ "type": type, "id": id })
+        }).then(() => {
+            setTimeout(() => {
+                fetch("http://127.0.0.1:10767/api/v1/playback/play", { method: "POST", headers: { "apptoken": TOKEN }})
+                .then(() => {
+                    setTimeout(() => {
+                        updateNowPlaying();
+                        updateQueue();
+                    }, 250);
+                });
+            }, 350);
+        });
+    } else if (line.startsWith("playlistTracks ")) {
+        const href = line.substring(15).trim();
+        const path = href + "/tracks";
+        fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
+            method: "POST",
+            headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
+            body: JSON.stringify({ "path": path })
+        })
+        .then(r => r.json())
+        .then(data => {
+            let tracks = [];
+            if (data && data.data && data.data.data) {
+                tracks = data.data.data.map(song => {
+                    const attr = song.attributes || {};
+                    return {
+                        id: song.id || (attr.playParams ? attr.playParams.id : ""),
+                        name: attr.name || "",
+                        artistName: attr.artistName || "",
+                        albumName: attr.albumName || "",
+                        durationInMillis: attr.durationInMillis || 0,
+                        contentRating: attr.contentRating || "",
+                        audioTraits: attr.audioTraits || [],
+                        artwork: attr.artwork ? attr.artwork.url.replace("{w}", "600").replace("{h}", "600") : ""
+                    };
+                });
+            }
+            console.log(JSON.stringify({ __type: "playlistTracks", results: tracks }));
+        })
+        .catch(e => console.error("Error fetching playlist tracks", e));
     }
 });
