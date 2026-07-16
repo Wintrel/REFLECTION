@@ -166,8 +166,8 @@ Rectangle {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    if (root.mprisPlayer && typeof root.mprisPlayer.skipToId === 'function') {
-                        root.mprisPlayer.skipToId(modelData.id);
+                    if (root.mprisPlayer && typeof root.mprisPlayer.playTrack === 'function') {
+                        root.mprisPlayer.playTrack(modelData.id);
                     }
                 }
             }

@@ -7,8 +7,8 @@ Item {
     property var mprisPlayer: null
     
     // Derived states
-    property bool hasLyrics: mprisPlayer && mprisPlayer.currentLyrics !== ""
     property bool hasSynced: mprisPlayer && mprisPlayer.hasSyncedLyrics && mprisPlayer.parsedLyrics && mprisPlayer.parsedLyrics.length > 0
+    property bool hasLyrics: hasSynced || (mprisPlayer && mprisPlayer.currentLyrics !== "")
     property real currentPos: mprisPlayer ? mprisPlayer.position / 1000000 : 0
     
     // Find active lyric index
@@ -28,7 +28,7 @@ Item {
     
     // Auto-scroll logic.
     onActiveLyricIndexChanged: {
-        if (activeLyricIndex >= 0 && syncedView.contentHeight > syncedView.height && !syncedView.dragging && !syncedView.flicking) {
+        if (root.visible && activeLyricIndex >= 0 && syncedView.contentHeight > syncedView.height && !syncedView.dragging && !syncedView.flicking) {
             let oldY = syncedView.contentY;
             syncedView.positionViewAtIndex(activeLyricIndex, ListView.Center);
             let targetY = syncedView.contentY;

@@ -11,7 +11,9 @@ Item {
     
     onVisibleChanged: {
         if (visible) {
-            Media.CiderService.fetchForYouPlaylists();
+            if (!Media.CiderService.forYouPlaylists || Media.CiderService.forYouPlaylists.length === 0) {
+                Media.CiderService.fetchForYouPlaylists();
+            }
             isDetailView = false;
         }
     }

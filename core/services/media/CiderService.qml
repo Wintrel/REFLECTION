@@ -40,6 +40,24 @@ Singleton {
     property var mprisFallbackPlayer: null
     property bool _isDaemonUpdate: false
 
+    property real _lastUpdateRealTime: 0
+    property real _lastUpdatePosition: 0
+
+    Timer {
+        id: positionInterpolator
+        interval: 32 // ~30fps
+        running: root.isPlaying
+        repeat: true
+        onTriggered: {
+            if (!root._isDaemonUpdate) {
+                var elapsed = Date.now() - root._lastUpdateRealTime;
+                root._isDaemonUpdate = true; // prevent sending seek command
+                root.position = root._lastUpdatePosition + (elapsed * 1000);
+                root._isDaemonUpdate = false;
+            }
+        }
+    }
+
     // Track MPRIS fallback natively here
     Instantiator {
         id: mprisInst
@@ -138,7 +156,11 @@ Singleton {
                         if (parsed.trackTitle !== undefined) root.trackTitle = parsed.trackTitle;
                         if (parsed.trackArtist !== undefined) root.trackArtist = parsed.trackArtist;
                         if (parsed.trackArtUrl !== undefined) root.trackArtUrl = parsed.trackArtUrl;
-                        if (parsed.position !== undefined) root.position = parsed.position;
+                        if (parsed.position !== undefined) {
+                            root.position = parsed.position;
+                            root._lastUpdatePosition = parsed.position;
+                            root._lastUpdateRealTime = Date.now();
+                        }
                         if (parsed.length !== undefined) root.length = parsed.length;
                         if (parsed.canSeek !== undefined) root.canSeek = parsed.canSeek;
                         if (parsed.queue !== undefined) root.queue = parsed.queue;

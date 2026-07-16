@@ -11,7 +11,9 @@ Item {
     
     onVisibleChanged: {
         if (visible) {
-            Media.CiderService.fetchPlaylists();
+            if (!Media.CiderService.userPlaylists || Media.CiderService.userPlaylists.length === 0) {
+                Media.CiderService.fetchPlaylists();
+            }
             isDetailView = false;
         }
     }
@@ -20,9 +22,17 @@ Item {
     GridView {
         id: grid
         anchors.fill: parent
-        anchors.margins: 16
-        cellWidth: 160
-        cellHeight: 200
+        
+        cellWidth: 156
+        cellHeight: 196
+        
+        property int cols: Math.max(1, Math.floor((width + 16) / cellWidth))
+        property int visualWidth: (cols * cellWidth) - 16
+        
+        leftMargin: (width - visualWidth) / 2
+        topMargin: 16
+        bottomMargin: 16
+        
         clip: true
         visible: !root.isDetailView
         
@@ -34,8 +44,8 @@ Item {
             
             Rectangle {
                 id: card
-                anchors.fill: parent
-                anchors.margins: 10
+                width: 140
+                height: 180
                 radius: 12
                 color: ma.containsMouse ? Qt.rgba(255,255,255,0.1) : "transparent"
                 border.color: ma.containsMouse ? Qt.rgba(255,255,255,0.2) : "transparent"
@@ -48,7 +58,7 @@ Item {
 
                 Column {
                     anchors.fill: parent
-                    anchors.margins: 10
+                    anchors.margins: 8
                     spacing: 8
                     
                     Rectangle {
@@ -74,7 +84,7 @@ Item {
                             anchors.centerIn: parent
                             text: "queue_music"
                             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                            font.pixelSize: 32
+                            font.pixelSize: 48
                             color: root.theme ? root.theme.textSub : "#A6ADC8"
                             visible: !coverImage.visible
                         }
@@ -84,7 +94,7 @@ Item {
                         width: parent.width
                         text: modelData.name || "Unknown Playlist"
                         font.family: root.theme ? root.theme.fontMain : "Inter"
-                        font.pixelSize: 14
+                        font.pixelSize: 13
                         font.bold: true
                         color: root.theme ? root.theme.textMain : "#FFF"
                         elide: Text.ElideRight

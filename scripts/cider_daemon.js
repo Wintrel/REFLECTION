@@ -241,30 +241,6 @@ rl.on('line', function(line){
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "position": val / 1000000.0 })
         });
-    } else if (line.startsWith("skipToId ")) {
-        const targetId = line.split(" ")[1];
-        if (state.queue && state.trackId) {
-            const currentIndex = state.queue.findIndex(item => item.id === state.trackId);
-            const targetIndex = state.queue.findIndex(item => item.id === targetId);
-            
-            if (currentIndex !== -1 && targetIndex !== -1) {
-                const diff = targetIndex - currentIndex;
-                if (diff !== 0) {
-                    const endpoint = diff > 0 ? "next" : "previous";
-                    const steps = Math.abs(diff);
-                    let p = Promise.resolve();
-                    for (let i = 0; i < steps; i++) {
-                        p = p.then(() => {
-                            return new Promise(resolve => {
-                                fetch("http://127.0.0.1:10767/api/v1/playback/" + endpoint, { method: "POST", headers: { "apptoken": TOKEN }})
-                                .then(() => setTimeout(resolve, 350))
-                                .catch(() => setTimeout(resolve, 350));
-                            });
-                        });
-                    }
-                }
-            }
-        }
     } else if (line.startsWith("search ")) {
         const rawQuery = line.substring(7).trim();
         let apiQuery = rawQuery;
