@@ -116,7 +116,9 @@ Singleton {
                         root.currentLyrics = parsed.text || "";
                         root.hasSyncedLyrics = !!parsed.synced;
                         let arr = [];
-                        if (parsed.synced && parsed.text) {
+                        if (parsed.isCiderV2 && parsed.synced) {
+                            arr = parsed.lines;
+                        } else if (parsed.synced && parsed.text) {
                             var lines = parsed.text.split('\n');
                             for (var i = 0; i < lines.length; i++) {
                                 // Match [mm:ss.xx]

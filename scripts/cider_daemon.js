@@ -25,26 +25,27 @@ let state = {
 
 let lastFetchedLyricsId = "";
 
-function fetchLyrics(artist, title) {
-    if (!artist || !title) return;
-    const q = encodeURIComponent(title + " " + artist);
-    fetch(`https://lrclib.net/api/search?q=${q}`)
-        .then(res => res.json())
-        .then(data => {
-            if (Array.isArray(data) && data.length > 0) {
-                const bestMatch = data.find(d => d.syncedLyrics) || data[0];
-                console.log(JSON.stringify({ 
-                    __type: "lyrics", 
-                    synced: !!bestMatch.syncedLyrics, 
-                    text: bestMatch.syncedLyrics || bestMatch.plainLyrics 
-                }));
-            } else {
-                console.log(JSON.stringify({ __type: "lyrics", synced: false, text: "" }));
-            }
-        })
-        .catch(() => {
-            console.log(JSON.stringify({ __type: "lyrics", synced: false, text: "" }));
-        });
+function fetchLyrics(id) {
+    if (!id) return;
+    fetch(`http://127.0.0.1:10767/api/v2/lyrics/${id}`, {
+        headers: { "apptoken": TOKEN }
+    })
+    .then(res => res.json())
+    .then(payload => {
+        if (payload && payload.data && payload.data.lines) {
+            console.log(JSON.stringify({ 
+                __type: "lyrics", 
+                synced: true, 
+                isCiderV2: true,
+                lines: payload.data.lines.map(l => ({ time: l.start, text: l.text || "" }))
+            }));
+        } else {
+            console.log(JSON.stringify({ __type: "lyrics", synced: false, isCiderV2: true, lines: [] }));
+        }
+    })
+    .catch(() => {
+        console.log(JSON.stringify({ __type: "lyrics", synced: false, isCiderV2: true, lines: [] }));
+    });
 }
 
 function printState() {
@@ -78,7 +79,7 @@ function updateNowPlaying() {
             
             if (state.trackId && state.trackId !== lastFetchedLyricsId) {
                 lastFetchedLyricsId = state.trackId;
-                fetchLyrics(state.trackArtist, state.trackTitle);
+                fetchLyrics(state.trackId);
             }
             
             printState();
