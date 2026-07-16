@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls.Basic
 import Qt5Compat.GraphicalEffects
 
 Item {
@@ -29,9 +28,25 @@ Item {
     
     // Auto-scroll logic
     onActiveLyricIndexChanged: {
-        if (activeLyricIndex >= 0 && syncedView.contentHeight > syncedView.height) {
-            syncedView.positionViewAtIndex(activeLyricIndex, ListView.Center)
+        if (activeLyricIndex >= 0 && syncedView.contentHeight > syncedView.height && !syncedView.dragging && !syncedView.flicking) {
+            let oldY = syncedView.contentY;
+            syncedView.positionViewAtIndex(activeLyricIndex, ListView.Center);
+            let targetY = syncedView.contentY;
+            syncedView.contentY = oldY;
+            
+            if (Math.abs(targetY - oldY) > 2) {
+                scrollAnim.to = targetY;
+                scrollAnim.restart();
+            }
         }
+    }
+    
+    NumberAnimation {
+        id: scrollAnim
+        target: syncedView
+        property: "contentY"
+        duration: 600
+        easing.type: Easing.OutQuart
     }
     
     // No Lyrics View
@@ -76,13 +91,16 @@ Item {
     }
     
     // Plain Text Lyrics Fallback View
-    ScrollView {
+    Flickable {
         anchors.fill: parent
         anchors.margins: 16
         visible: root.hasLyrics && !root.hasSynced
         clip: true
+        contentWidth: width
+        contentHeight: fallbackText.height
         
         Text {
+            id: fallbackText
             width: parent.width
             text: root.mprisPlayer ? root.mprisPlayer.currentLyrics : ""
             font.family: root.theme ? root.theme.fontMain : "Inter"

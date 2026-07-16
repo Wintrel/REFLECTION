@@ -119,13 +119,13 @@ Singleton {
                         root.parsedLyrics = arr;
                     } else if (parsed.trackTitle !== undefined) {
                         root._isDaemonUpdate = true;
-                        root.isPlaying = parsed.isPlaying;
-                        root.trackTitle = parsed.trackTitle;
-                        root.trackArtist = parsed.trackArtist;
-                        root.trackArtUrl = parsed.trackArtUrl;
-                        root.position = parsed.position;
-                        root.length = parsed.length;
-                        root.canSeek = parsed.canSeek;
+                        if (parsed.isPlaying !== undefined) root.isPlaying = parsed.isPlaying;
+                        if (parsed.trackTitle !== undefined) root.trackTitle = parsed.trackTitle;
+                        if (parsed.trackArtist !== undefined) root.trackArtist = parsed.trackArtist;
+                        if (parsed.trackArtUrl !== undefined) root.trackArtUrl = parsed.trackArtUrl;
+                        if (parsed.position !== undefined) root.position = parsed.position;
+                        if (parsed.length !== undefined) root.length = parsed.length;
+                        if (parsed.canSeek !== undefined) root.canSeek = parsed.canSeek;
                         if (parsed.queue !== undefined) root.queue = parsed.queue;
                         if (parsed.shuffleMode !== undefined) root.shuffleMode = parsed.shuffleMode;
                         if (parsed.repeatMode !== undefined) root.repeatMode = parsed.repeatMode;
@@ -133,7 +133,9 @@ Singleton {
                         if (parsed.volume !== undefined) root.volume = parsed.volume;
                         root._isDaemonUpdate = false;
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error("JSON Parse Error in CiderService:", e, "Line:", line);
+                }
             }
         }
     }

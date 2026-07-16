@@ -102,6 +102,7 @@ Item {
         Cider.CiderLyrics {
             anchors.fill: parent
             theme: root.theme
+            mprisPlayer: root.mprisPlayer
             opacity: root.currentTab === 2 ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
