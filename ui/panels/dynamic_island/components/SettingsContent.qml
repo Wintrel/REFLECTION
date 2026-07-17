@@ -5,6 +5,7 @@ import Qt5Compat.GraphicalEffects
 import "../../../../core/state" as State
 import "../../../../core/services/system"
 import "./audio"
+import "./personalization" as Personalization
 
 Item {
     id: root
@@ -21,7 +22,7 @@ Item {
     
     // State to track selected category
     property int currentCategory: 0
-    property var categories: ["Account", "Audio", "Personalization", "Behavior", "Shell", "About"]
+    property var categories: ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "About"]
     
     // Consume clicks on the actual UI so they don't fall through and close the settings,
     // but leave the 20px margins (the "tippy top" and edges) open to be clicked to close!
@@ -162,6 +163,7 @@ Item {
                             text: {
                                 if (modelData === "Account") return "manage_accounts";
                                 if (modelData === "Audio") return "headphones";
+                                if (modelData === "Display") return "desktop_mac";
                                 if (modelData === "Personalization") return "palette";
                                 if (modelData === "Behavior") return "psychology";
                                 if (modelData === "Shell") return "desktop_windows";
@@ -265,16 +267,21 @@ Item {
                     theme: root.theme
                 }
                 
-                // 2: Personalization
+                // 2: Display
                 Rectangle {
                     radius: 12
                     color: Qt.rgba(255, 255, 255, 0.02)
                     border.width: 1
                     border.color: Qt.rgba(255, 255, 255, 0.05)
-                    Text { anchors.centerIn: parent; text: "Personalization Settings"; color: root.theme ? root.theme.textSub : "#888"; font.family: "Inter" }
+                    Text { anchors.centerIn: parent; text: "Display Settings"; color: root.theme ? root.theme.textSub : "#888"; font.family: "Inter" }
                 }
                 
-                // 3: Behavior
+                // 3: Personalization
+                Personalization.PersonalizationSettings {
+                    theme: root.theme
+                }
+                
+                // 4: Behavior
                 Rectangle {
                     radius: 12
                     color: Qt.rgba(255, 255, 255, 0.02)
@@ -283,7 +290,7 @@ Item {
                     Text { anchors.centerIn: parent; text: "Behavior Settings"; color: root.theme ? root.theme.textSub : "#888"; font.family: "Inter" }
                 }
                 
-                // 4: Shell
+                // 5: Shell
                 Rectangle {
                     radius: 12
                     color: Qt.rgba(255, 255, 255, 0.02)
@@ -292,7 +299,7 @@ Item {
                     Text { anchors.centerIn: parent; text: "Shell Settings"; color: root.theme ? root.theme.textSub : "#888"; font.family: "Inter" }
                 }
                 
-                // 5: About
+                // 6: About
                 Rectangle {
                     radius: 12
                     color: Qt.rgba(255, 255, 255, 0.02)

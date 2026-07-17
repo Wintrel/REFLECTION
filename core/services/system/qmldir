@@ -11,3 +11,4 @@ singleton PromptService PromptService.qml
 singleton ActionProgressService ActionProgressService.qml
 singleton PolkitAuthService PolkitAuthService.qml
 singleton AccountService AccountService.qml
+singleton ThemeService ThemeService.qml

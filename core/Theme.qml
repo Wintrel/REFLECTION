@@ -1,19 +1,20 @@
 import QtQuick
+import "./services/system"
 
 Item {
     // Colors.
-    property color bgBezel: "#000000" // True black for OLED
-    property color bgInner: "#000000" // True black for OLED
-    property color textMain: "#D4D4D8" // Soft silver (avoids OLED blooming/harshness)
-    property color textSub: "#82828C" // Muted ash grey
+    property color bgBezel: ThemeService.bgBezel
+    property color bgInner: ThemeService.bgInner
+    property color textMain: ThemeService.textMain
+    property color textSub: ThemeService.textSub
     
-    // Status Colors (Ghostly Stardust Palette)
-    property color colorNotification: '#3F3F4A' // Muted twilight slate (subtle glow for edges)
-    property color colorMusic: '#525266' // Soft cosmic slate.
-    property color accentWorkspace: '#1C1C24' // Deep void grey
-    property color accentPrimary: '#8C8C9E' // Silver lavender (Interactive states)
-    property color colorSystemShimmer: '#C0C0D0' // Bright starlight (Loading/Shimmer)
-    property color bgBase: '#000000' // True black
+    // Status Colors
+    property color colorNotification: ThemeService.colorNotification
+    property color colorMusic: ThemeService.colorMusic
+    property color accentWorkspace: ThemeService.accentWorkspace
+    property color accentPrimary: ThemeService.accentPrimary
+    property color colorSystemShimmer: ThemeService.colorSystemShimmer
+    property color bgBase: ThemeService.bgBase
     
     // Fonts
     property string fontMain: "Inter" // Fallback main font

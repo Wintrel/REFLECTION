@@ -1,0 +1,4 @@
+module personalization
+PersonalizationSettings 1.0 PersonalizationSettings.qml
+WallpaperCard 1.0 WallpaperCard.qml
+ThemeCard 1.0 ThemeCard.qml
