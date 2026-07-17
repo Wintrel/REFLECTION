@@ -36,7 +36,11 @@ Item {
                 
                 ThemeCard { theme: root.theme }
                 
+                CustomThemeEditor { theme: root.theme }
+                
                 WallpaperCard { theme: root.theme }
+                
+                GeometryCard { theme: root.theme }
             }
             
             Item { Layout.preferredHeight: 40 } // Bottom padding

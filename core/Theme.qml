@@ -21,7 +21,7 @@ Item {
     property string fontIcon: "Material Symbols Rounded"
     
     // Geometry
-    property int radiusIsland: 12
+    property int radiusIsland: ThemeService.radiusIsland
     
     // Island States Sizing
     property int islandMinW: 220
@@ -65,10 +65,10 @@ Item {
     property int reflectionGridH: 350
     
     // Animation Durations
-    property int animDuration: 600
+    property int animDuration: ThemeService.animDuration
     
     // Taskbar Sizing
-    property int taskbarRadius: 16
+    property int taskbarRadius: ThemeService.taskbarRadius
     property int taskbarHeight: 52
     property real taskbarWidthPercent: 0.97 // 85% width
     property int taskbarBottomMargin: 0

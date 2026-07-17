@@ -18,6 +18,11 @@ Item {
     property color colorSystemShimmer: '#C0C0D0'
     property color bgBase: '#000000'
 
+    // Geometry & Motion
+    property int radiusIsland: 12
+    property int taskbarRadius: 16
+    property int animDuration: 600
+
     property string currentTheme: "Ghostly Stardust"
 
     property var themes: [
@@ -72,13 +77,52 @@ Item {
             accentPrimary: "#3399FF",
             colorSystemShimmer: "#88CCFF",
             bgBase: "#000000"
+        },
+        {
+            name: "Custom",
+            bgBezel: "#000000",
+            bgInner: "#111111",
+            textMain: "#FFFFFF",
+            textSub: "#AAAAAA",
+            colorNotification: "#222222",
+            colorMusic: "#333333",
+            accentWorkspace: "#1A1A1A",
+            accentPrimary: "#FF00FF",
+            colorSystemShimmer: "#DDDDDD",
+            bgBase: "#000000"
         }
     ]
 
+    function saveConfig() {
+        var cfg = {
+            theme: root.currentTheme,
+            radiusIsland: root.radiusIsland,
+            taskbarRadius: root.taskbarRadius,
+            animDuration: root.animDuration,
+            customColors: {
+                bgBezel: root.bgBezel.toString(),
+                bgInner: root.bgInner.toString(),
+                textMain: root.textMain.toString(),
+                textSub: root.textSub.toString(),
+                colorNotification: root.colorNotification.toString(),
+                colorMusic: root.colorMusic.toString(),
+                accentWorkspace: root.accentWorkspace.toString(),
+                accentPrimary: root.accentPrimary.toString(),
+                colorSystemShimmer: root.colorSystemShimmer.toString(),
+                bgBase: root.bgBase.toString()
+            }
+        };
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
+        var jsonStr = JSON.stringify(cfg).replace(/'/g, "'\\''");
+        p.command = ["sh", "-c", "echo '" + jsonStr + "' > ~/.config/quickshell/reflection/.theme_settings.json"];
+        p.exited.connect(function() { p.destroy(); });
+        p.running = true;
+    }
+
     function applyTheme(themeName) {
         if (themeName === "Custom") {
-            // Placeholder for future custom theme loading
             root.currentTheme = "Custom";
+            root.saveConfig();
             return;
         }
 
@@ -103,21 +147,69 @@ Item {
             root.colorSystemShimmer = theme.colorSystemShimmer;
             root.bgBase = theme.bgBase;
             
-            // Save selection
-            var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
-            p.command = ["sh", "-c", "echo '" + themeName + "' > ~/.config/quickshell/reflection/.current_theme"];
-            p.exited.connect(function() { p.destroy(); });
-            p.running = true;
+            root.saveConfig();
         }
     }
 
+    function updateCustomColor(propertyName, hexColor) {
+        if (root.currentTheme !== "Custom") {
+            root.currentTheme = "Custom";
+        }
+        
+        if (propertyName in root) {
+            root[propertyName] = hexColor;
+        }
+        
+        root.saveConfig();
+    }
+
+    function updateGeometry(radius, duration) {
+        if (radius >= 0) {
+            root.radiusIsland = radius;
+            root.taskbarRadius = radius + 4;
+        }
+        if (duration >= 0) {
+            root.animDuration = duration;
+        }
+        root.saveConfig();
+    }
+
     Process {
-        command: ["sh", "-c", "cat ~/.config/quickshell/reflection/.current_theme 2>/dev/null || echo 'Ghostly Stardust'"]
+        command: ["sh", "-c", "cat ~/.config/quickshell/reflection/.theme_settings.json 2>/dev/null || echo '{}'"]
         stdout: SplitParser {
             onRead: data => { 
-                var saved = data.trim();
-                if (saved !== "") {
-                    root.applyTheme(saved);
+                try {
+                    var raw = data.trim();
+                    if (raw !== "" && raw !== "{}") {
+                        var cfg = JSON.parse(raw);
+                        
+                        if (cfg.radiusIsland !== undefined) root.radiusIsland = cfg.radiusIsland;
+                        if (cfg.taskbarRadius !== undefined) root.taskbarRadius = cfg.taskbarRadius;
+                        if (cfg.animDuration !== undefined) root.animDuration = cfg.animDuration;
+                        
+                        if (cfg.theme === "Custom" && cfg.customColors) {
+                            root.currentTheme = "Custom";
+                            root.bgBezel = cfg.customColors.bgBezel;
+                            root.bgInner = cfg.customColors.bgInner;
+                            root.textMain = cfg.customColors.textMain;
+                            root.textSub = cfg.customColors.textSub;
+                            root.colorNotification = cfg.customColors.colorNotification;
+                            root.colorMusic = cfg.customColors.colorMusic;
+                            root.accentWorkspace = cfg.customColors.accentWorkspace;
+                            root.accentPrimary = cfg.customColors.accentPrimary;
+                            root.colorSystemShimmer = cfg.customColors.colorSystemShimmer;
+                            root.bgBase = cfg.customColors.bgBase;
+                        } else if (cfg.theme !== undefined) {
+                            root.applyTheme(cfg.theme);
+                        }
+                    } else {
+                        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "cat ~/.config/quickshell/reflection/.current_theme 2>/dev/null || echo \\"Ghostly Stardust\\""] }', root);
+                        p.stdout = Qt.createQmlObject('import Quickshell.Io; SplitParser { onRead: data => { var s = data.trim(); if(s!=="") root.applyTheme(s); } }', p);
+                        p.exited.connect(function() { p.destroy(); });
+                        p.running = true;
+                    }
+                } catch(e) {
+                    console.log("Error loading theme config: " + e);
                 }
             }
         }
