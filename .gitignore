@@ -2,3 +2,4 @@
 node_modules
 .current_theme
 .current_wallpaper
+*.md
