@@ -4,3 +4,4 @@ WallpaperCard 1.0 WallpaperCard.qml
 ThemeCard 1.0 ThemeCard.qml
 CustomThemeEditor 1.0 CustomThemeEditor.qml
 GeometryCard 1.0 GeometryCard.qml
+EdgeLightingCard 1.0 EdgeLightingCard.qml

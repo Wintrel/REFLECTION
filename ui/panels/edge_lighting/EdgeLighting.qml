@@ -123,7 +123,7 @@ Scope {
                     height: 100
                     color: "transparent"
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, 0.6) }
+                        GradientStop { position: 0.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, theme.edgeLightingIntensity) }
                         GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
@@ -137,7 +137,7 @@ Scope {
                     color: "transparent"
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "transparent" }
-                        GradientStop { position: 1.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, 0.6) }
+                        GradientStop { position: 1.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, theme.edgeLightingIntensity) }
                     }
                 }
 
@@ -150,7 +150,7 @@ Scope {
                     color: "transparent"
                     gradient: Gradient {
                         orientation: Gradient.Horizontal
-                        GradientStop { position: 0.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, 0.6) }
+                        GradientStop { position: 0.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, theme.edgeLightingIntensity) }
                         GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
@@ -165,7 +165,7 @@ Scope {
                     gradient: Gradient {
                         orientation: Gradient.Horizontal
                         GradientStop { position: 0.0; color: "transparent" }
-                        GradientStop { position: 1.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, 0.6) }
+                        GradientStop { position: 1.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, theme.edgeLightingIntensity) }
                     }
                 }
 

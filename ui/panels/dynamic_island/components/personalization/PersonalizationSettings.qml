@@ -41,6 +41,8 @@ Item {
                 WallpaperCard { theme: root.theme }
                 
                 GeometryCard { theme: root.theme }
+                
+                EdgeLightingCard { theme: root.theme }
             }
             
             Item { Layout.preferredHeight: 40 } // Bottom padding

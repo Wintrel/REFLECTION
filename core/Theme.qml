@@ -67,6 +67,9 @@ Item {
     // Animation Durations
     property int animDuration: ThemeService.animDuration
     
+    // Effects
+    property real edgeLightingIntensity: ThemeService.edgeLightingIntensity
+    
     // Taskbar Sizing
     property int taskbarRadius: ThemeService.taskbarRadius
     property int taskbarHeight: 52

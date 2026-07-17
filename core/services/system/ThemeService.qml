@@ -22,6 +22,9 @@ Item {
     property int radiusIsland: 12
     property int taskbarRadius: 16
     property int animDuration: 600
+    
+    // Effects
+    property real edgeLightingIntensity: 0.6
 
     property string currentTheme: "Ghostly Stardust"
 
@@ -99,6 +102,7 @@ Item {
             radiusIsland: root.radiusIsland,
             taskbarRadius: root.taskbarRadius,
             animDuration: root.animDuration,
+            edgeLightingIntensity: root.edgeLightingIntensity,
             customColors: {
                 bgBezel: root.bgBezel.toString(),
                 bgInner: root.bgInner.toString(),
@@ -174,6 +178,13 @@ Item {
         root.saveConfig();
     }
 
+    function updateEdgeLighting(intensity) {
+        if (intensity >= 0.0 && intensity <= 1.0) {
+            root.edgeLightingIntensity = intensity;
+            root.saveConfig();
+        }
+    }
+
     Process {
         command: ["sh", "-c", "cat ~/.config/quickshell/reflection/.theme_settings.json 2>/dev/null || echo '{}'"]
         stdout: SplitParser {
@@ -186,6 +197,7 @@ Item {
                         if (cfg.radiusIsland !== undefined) root.radiusIsland = cfg.radiusIsland;
                         if (cfg.taskbarRadius !== undefined) root.taskbarRadius = cfg.taskbarRadius;
                         if (cfg.animDuration !== undefined) root.animDuration = cfg.animDuration;
+                        if (cfg.edgeLightingIntensity !== undefined) root.edgeLightingIntensity = cfg.edgeLightingIntensity;
                         
                         if (cfg.theme === "Custom" && cfg.customColors) {
                             root.currentTheme = "Custom";

@@ -13,6 +13,9 @@ ColumnLayout {
     // Only visible if current theme is Custom
     visible: ThemeService.currentTheme === "Custom"
     
+    // Property Selector State
+    property string activeEditProperty: "accentPrimary"
+    
     Rectangle {
         Layout.fillWidth: true
         height: 1
@@ -27,41 +30,79 @@ ColumnLayout {
         color: root.theme ? root.theme.textMain : "#FFF"
     }
 
-    // Accent Colors
+    // Component Target Selector
     Text {
-        text: "Accent Color"
+        text: "Select Component to Tint"
         font.family: root.theme ? root.theme.fontMain : "Inter"
         font.pixelSize: 12
         color: root.theme ? root.theme.textSub : "#888"
     }
 
-    GridLayout {
+    RowLayout {
         Layout.fillWidth: true
-        columns: 6
-        rowSpacing: 16
-        columnSpacing: 16
+        spacing: 8
         
         Repeater {
             model: [
-                "#FF3366", // Red/Pink
-                "#FF6B33", // Orange
-                "#FFD633", // Yellow
-                "#33FF55", // Green
-                "#00FFAA", // Teal
-                "#3399FF", // Blue
-                "#6633FF", // Purple
-                "#FF33FF", // Magenta
-                "#8C8C9E", // Grey/Silver
-                "#FFFFFF"  // White
+                { id: "accentPrimary", name: "Global Accent" },
+                { id: "colorNotification", name: "Notifications" },
+                { id: "colorMusic", name: "Music Player" },
+                { id: "accentWorkspace", name: "Workspaces" }
             ]
             
             delegate: Rectangle {
-                Layout.preferredWidth: 36
-                Layout.preferredHeight: 36
-                radius: 18
+                Layout.fillWidth: true
+                Layout.preferredHeight: 32
+                radius: 8
+                color: root.activeEditProperty === modelData.id ? ThemeService.accentPrimary : Qt.rgba(255, 255, 255, 0.05)
+                border.width: root.activeEditProperty === modelData.id ? 0 : (maTab.containsMouse ? 1 : 0)
+                border.color: Qt.rgba(255, 255, 255, 0.2)
+                
+                Text {
+                    anchors.centerIn: parent
+                    text: modelData.name
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 12
+                    font.weight: root.activeEditProperty === modelData.id ? Font.Bold : Font.Normal
+                    color: root.activeEditProperty === modelData.id ? "#000" : (root.theme ? root.theme.textMain : "#FFF")
+                }
+                
+                MouseArea {
+                    id: maTab
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.activeEditProperty = modelData.id
+                }
+            }
+        }
+    }
+
+    GridLayout {
+        Layout.fillWidth: true
+        columns: 8
+        rowSpacing: 12
+        columnSpacing: 12
+        Layout.topMargin: 8
+        
+        Repeater {
+            model: [
+                // Vibrant Accents
+                "#FF3366", "#FF6B33", "#FFD633", "#33FF55", 
+                "#00FFAA", "#3399FF", "#6633FF", "#FF33FF", 
+                "#8C8C9E", "#FFFFFF",
+                // Muted/Dark Background Accents
+                "#2A2A30", "#3A3A40", "#15151A", "#1C1C24",
+                "#3F3F4A", "#000000"
+            ]
+            
+            delegate: Rectangle {
+                Layout.preferredWidth: 32
+                Layout.preferredHeight: 32
+                radius: 16
                 color: modelData
                 
-                property bool isSelected: ThemeService.accentPrimary.toString().toUpperCase() === modelData.toUpperCase()
+                property bool isSelected: ThemeService[root.activeEditProperty].toString().toUpperCase() === modelData.toUpperCase()
                 
                 border.width: isSelected ? 3 : 0
                 border.color: "#FFF"
@@ -70,14 +111,12 @@ ColumnLayout {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        var baseC = Qt.color(modelData);
-                        ThemeService.updateCustomColor("accentPrimary", modelData);
-                        ThemeService.updateCustomColor("colorSystemShimmer", Qt.lighter(baseC, 1.2));
-                        
-                        // Tint other accents by blending the accent with black/dark gray
-                        ThemeService.updateCustomColor("colorNotification", Qt.tint("#2A2A30", Qt.rgba(baseC.r, baseC.g, baseC.b, 0.2)));
-                        ThemeService.updateCustomColor("colorMusic", Qt.tint("#3A3A40", Qt.rgba(baseC.r, baseC.g, baseC.b, 0.3)));
-                        ThemeService.updateCustomColor("accentWorkspace", Qt.tint("#15151A", Qt.rgba(baseC.r, baseC.g, baseC.b, 0.15)));
+                        ThemeService.updateCustomColor(root.activeEditProperty, modelData);
+                        // Only auto-update shimmer when global accent is changed. 
+                        // We NO LONGER auto-tint other components, granting true granular control!
+                        if (root.activeEditProperty === "accentPrimary") {
+                            ThemeService.updateCustomColor("colorSystemShimmer", Qt.lighter(modelData, 1.2));
+                        }
                     }
                 }
             }
@@ -86,11 +125,11 @@ ColumnLayout {
     
     // Background Mode
     Text {
-        text: "Background Style"
+        text: "Global Background Style"
         font.family: root.theme ? root.theme.fontMain : "Inter"
         font.pixelSize: 12
         color: root.theme ? root.theme.textSub : "#888"
-        Layout.topMargin: 8
+        Layout.topMargin: 12
     }
 
     RowLayout {
