@@ -48,8 +48,8 @@ Item {
     property int islandCiderW: 1300
     property int islandCiderH: 600
     
-    property int islandSettingsW: 1100
-    property int islandSettingsH: 650
+    property int islandSettingsW: 1200
+    property int islandSettingsH: 680
     
     property int islandFilePickerW: 1000
     property int islandFilePickerH: 600

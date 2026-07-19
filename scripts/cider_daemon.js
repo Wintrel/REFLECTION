@@ -380,32 +380,49 @@ rl.on('line', function(line){
         });
     } else if (line.startsWith("playlistTracks ")) {
         const href = line.substring(15).trim();
-        const path = href + "/tracks";
-        fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
-            method: "POST",
-            headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
-            body: JSON.stringify({ "path": path })
-        })
-        .then(r => r.json())
-        .then(data => {
-            let tracks = [];
-            if (data && data.data && data.data.data) {
-                tracks = data.data.data.map(song => {
-                    const attr = song.attributes || {};
-                    return {
-                        id: song.id || (attr.playParams ? attr.playParams.id : ""),
-                        name: attr.name || "",
-                        artistName: attr.artistName || "",
-                        albumName: attr.albumName || "",
-                        durationInMillis: attr.durationInMillis || 0,
-                        contentRating: attr.contentRating || "",
-                        audioTraits: attr.audioTraits || [],
-                        artwork: attr.artwork ? attr.artwork.url.replace("{w}", "600").replace("{h}", "600") : ""
-                    };
-                });
-            }
-            console.log(JSON.stringify({ __type: "playlistTracks", results: tracks }));
-        })
-        .catch(e => console.error("Error fetching playlist tracks", e));
+        let allTracks = [];
+        
+        function fetchPage(path) {
+            fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
+                method: "POST",
+                headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
+                body: JSON.stringify({ "path": path })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.data && data.data.data) {
+                    const tracks = data.data.data.map(song => {
+                        const attr = song.attributes || {};
+                        return {
+                            id: song.id || (attr.playParams ? attr.playParams.id : ""),
+                            name: attr.name || "",
+                            artistName: attr.artistName || "",
+                            albumName: attr.albumName || "",
+                            durationInMillis: attr.durationInMillis || 0,
+                            contentRating: attr.contentRating || "",
+                            audioTraits: attr.audioTraits || [],
+                            artwork: attr.artwork ? attr.artwork.url.replace("{w}", "600").replace("{h}", "600") : ""
+                        };
+                    });
+                    allTracks = allTracks.concat(tracks);
+                }
+                
+                if (data && data.data && data.data.next) {
+                    // Apple Music API provides the exact path needed for the next page
+                    fetchPage(data.data.next);
+                } else {
+                    // Done fetching all pages
+                    console.log(JSON.stringify({ __type: "playlistTracks", results: allTracks }));
+                }
+            })
+            .catch(e => {
+                console.error("Error fetching playlist tracks", e);
+                // Print whatever we managed to fetch before failing
+                console.log(JSON.stringify({ __type: "playlistTracks", results: allTracks }));
+            });
+        }
+        
+        // Start fetching the first page with the max limit per request
+        fetchPage(href + "/tracks?limit=100");
     }
 });
