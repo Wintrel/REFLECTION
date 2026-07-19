@@ -89,7 +89,8 @@ Item {
                 property real animatingHeight: targetHeight
                 Behavior on animatingHeight {
                     NumberAnimation {
-                        duration: root.isPlaying ? (root.hasCava ? 60 : 150) : (1500 + (index % 3) * 500)
+                        // Dynamically scale smoothness based on panel height so large panels don't jump frantically
+                        duration: root.isPlaying ? (root.hasCava ? Math.max(100, root.height * 0.3) : 180) : (1500 + (index % 3) * 500)
                         easing.type: root.isPlaying ? Easing.OutQuad : Easing.InOutSine
                     }
                 }
