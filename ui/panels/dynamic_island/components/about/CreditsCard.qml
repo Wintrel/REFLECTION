@@ -1,9 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 
 ColumnLayout {
     id: root
     property var theme
+    signal secretUnlocked()
     Layout.fillWidth: true
     spacing: 8
 
@@ -34,6 +36,18 @@ ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 12
 
+                MouseArea {
+                    anchors.fill: parent
+                    property int clickCount: 0
+                    onClicked: {
+                        clickCount++
+                        if (clickCount >= 5) {
+                            clickCount = 0
+                            root.secretUnlocked()
+                        }
+                    }
+                }
+
                 Rectangle {
                     width: 32
                     height: 32
@@ -41,13 +55,30 @@ ColumnLayout {
                     color: Qt.rgba(255, 255, 255, 0.06)
                     border.width: 1
                     border.color: Qt.rgba(255, 255, 255, 0.1)
+                    clip: true
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: "person"
-                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                        font.pixelSize: 18
-                        color: root.theme ? root.theme.accentPrimary : "#4ADE80"
+                    Image {
+                        id: authorAvatar
+                        anchors.fill: parent
+                        source: "../../../../../assets/WintrelPFP.png"
+                        sourceSize.width: 64
+                        sourceSize.height: 64
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        visible: false
+                    }
+
+                    Rectangle {
+                        id: avatarMask
+                        anchors.fill: parent
+                        radius: 16
+                        visible: false
+                    }
+
+                    OpacityMask {
+                        anchors.fill: parent
+                        source: authorAvatar
+                        maskSource: avatarMask
                     }
                 }
 
@@ -60,7 +91,7 @@ ColumnLayout {
                         color: root.theme ? root.theme.textSub : "#888"
                     }
                     Text {
-                        text: "fuyumi"
+                        text: "Wintrel"
                         font.family: "Inter"
                         font.pixelSize: 14
                         font.weight: Font.DemiBold

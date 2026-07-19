@@ -23,9 +23,11 @@ ColumnLayout {
         border.width: 1
         border.color: Qt.rgba(255, 255, 255, 0.04)
 
-        ColumnLayout {
+        Column {
             id: featuresList
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
             anchors.margins: 12
             spacing: 0
 
@@ -41,8 +43,8 @@ ColumnLayout {
                 }
 
                 delegate: Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: 44
+                    width: featuresList.width
+                    height: 44
                     radius: 6
                     color: featureMa.containsMouse ? Qt.rgba(255, 255, 255, 0.04) : "transparent"
                     Behavior on color { ColorAnimation { duration: 200 } }
@@ -53,13 +55,16 @@ ColumnLayout {
                         hoverEnabled: true
                     }
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 8
-                        anchors.rightMargin: 8
-                        spacing: 12
+                    // Fixed-position icon
+                    Item {
+                        id: iconContainer
+                        x: 8
+                        width: 24
+                        height: 24
+                        anchors.verticalCenter: parent.verticalCenter
 
                         Text {
+                            anchors.centerIn: parent
                             text: model.icon
                             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                             font.pixelSize: 18
@@ -68,25 +73,28 @@ ColumnLayout {
                                 : (root.theme ? root.theme.textSub : "#888")
                             Behavior on color { ColorAnimation { duration: 200 } }
                         }
+                    }
 
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 1
+                    // Text column at a fixed x offset
+                    Column {
+                        x: iconContainer.x + iconContainer.width + 12
+                        width: parent.width - x - 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 1
 
-                            Text {
-                                text: model.name
-                                font.family: "Inter"
-                                font.pixelSize: 13
-                                font.weight: Font.Medium
-                                color: root.theme ? root.theme.textMain : "#FFF"
-                            }
+                        Text {
+                            text: model.name
+                            font.family: "Inter"
+                            font.pixelSize: 13
+                            font.weight: Font.Medium
+                            color: root.theme ? root.theme.textMain : "#FFF"
+                        }
 
-                            Text {
-                                text: model.desc
-                                font.family: "Inter"
-                                font.pixelSize: 11
-                                color: root.theme ? root.theme.textSub : "#888"
-                            }
+                        Text {
+                            text: model.desc
+                            font.family: "Inter"
+                            font.pixelSize: 11
+                            color: root.theme ? root.theme.textSub : "#888"
                         }
                     }
                 }

@@ -207,7 +207,7 @@ ColumnLayout {
                 ColumnLayout {
                     spacing: 2
                     Text { text: "Shell"; font.family: "Inter"; font.pixelSize: 11; color: root.theme ? root.theme.textSub : "#888" }
-                    Text { text: "Reflection v1.1.0"; font.family: "Inter"; font.pixelSize: 13; font.weight: Font.Medium; color: root.theme ? root.theme.textMain : "#FFF" }
+                    Text { text: "Reflection v1.1.1"; font.family: "Inter"; font.pixelSize: 13; font.weight: Font.Medium; color: root.theme ? root.theme.textMain : "#FFF" }
                 }
             }
 

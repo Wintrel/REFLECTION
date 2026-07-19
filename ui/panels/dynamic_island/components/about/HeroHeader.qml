@@ -232,7 +232,7 @@ Item {
             // Version
             Text {
                 Layout.alignment: Qt.AlignHCenter
-                text: "v1.1.0"
+                text: "v1.1.1"
                 font.family: "Inter"
                 font.pixelSize: 12
                 color: root.theme ? root.theme.textSub : "#888"

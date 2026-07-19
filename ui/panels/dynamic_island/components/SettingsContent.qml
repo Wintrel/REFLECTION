@@ -17,13 +17,24 @@ Item {
     
     // Only show when in state 11
     property bool isActive: islandState === 11
+    property bool isSecretUnlocked: false
+    
+    onIsActiveChanged: {
+        if (!isActive) {
+            isSecretUnlocked = false
+            if (currentCategory >= categories.length) {
+                currentCategory = 0
+            }
+        }
+    }
+    
     opacity: isActive ? 1 : 0
     visible: opacity > 0
     Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
     
     // State to track selected category
     property int currentCategory: 0
-    property var categories: ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "About"]
+    property var categories: isSecretUnlocked ? ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "About", "Wintrel"] : ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "About"]
     
     // Consume clicks on the actual UI so they don't fall through and close the settings,
     // but leave the 20px margins (the "tippy top" and edges) open to be clicked to close!
@@ -168,6 +179,7 @@ Item {
                                 if (modelData === "Personalization") return "palette";
                                 if (modelData === "Behavior") return "psychology";
                                 if (modelData === "Shell") return "desktop_windows";
+                                if (modelData === "Wintrel") return "terminal";
                                 return "info";
                             }
                             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
@@ -302,6 +314,12 @@ Item {
                 
                 // 6: About
                 About.AboutSettings {
+                    theme: root.theme
+                    onSecretUnlocked: root.isSecretUnlocked = true
+                }
+                
+                // 7: Wintrel
+                About.WintrelSettings {
                     theme: root.theme
                 }
             }

@@ -5,6 +5,7 @@ import QtQuick.Layouts
 Item {
     id: root
     property var theme
+    signal secretUnlocked()
     Layout.fillWidth: true
     Layout.fillHeight: true
 
@@ -36,7 +37,10 @@ Item {
 
             FeaturesCard { theme: root.theme }
 
-            CreditsCard { theme: root.theme }
+            CreditsCard {
+                theme: root.theme
+                onSecretUnlocked: root.secretUnlocked()
+            }
 
             Item { Layout.preferredHeight: 40 }
         }
