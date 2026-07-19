@@ -17,9 +17,10 @@ Item {
     property int columns: theme.overviewColumns
     property real overviewScale: theme.overviewScale
 
-    // Get the primary monitor's dimensions for sizing
+    // Get this specific monitor's dimensions for sizing, fallback to monitor 0
+    property string targetMonitorName: ""
     property var primaryMonitor: System.HyprlandService.monitors.find(
-        m => m.name === (Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : "")
+        m => m.name === targetMonitorName
     ) || System.HyprlandService.monitors[0] || null
     property real monW: primaryMonitor ? (primaryMonitor.width / (primaryMonitor.scale || 1)) : 1920
     property real monH: primaryMonitor ? (primaryMonitor.height / (primaryMonitor.scale || 1)) : 1080
@@ -105,6 +106,12 @@ Item {
             id: gridLayout
             anchors.centerIn: parent
             spacing: root.wsSpacing
+            
+            scale: root.overviewVisible ? 1.0 : 0.95
+            opacity: root.overviewVisible ? 1.0 : 0.0
+            
+            Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+            Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutExpo } }
 
             Repeater {
                 model: root.rows

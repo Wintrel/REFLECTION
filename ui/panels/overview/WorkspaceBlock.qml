@@ -16,11 +16,14 @@ Rectangle {
     width: overviewRoot.wsBlockWidth
     height: overviewRoot.wsBlockHeight
     radius: theme.radiusIsland * 0.5
-    z: overviewRoot.draggingFromWorkspace === wsId ? 100 : 0
+    z: overviewRoot.draggingFromWorkspace === wsId ? 100 : (typeof blockMouseArea !== "undefined" && blockMouseArea.containsMouse ? 10 : 0)
     color: hoveredWhileDragging ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0.03)
     border.color: isActive ? theme.accentPrimary : Qt.rgba(1, 1, 1, 0.06)
     border.width: isActive ? 2 : 1
 
+    scale: typeof blockMouseArea !== "undefined" && blockMouseArea.containsMouse && overviewRoot.draggingFromWorkspace === -1 ? 1.02 : 1.0
+
+    Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
     Behavior on color { ColorAnimation { duration: 150 } }
     Behavior on border.color { ColorAnimation { duration: 200 } }
 
@@ -36,7 +39,9 @@ Rectangle {
 
     // Click to switch workspace
     MouseArea {
+        id: blockMouseArea
         anchors.fill: parent
+        hoverEnabled: true
         acceptedButtons: Qt.LeftButton
         onClicked: {
             State.GlobalStates.overviewOpen = false;

@@ -71,6 +71,7 @@ Scope {
                 anchors.topMargin: 60
                 theme: theme
                 overviewVisible: State.GlobalStates.overviewOpen
+                targetMonitorName: modelData.name
             }
         }
     }
