@@ -1,0 +1,7 @@
+module about
+AboutSettings 1.0 AboutSettings.qml
+HeroHeader 1.0 HeroHeader.qml
+SystemInfoCard 1.0 SystemInfoCard.qml
+FeaturesCard 1.0 FeaturesCard.qml
+CreditsCard 1.0 CreditsCard.qml
+EasterEggOverlay 1.0 EasterEggOverlay.qml
