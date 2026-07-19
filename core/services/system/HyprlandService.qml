@@ -11,6 +11,7 @@ Item {
     property var clients: []
     property var monitors: []
     property int activeWorkspaceId: 1
+    property var clientsByWorkspace: ({})
     
     // Whether the active workspace has any windows
     property bool isWorkspaceEmpty: true
@@ -45,19 +46,28 @@ Item {
                     var activeId = state.activeWorkspace.id;
                     root.activeWorkspaceId = activeId;
                     
+                    var newClientsByWorkspace = {};
+                    
                     if (state.monitors) {
                         root.monitors = state.monitors;
                     }
                     
                     var hasWindows = false;
                     for (var i = 0; i < cls.length; i++) {
-                        if (cls[i].class) {
-                            root.resolveIcon(cls[i].class);
+                        var client = cls[i];
+                        if (client.class) {
+                            root.resolveIcon(client.class);
                         }
-                        if (cls[i].workspace.id === activeId) {
+                        if (client.mapped && client.workspace) {
+                            var wid = client.workspace.id;
+                            if (!newClientsByWorkspace[wid]) newClientsByWorkspace[wid] = [];
+                            newClientsByWorkspace[wid].push(client);
+                        }
+                        if (client.workspace && client.workspace.id === activeId) {
                             hasWindows = true;
                         }
                     }
+                    root.clientsByWorkspace = newClientsByWorkspace;
                     root.isWorkspaceEmpty = !hasWindows;
                 } catch (e) {
                     console.log("HyprlandService Error parsing state: " + e);

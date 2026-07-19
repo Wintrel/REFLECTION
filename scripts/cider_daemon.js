@@ -341,11 +341,9 @@ rl.on('line', function(line){
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "type": "songs", "id": id })
         }).then(() => {
-            setTimeout(() => {
-                updateNowPlaying();
-                updateQueue();
-            }, 250);
-        });
+            updateNowPlaying();
+            updateQueue();
+        }).catch(() => {});
     } else if (line.trim() === "queue") {
         updateQueue();
     } else if (line.trim() === "fetchConfig") {
@@ -367,17 +365,11 @@ rl.on('line', function(line){
             method: "POST",
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "type": type, "id": id })
-        }).then(() => {
-            setTimeout(() => {
-                fetch("http://127.0.0.1:10767/api/v1/playback/play", { method: "POST", headers: { "apptoken": TOKEN }})
-                .then(() => {
-                    setTimeout(() => {
-                        updateNowPlaying();
-                        updateQueue();
-                    }, 250);
-                });
-            }, 350);
-        });
+        }).then(() => fetch("http://127.0.0.1:10767/api/v1/playback/play", { method: "POST", headers: { "apptoken": TOKEN }}))
+        .then(() => {
+            updateNowPlaying();
+            updateQueue();
+        }).catch(() => {});
     } else if (line.startsWith("playlistTracks ")) {
         const href = line.substring(15).trim();
         let allTracks = [];

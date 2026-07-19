@@ -32,7 +32,12 @@ Column {
         running: true
         repeat: true
         interval: 1000
-        onTriggered: updateTime()
+        onTriggered: {
+            updateTime()
+            if (interval === 1000 && new Date().getSeconds() === 0) {
+                interval = 60000;
+            }
+        }
         Component.onCompleted: updateTime()
     }
     

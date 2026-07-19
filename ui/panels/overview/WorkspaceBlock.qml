@@ -94,9 +94,7 @@ Rectangle {
             anchors.centerIn: parent
 
             Repeater {
-                model: System.HyprlandService.clients.filter(
-                    w => w.mapped && w.workspace && w.workspace.id === wsBlock.wsId
-                )
+                model: System.HyprlandService.clientsByWorkspace[wsBlock.wsId] || []
 
                 delegate: WindowPreview {
                     theme: wsBlock.theme

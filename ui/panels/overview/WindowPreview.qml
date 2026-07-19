@@ -48,18 +48,8 @@ Item {
         border.width: 1
         clip: true
 
-        // Look up ToplevelManager entry for live preview
-        property var toplevel: {
-            if (!ToplevelManager || !ToplevelManager.toplevels) return null;
-            var tops = ToplevelManager.toplevels.values;
-            if (!tops) return null;
-            for (var i = 0; i < tops.length; ++i) {
-                var t = tops[i];
-                var addr = t.HyprlandToplevel ? t.HyprlandToplevel.address : null;
-                if (addr && ("0x" + addr) === windowItem.windowAddress) return t;
-            }
-            return null;
-        }
+        // Look up ToplevelManager entry for live preview (O(1) using cached map)
+        property var toplevel: overviewRoot.toplevelMap[windowItem.windowAddress] || null
 
         ScreencopyView {
             id: screencopy

@@ -66,6 +66,24 @@ Item {
     property int draggingFromWorkspace: -1
     property int draggingTargetWorkspace: -1
 
+    // Map of toplevels for O(1) lookup in WindowPreviews
+    property var toplevelMap: {
+        var map = {};
+        if (ToplevelManager && ToplevelManager.toplevels) {
+            var tops = ToplevelManager.toplevels.values;
+            if (tops) {
+                for (var i = 0; i < tops.length; ++i) {
+                    var t = tops[i];
+                    var addr = t.HyprlandToplevel ? t.HyprlandToplevel.address : null;
+                    if (addr) {
+                        map["0x" + addr] = t;
+                    }
+                }
+            }
+        }
+        return map;
+    }
+
     // Animate in
     opacity: overviewVisible ? 1 : 0
     Behavior on opacity { NumberAnimation { duration: theme.animDuration; easing.type: Easing.OutExpo } }
@@ -78,7 +96,7 @@ Item {
         anchors.fill: backgroundRect
         source: backgroundRect
         radius: 32
-        samples: 65
+        samples: 33
         color: Qt.rgba(0, 0, 0, 0.5)
         verticalOffset: 12
         transparentBorder: true
