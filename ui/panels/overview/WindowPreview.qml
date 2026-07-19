@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import "../../../core/services/system" as System
 import "../../../core/state" as State
 

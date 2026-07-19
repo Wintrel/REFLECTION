@@ -88,7 +88,6 @@ Rectangle {
                 )
 
                 delegate: WindowPreview {
-                    modelData: modelData
                     theme: wsBlock.theme
                     overviewRoot: wsBlock.overviewRoot
                     gridLayoutObj: wsBlock.gridLayoutObj
