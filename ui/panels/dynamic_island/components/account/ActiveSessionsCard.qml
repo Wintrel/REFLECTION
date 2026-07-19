@@ -100,66 +100,83 @@ import "../../../../../core/state" as State
                                     }
                                 }
 
-                                // Status Badge / Terminate Button
-                                Item {
-                                    Layout.preferredWidth: badgeContainer.implicitWidth
-                                    Layout.preferredHeight: 32
+                                // Current badge
+                                Rectangle {
+                                    visible: isCurrentSession
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    Layout.rightMargin: 16
+                                    height: 26
+                                    implicitWidth: 80
+                                    radius: 13
+                                    color: Qt.rgba(255, 255, 255, 0.03)
+                                    border.width: 1
+                                    border.color: Qt.rgba(255, 255, 255, 0.08)
+                                    
+                                    RowLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 6
+                                        
+                                        Rectangle {
+                                            width: 6; height: 6; radius: 3
+                                            color: "#4ADE80"
+                                            // simple dot, no dropshadow to keep it lightweight, or basic glowing color
+                                        }
+                                        
+                                        Text {
+                                            text: "Current"
+                                            font.family: "Inter"
+                                            font.pixelSize: 11
+                                            font.weight: Font.DemiBold
+                                            color: "#E0E0E0"
+                                        }
+                                    }
+                                }
+
+                                // Terminate Button
+                                Rectangle {
+                                    visible: !isCurrentSession
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    Layout.rightMargin: 16
+                                    height: 32
+                                    implicitWidth: maTerm.containsMouse ? 105 : 32
+                                    radius: 16
+                                    color: maTerm.containsMouse ? "#ef4444" : Qt.rgba(255, 255, 255, 0.03)
+                                    border.width: 1
+                                    border.color: maTerm.containsMouse ? "#ef4444" : Qt.rgba(255, 255, 255, 0.08)
+                                    Behavior on implicitWidth { NumberAnimation { duration: 250; easing.type: Easing.OutExpo } }
+                                    Behavior on color { ColorAnimation { duration: 200 } }
+                                    Behavior on border.color { ColorAnimation { duration: 200 } }
+                                    clip: true
 
                                     RowLayout {
-                                        id: badgeContainer
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        spacing: 8
-
-                                        // Current badge
-                                        Rectangle {
-                                            visible: isCurrentSession
-                                            height: 24
-                                            width: 75
-                                            radius: 12
-                                            color: Qt.rgba(74, 222, 128, 0.15)
-                                            border.width: 1
-                                            border.color: "#4ADE80"
-                                            
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "Current"
-                                                font.family: "Inter"
-                                                font.pixelSize: 11
-                                                font.weight: Font.Bold
-                                                color: "#4ADE80"
-                                            }
+                                        anchors.centerIn: parent
+                                        spacing: 6
+                                        
+                                        Text {
+                                            text: "close"
+                                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                            font.pixelSize: 18
+                                            color: maTerm.containsMouse ? "#FFFFFF" : "#ef4444"
+                                            Behavior on color { ColorAnimation { duration: 200 } }
                                         }
+                                        
+                                        Text {
+                                            visible: maTerm.containsMouse
+                                            text: "Terminate"
+                                            font.family: "Inter"
+                                            font.pixelSize: 12
+                                            font.weight: Font.Medium
+                                            color: "#FFFFFF"
+                                        }
+                                    }
 
-                                        // Terminate Button
-                                        Rectangle {
-                                            visible: !isCurrentSession
-                                            height: 32
-                                            width: 85
-                                            radius: 6
-                                            color: maTerm.containsMouse ? "#ff4444" : Qt.rgba(255, 68, 68, 0.1)
-                                            border.width: 1
-                                            border.color: maTerm.containsMouse ? "#ff4444" : Qt.rgba(255, 68, 68, 0.2)
-                                            Behavior on color { ColorAnimation { duration: 150 } }
-                                            Behavior on border.color { ColorAnimation { duration: 150 } }
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: "Terminate"
-                                                font.family: "Inter"
-                                                font.pixelSize: 12
-                                                font.weight: Font.Medium
-                                                color: maTerm.containsMouse ? "#FFF" : "#ff4444"
-                                            }
-
-                                            MouseArea {
-                                                id: maTerm
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    AccountService.terminateSession(sId);
-                                                }
-                                            }
+                                    MouseArea {
+                                        id: maTerm
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            AccountService.terminateSession(sId);
                                         }
                                     }
                                 }

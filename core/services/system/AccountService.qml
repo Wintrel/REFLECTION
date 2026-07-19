@@ -228,7 +228,7 @@ Singleton {
     
     function terminateSession(sessionId) {
         if (!sessionId) return;
-        var p = Qt.createQmlObject('import Quickshell.Io; Process {; onExited: destroy() }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         p.command = ["loginctl", "terminate-session", sessionId];
         p.exited.connect(function(code) {
             root.refreshInfo();
@@ -239,7 +239,7 @@ Singleton {
     
     function setRealName(newName) {
         if (!newName || newName === root.realName) return;
-        var p = Qt.createQmlObject('import Quickshell.Io; Process {; onExited: destroy() }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         p.command = ["pkexec", "chfn", "-f", newName, root.username];
         p.exited.connect(function(code) {
             if (code === 0) {
@@ -253,7 +253,7 @@ Singleton {
     
     function setShell(shellPath) {
         if (!shellPath || shellPath === root.loginShell) return;
-        var p = Qt.createQmlObject('import Quickshell.Io; Process {; onExited: destroy() }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         p.command = ["pkexec", "chsh", "-s", shellPath, root.username];
         p.exited.connect(function(code) {
             if (code === 0) {
@@ -267,7 +267,7 @@ Singleton {
     
     function toggleGroupMembership(groupName, isMember) {
         if (!groupName) return;
-        var p = Qt.createQmlObject('import Quickshell.Io; Process {; onExited: destroy() }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         if (isMember) {
             p.command = ["pkexec", "gpasswd", "-a", root.username, groupName];
         } else {
@@ -285,7 +285,7 @@ Singleton {
     
     function copyToClipboard(text) {
         if (!text) return;
-        var p = Qt.createQmlObject('import Quickshell.Io; Process {; onExited: destroy() }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         p.command = ["wl-copy"];
         p.stdinEnabled = true;
         p.running = true;
@@ -304,7 +304,7 @@ Singleton {
     
     function setPassword(newPass) {
         if (!newPass) return;
-        var p = Qt.createQmlObject('import Quickshell.Io; Process {; onExited: destroy() }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         p.command = ["pkexec", "chpasswd"];
         p.stdinEnabled = true;
         p.exited.connect(function(code) {
