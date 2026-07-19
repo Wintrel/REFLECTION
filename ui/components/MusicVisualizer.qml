@@ -60,7 +60,7 @@ Item {
                 for (var i = 0; i < count; i++) {
                     var item = visualizerRepeater.itemAt(i);
                     if (item && item.targetHeight > 20) {
-                        item.targetHeight = 5 + Math.random() * 5;
+                        item.targetHeight = 5 + Math.random() * (root.height * 0.03);
                     }
                 }
             }
@@ -106,17 +106,20 @@ Item {
                     width: parent.width
                     height: barItem.targetHeight
                     anchors.bottom: parent.bottom
-                    opacity: 0
+                    opacity: root.isPlaying ? 0 : _shimmerVal
+                    
+                    property real _shimmerVal: 0
                     
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "transparent" } // top
                         GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0.4) } // bottom
                     }
 
-                    SequentialAnimation on opacity {
+                    SequentialAnimation on _shimmerVal {
                         loops: Animation.Infinite
                         running: !root.isPlaying && root.visible
                         
+                        PropertyAction { value: 0 }
                         PauseAnimation { duration: barItem.localRelativeX * 4000 }
                         NumberAnimation { from: 0; to: 1.0; duration: 500; easing.type: Easing.InOutSine }
                         NumberAnimation { from: 1.0; to: 0; duration: 500; easing.type: Easing.InOutSine }
@@ -173,7 +176,7 @@ Item {
                     repeat: true
                     interval: 1500 + (index % 4) * 400
                     onTriggered: {
-                        barItem.targetHeight = 5 + Math.random() * 12
+                        barItem.targetHeight = 5 + Math.random() * (root.height * 0.12)
                     }
                 }
             }

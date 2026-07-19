@@ -7,25 +7,7 @@ import Quickshell.Hyprland
 
 PanelWindow {
     id: root
-    visible: root.ready
     color: "transparent"
-
-    property bool ready: false
-    property string tempImagePath: "/tmp/reflection_screenshot_" + root.screen.name + ".png"
-
-    Process {
-        id: screenshotProc
-        running: false
-        onExited: {
-            root.ready = true;
-        }
-    }
-
-    Component.onCompleted: {
-        console.log("Taking screenshot for screen: " + root.screen.name);
-        screenshotProc.command = ["bash", "-c", `grim -o '${root.screen.name}' '${root.tempImagePath}'`];
-        screenshotProc.running = true;
-    }
     WlrLayershell.namespace: "quickshell:regionSelector"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
@@ -63,10 +45,10 @@ PanelWindow {
             return;
         }
 
-        const rx = Math.round(root.regionX * root.monitorScale);
-        const ry = Math.round(root.regionY * root.monitorScale);
-        const rw = Math.round(root.regionWidth * root.monitorScale);
-        const rh = Math.round(root.regionHeight * root.monitorScale);
+        const gx = Math.round(root.monitorOffsetX + root.regionX);
+        const gy = Math.round(root.monitorOffsetY + root.regionY);
+        const gw = Math.round(root.regionWidth);
+        const gh = Math.round(root.regionHeight);
         
         const d = new Date();
         const filename = "Screenshot_" + d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate() + "_" + d.getHours() + "-" + d.getMinutes() + "-" + d.getSeconds() + ".png";
@@ -74,7 +56,7 @@ PanelWindow {
 
         Quickshell.execDetached([
             "bash", "-c", 
-            `mkdir -p ~/Pictures/Screenshots && magick '${root.tempImagePath}' -crop ${rw}x${rh}+${rx}+${ry} +repage ${filepath} && wl-copy < ${filepath} && notify-send "Screenshot Saved" "Copied to clipboard and saved to Pictures" -i ${filepath} -a "REFLECTION" && rm -f '${root.tempImagePath}'`
+            `sleep 0.2 && mkdir -p ~/Pictures/Screenshots && grim -g "${gx},${gy} ${gw}x${gh}" ${filepath} && wl-copy < ${filepath} && notify-send "Screenshot Saved" "Copied to clipboard and saved to Pictures" -i ${filepath} -a "REFLECTION"`
         ]);
 
         root.dismiss();

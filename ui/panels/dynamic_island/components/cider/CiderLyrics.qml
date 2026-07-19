@@ -9,7 +9,16 @@ Item {
     // Derived states
     property bool hasSynced: mprisPlayer && mprisPlayer.hasSyncedLyrics && mprisPlayer.parsedLyrics && mprisPlayer.parsedLyrics.length > 0
     property bool hasLyrics: hasSynced || (mprisPlayer && mprisPlayer.currentLyrics !== "")
-    property real currentPos: mprisPlayer ? mprisPlayer.position / 1000000 : 0
+    property real _rawPos: mprisPlayer ? mprisPlayer.position / 1000000 : 0
+    property real currentPos: 0
+    
+    on_RawPosChanged: {
+        let p = _rawPos;
+        // Ignore stale time packets that jump backward by less than 4 seconds
+        if (p === 0 || p >= currentPos || (currentPos - p) > 4.0) {
+            currentPos = p;
+        }
+    }
     
     // Find active lyric index
     property int activeLyricIndex: {
@@ -26,9 +35,30 @@ Item {
         return idx;
     }
     
-    // Auto-scroll logic.
-    onActiveLyricIndexChanged: {
-        if (root.visible && activeLyricIndex >= 0 && syncedView.contentHeight > syncedView.height && !syncedView.dragging && !syncedView.flicking) {
+    // Pause auto-scroll when user manually scrolls
+    property bool _userIsInteracting: syncedView.dragging || syncedView.flicking
+    property bool _isUserPausedScroll: false
+    
+    on_UserIsInteractingChanged: {
+        if (_userIsInteracting) {
+            interactionTimer.stop();
+            _isUserPausedScroll = true;
+        } else {
+            interactionTimer.restart();
+        }
+    }
+    
+    Timer {
+        id: interactionTimer
+        interval: 4000
+        onTriggered: {
+            root._isUserPausedScroll = false;
+            root.scrollToActiveLyric();
+        }
+    }
+    
+    function scrollToActiveLyric() {
+        if (root.visible && activeLyricIndex >= 0 && syncedView.contentHeight > syncedView.height && !_isUserPausedScroll) {
             let oldY = syncedView.contentY;
             syncedView.positionViewAtIndex(activeLyricIndex, ListView.Center);
             let targetY = syncedView.contentY;
@@ -39,6 +69,11 @@ Item {
                 scrollAnim.restart();
             }
         }
+    }
+    
+    // Auto-scroll logic.
+    onActiveLyricIndexChanged: {
+        scrollToActiveLyric();
     }
     
     NumberAnimation {
@@ -84,7 +119,6 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             
-            Behavior on font.pixelSize { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             Behavior on color { ColorAnimation { duration: 300 } }
             Behavior on opacity { NumberAnimation { duration: 300 } }
         }

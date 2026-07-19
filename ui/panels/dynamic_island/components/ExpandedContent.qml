@@ -497,9 +497,19 @@ Item {
                 radius: parent.radius
                 color: root.theme ? root.theme.colorMusic : "#5611f8"
                 
+                property real _smoothedPos: 0
+                property real _rawPos: root.mprisPlayer ? root.mprisPlayer.position : 0
+                
+                on_RawPosChanged: {
+                    let p = _rawPos;
+                    if (p === 0 || p >= _smoothedPos || (_smoothedPos - p) > 1500000) {
+                        _smoothedPos = p;
+                    }
+                }
+                
                 property real computedWidth: {
                     if (progressBar.isDragging) return parent.width * progressBar.dragRatio;
-                    return root.mprisPlayer && root.mprisPlayer.length > 0 ? (parent.width * (root.mprisPlayer.position / root.mprisPlayer.length)) : 0;
+                    return root.mprisPlayer && root.mprisPlayer.length > 0 ? (parent.width * (_smoothedPos / root.mprisPlayer.length)) : 0;
                 }
                 width: computedWidth
                 
