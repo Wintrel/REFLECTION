@@ -116,7 +116,7 @@ Item {
                 bgBase: root.bgBase.toString()
             }
         };
-        var p = Qt.createQmlObject('import Quickshell.Io; Process { ; onExited: destroy() }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         var jsonStr = JSON.stringify(cfg).replace(/'/g, "'\\''");
         p.command = ["sh", "-c", "echo '" + jsonStr + "' > ~/.config/quickshell/reflection/.theme_settings.json"];
         p.exited.connect(function() { p.destroy(); });
@@ -215,7 +215,7 @@ Item {
                             root.applyTheme(cfg.theme);
                         }
                     } else {
-                        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "cat ~/.config/quickshell/reflection/.current_theme 2>/dev/null || echo \\"Ghostly Stardust\\""] ; onExited: destroy() }', root);
+                        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "cat ~/.config/quickshell/reflection/.current_theme 2>/dev/null || echo \\"Ghostly Stardust\\""] }', root);
                         p.stdout = Qt.createQmlObject('import Quickshell.Io; SplitParser { onRead: data => { var s = data.trim(); if(s!=="") root.applyTheme(s); } }', p);
                         p.exited.connect(function() { p.destroy(); });
                         p.running = true;

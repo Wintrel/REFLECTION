@@ -67,7 +67,7 @@ Item {
         { aliases: ["reboot", "restart"],                   name: "Reboot System",      action: "systemctl reboot",            icon: "restart_alt" },
         { aliases: ["shutdown", "poweroff", "power off"],   name: "Shutdown System",    action: "systemctl poweroff",          icon: "power_settings_new" },
         { aliases: ["lock", "lock screen"],                 name: "Lock Screen",        action: "loginctl lock-session",       icon: "lock" },
-        { aliases: ["logout", "log out", "sign out"],       name: "Log Out",            action: "hyprctl dispatch exit & sleep 1 && pkill -9 -x quickshell",       icon: "logout" },
+        { aliases: ["logout", "log out", "sign out"],       name: "Log Out",            action: "systemctl --user stop graphical-session.target; pkill -15 antigravity-ide; hyprctl dispatch \"hl.dsp.exit()\" & sleep 1 && pkill -9 -x quickshell",       icon: "logout" },
         { aliases: ["hibernate"],                            name: "Hibernate System",   action: "systemctl hibernate",         icon: "downloading" },
 
         // Utilities

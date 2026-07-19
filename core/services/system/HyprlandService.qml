@@ -22,7 +22,7 @@ Item {
     function resolveIcon(className) {
         if (iconCache[className] !== undefined) return;
         iconCache[className] = ""; // mark as loading
-        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["python3", "-c", "import sys, gi; gi.require_version(\'Gtk\', \'3.0\'); from gi.repository import Gtk; t = Gtk.IconTheme.get_default(); c = sys.argv[1]; res = next((i.get_filename() for cand in [c, c.lower(), c.split(\'.\')[-1], c.split(\'.\')[-1].lower()] if (i := t.lookup_icon(cand, 64, 0))), \'\'); print(res)", "' + className + '"]; stdout: SplitParser { onRead: data => { var path = data.trim(); if (path) { var newCache = Object.assign({}, root.iconCache); newCache["' + className + '"] = "file://" + path; root.iconCache = newCache; } } } ; onExited: destroy() }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["python3", "-c", "import sys, gi; gi.require_version(\'Gtk\', \'3.0\'); from gi.repository import Gtk; t = Gtk.IconTheme.get_default(); c = sys.argv[1]; res = next((i.get_filename() for cand in [c, c.lower(), c.split(\'.\')[-1], c.split(\'.\')[-1].lower()] if (i := t.lookup_icon(cand, 64, 0))), \'\'); print(res)", "' + className + '"]; stdout: SplitParser { onRead: data => { var path = data.trim(); if (path) { var newCache = Object.assign({}, root.iconCache); newCache["' + className + '"] = "file://" + path; root.iconCache = newCache; } } } }', root);
         p.exited.connect(function() { p.destroy(); });
         p.running = true;
     }

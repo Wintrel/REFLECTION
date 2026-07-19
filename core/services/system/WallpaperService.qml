@@ -18,7 +18,7 @@ Item {
         running: true
         interval: 1000
         onTriggered: {
-            var p = Qt.createQmlObject('import Quickshell.Io; Process { ; onExited: destroy() }', root);
+            var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
             p.command = ["awww", "restore"];
             p.exited.connect(function() { p.destroy(); });
             p.running = true;
@@ -41,7 +41,7 @@ Item {
     }
     
     function refreshWallpapers() {
-        var p = Qt.createQmlObject('import Quickshell.Io; Process { ; onExited: destroy() }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         p.command = ["sh", "-c", "ls -1 ~/Pictures/Wallpapers | grep -iE '\\.(png|jpg|jpeg|gif|webp)$' || true"];
         
         var outputData = "";
@@ -73,12 +73,12 @@ Item {
         root.currentWallpaper = imagePath;
         
         // Save the selection
-        var p2 = Qt.createQmlObject('import Quickshell.Io; Process { ; onExited: destroy() }', root);
+        var p2 = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         p2.command = ["sh", "-c", "echo '" + imagePath + "' > ~/.config/quickshell/reflection/.current_wallpaper"];
         p2.exited.connect(function() { p2.destroy(); });
         p2.running = true;
         
-        var p = Qt.createQmlObject('import Quickshell.Io; Process { ; onExited: destroy() }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
         // Extract the raw path from the file:/// url
         var rawPath = imagePath.replace("file://", "");
         p.command = ["awww", "img", rawPath, "--transition-type", trans];
