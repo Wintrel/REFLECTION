@@ -57,8 +57,23 @@ Item {
     property var _currentDevice: null
 
     function scanBluetooth() {
-        devicesModel.clear();
         btScanProcess.running = true;
+    }
+    
+    function _addOrUpdateDevice(dev) {
+        if (!dev || !dev.mac) return;
+        for (var i = 0; i < devicesModel.count; i++) {
+            if (devicesModel.get(i).mac === dev.mac) {
+                devicesModel.setProperty(i, "name", dev.name);
+                devicesModel.setProperty(i, "icon", dev.icon);
+                devicesModel.setProperty(i, "paired", dev.paired);
+                devicesModel.setProperty(i, "trusted", dev.trusted);
+                devicesModel.setProperty(i, "connected", dev.connected);
+                devicesModel.setProperty(i, "servicesResolved", dev.servicesResolved);
+                return;
+            }
+        }
+        devicesModel.append(dev);
     }
 
     // Persistent background D-Bus Agent
@@ -183,7 +198,7 @@ Item {
 
                 if (line.startsWith("DEV|")) {
                     if (root._currentDevice) {
-                        devicesModel.append(root._currentDevice);
+                        root._addOrUpdateDevice(root._currentDevice);
                     }
                     var mac = line.substring(4);
                     root._currentDevice = {
@@ -217,7 +232,7 @@ Item {
         }
         onExited: {
             if (root._currentDevice) {
-                devicesModel.append(root._currentDevice);
+                root._addOrUpdateDevice(root._currentDevice);
             }
             root._currentDevice = null;
         }
@@ -278,6 +293,9 @@ Item {
         repeat: true
         interval: 3000
         onTriggered: btPoller.running = true
-        Component.onCompleted: btPoller.running = true
+        Component.onCompleted: {
+            btPoller.running = true;
+            scanBluetooth();
+        }
     }
 }

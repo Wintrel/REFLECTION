@@ -8,7 +8,7 @@ Item {
     
     property var theme
     
-    width: trayRow.width + 16
+    width: trayRow.width + 48
     height: 32
     
     Rectangle {

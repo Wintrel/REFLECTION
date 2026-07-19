@@ -38,7 +38,10 @@ Item {
         repeat: true
         interval: 3000
         onTriggered: wifiRadioPoller.running = true
-        Component.onCompleted: wifiRadioPoller.running = true
+        Component.onCompleted: {
+            wifiRadioPoller.running = true;
+            scanWifi();
+        }
     }
 
     property alias wifiNetworks: networksModel

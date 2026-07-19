@@ -27,300 +27,31 @@ Item {
         State.GlobalStates.currentIslandHeight = height;
     }
     
-    // State machine for the island: 0 = Minimized, 1 = Hovered, 2 = Expanded, 3 = Notification, 4 = History, 5 = OSD, 11 = Settings
-    property int islandState: 0
-    property int previousState: 0
-    
-    onIslandStateChanged: {
-        // Keep global state synced if the island closes or morphs away from settings
-        // Do not close settings if transitioning to transient states (3: Notif, 5: OSD, 6: Prompt, 7: Progress, 10: Polkit, 12: FilePicker)
-        if (islandState !== 12 && islandState !== 11 && islandState !== 10 && islandState !== 7 && islandState !== 6 && islandState !== 5 && islandState !== 3) {
-            if (State.GlobalStates.settingsOpen) State.GlobalStates.settingsOpen = false;
-            if (State.GlobalStates.filePickerOpen) State.GlobalStates.closeFilePicker();
-        }
+    DynamicIslandController {
+        id: controller
     }
-    
-    // Privacy mode for Lockscreen
-    property bool isLocked: false
 
-    // OSD Properties
-    property int osdMode: 0
-    property int osdPriority: 1
-    property string osdIcon: ""
-    property string osdText: ""
-    property string osdColor: ""
+    // Proxy properties so the rest of the UI doesn't break
+    property alias islandState: controller.islandState
+    property alias previousState: controller.previousState
+    property alias isLocked: controller.isLocked
+    property alias osdMode: controller.osdMode
+    property alias osdPriority: controller.osdPriority
+    property alias osdIcon: controller.osdIcon
+    property alias osdText: controller.osdText
+    property alias osdColor: controller.osdColor
+    property alias mprisPlayer: controller.mprisPlayer
+    property alias currentNotif: controller.currentNotif
 
     // Ambient hide animation properties (driven by DynamicIsland.qml)
     property real ambientShimmerPos: -0.3
     property real ambientShimmerOpacity: 0
     
-    // Force instantiate singletons so they run in the background
-    property var _vol: VolumeService
-    property var _bri: BrightnessService
-    property var _net: NetworkService
-    property var _bt: BluetoothService
-    
     function dismissNotification() {
-        if (islandWidget.islandState === 3) {
-            notifTimer.stop();
-            if (islandWidget.previousState === 2 || islandWidget.previousState === 4 || islandWidget.previousState === 9) {
-                islandWidget.islandState = islandWidget.previousState;
-            } else {
-                islandWidget.islandState = islandShape.mouseArea.containsMouse ? 1 : 0;
-            }
-            islandWidget.previousState = 0;
-        }
-    }
-
-    // Auto-dismiss timer for notifications
-    Timer {
-        id: notifTimer
-        interval: 5000 // 5 seconds
-        onTriggered: islandWidget.dismissNotification()
+        controller.dismissNotification();
     }
     
-    // Auto-dismiss timer for OSD
-    Timer {
-        id: osdTimer
-        interval: 2000 // 2 seconds
-        onTriggered: {
-            if (islandWidget.islandState === 5) {
-                if (islandWidget.previousState === 2 || islandWidget.previousState === 4 || islandWidget.previousState === 9) {
-                    islandWidget.islandState = islandWidget.previousState;
-                } else {
-                    islandWidget.islandState = islandShape.mouseArea.containsMouse ? 1 : 0;
-                }
-                islandWidget.previousState = 0;
-            }
-        }
-    }
-    
-    Connections {
-        target: OsdService
-        function onOsdRequested(mode, priority, icon, text, color) {
-            islandWidget.osdMode = mode;
-            islandWidget.osdPriority = priority;
-            islandWidget.osdIcon = icon;
-            islandWidget.osdText = text;
-            islandWidget.osdColor = color;
-            
-            var duration = 2000;
-            if (priority === 2) duration = 4000;
-            if (priority === 3) duration = 8000;
-            osdTimer.interval = duration;
-            
-            // Only interrupt notifications for Tier 2 and Tier 3 events
-            if (islandWidget.islandState !== 3 || priority >= 2) {
-                // Ignore low priority OSDs (like volume/brightness) if a heavy modal is open
-                if (priority === 1) {
-                    var modalStates = [6, 7, 8, 10, 11, 12, 13];
-                    if (modalStates.indexOf(islandWidget.islandState) !== -1) {
-                        return;
-                    }
-                }
-
-                if (islandWidget.islandState !== 5 && islandWidget.islandState !== 3) {
-                    islandWidget.previousState = islandWidget.islandState;
-                }
-                
-                islandWidget.islandState = 5;
-                osdTimer.restart();
-            }
-        }
-    }
-
-    Connections {
-        target: State.ReflectionState
-        function onIsOpenChanged() {
-            if (State.ReflectionState.isOpen) {
-                if (islandWidget.islandState !== 8 && islandWidget.islandState !== 3) {
-                    islandWidget.previousState = islandWidget.islandState;
-                }
-                islandWidget.islandState = 8;
-            } else {
-                if (islandWidget.islandState === 8) {
-                    islandWidget.islandState = islandWidget.previousState || 0;
-                }
-            }
-        }
-    }
-    
-    Connections {
-        target: PromptService
-        function onPromptRequested() {
-            if (islandWidget.islandState !== 6 && islandWidget.islandState !== 3) {
-                islandWidget.previousState = islandWidget.islandState;
-            }
-            islandWidget.islandState = 6;
-        }
-        function onCanceled() {
-            if (islandWidget.islandState === 6) {
-                islandWidget.islandState = islandWidget.previousState || 0;
-                if (islandWidget.islandState === 11) {
-                    islandWidget.previousState = 0;
-                }
-            }
-        }
-        function onSubmitted(text) {
-            if (islandWidget.islandState === 6) {
-                islandWidget.islandState = islandWidget.previousState || 0;
-                if (islandWidget.islandState === 11) {
-                    islandWidget.previousState = 0;
-                }
-            }
-        }
-    }
-
-    Connections {
-        target: ActionProgressService
-        function onActionRequested() {
-            actionSuccessTimer.stop();
-            if (islandWidget.islandState !== 7 && islandWidget.islandState !== 6 && islandWidget.islandState !== 3) {
-                islandWidget.previousState = islandWidget.islandState;
-            }
-            islandWidget.islandState = 7;
-        }
-    }
-
-    Connections {
-        target: PolkitAuthService
-        function onPolkitRequestStarted() {
-            if (islandWidget.islandState !== 10 && islandWidget.islandState !== 3) {
-                islandWidget.previousState = islandWidget.islandState;
-            }
-            islandWidget.islandState = 10;
-        }
-        function onPolkitRequestFinished() {
-            if (islandWidget.islandState === 10) {
-                islandWidget.islandState = islandWidget.previousState || 0;
-                if (islandWidget.islandState === 11) {
-                    islandWidget.previousState = 0;
-                }
-            }
-        }
-    }
-    
-    Connections {
-        target: State.GlobalStates
-        function onSettingsOpenChanged() {
-            if (State.GlobalStates.settingsOpen) {
-                if (islandWidget.islandState !== 11 && islandWidget.islandState !== 3) {
-                    islandWidget.previousState = islandWidget.islandState;
-                }
-                islandWidget.islandState = 11;
-            } else {
-                if (islandWidget.islandState === 11) {
-                    var targetState = islandWidget.previousState;
-                    if (targetState === 11) targetState = 0;
-                    islandWidget.islandState = targetState || 0;
-                }
-            }
-        }
-        function onFilePickerOpenChanged() {
-            if (State.GlobalStates.filePickerOpen) {
-                if (islandWidget.islandState !== 12 && islandWidget.islandState !== 3) {
-                    islandWidget.previousState = islandWidget.islandState;
-                }
-                islandWidget.islandState = 12;
-            } else {
-                if (islandWidget.islandState === 12) {
-                    var targetState = islandWidget.previousState;
-                    if (targetState === 12) targetState = 0;
-                    islandWidget.islandState = targetState || 0;
-                }
-            }
-        }
-    }
-    
-    // Auto-dismiss timer for Action Progress success state
-    Timer {
-        id: actionSuccessTimer
-        interval: 2000
-        onTriggered: {
-            if (islandWidget.islandState === 7) {
-                // Always close the UI completely when an action fully completes.
-                // Using previousState here is risky because it might be a transient state like 6 or 7.
-                islandWidget.islandState = 0;
-            }
-            ActionProgressService.reset();
-        }
-    }
-    
-    Connections {
-        target: ActionProgressService
-        function onIsResolvingChanged() {
-            if (ActionProgressService.isResolving) {
-                actionSuccessTimer.restart();
-            }
-        }
-    }
-
-    // Play sound when a new notification arrives
-    MediaPlayer {
-        id: popSound
-        source: "file:///usr/share/sounds/freedesktop/stereo/message.oga"
-        audioOutput: AudioOutput { volume: 0.5 }
-    }
-
-    // Track the latest notification
-    property var currentNotif: null
-    
-    NotificationServer {
-        id: notificationServer
-        onNotification: function() {
-            var n = arguments.length > 0 ? arguments[0] : null;
-            if (!n) return;
-            
-            // Ignore Cider's internal track-change notifications
-            var app = (n.appName || "").toLowerCase();
-            if (app === "cider") {
-                return;
-            }
-            
-            // Create a pure JS copy of the notification data
-            var notifCopy = {
-                summary: n.summary !== undefined ? n.summary : "",
-                body: n.body !== undefined ? n.body : "",
-                appName: n.appName !== undefined ? n.appName : "",
-                image: n.image !== undefined ? n.image : "",
-                icon: n.icon !== undefined ? n.icon : "",
-                invokeDefaultAction: function() {
-                    try { if (n) n.invokeDefaultAction(); } catch(e) {}
-                },
-                close: function() {
-                    try { if (n) n.close(); } catch(e) {}
-                }
-            };
-            
-            // Store in Global History
-            var notifData = {
-                summary: notifCopy.summary,
-                body: notifCopy.body,
-                appName: notifCopy.appName,
-                image: notifCopy.image,
-                icon: notifCopy.icon
-            };
-            State.GlobalStates.notificationHistory.insert(0, notifData);
-            
-            islandWidget.currentNotif = notifCopy;
-            if (islandWidget.islandState !== 3) {
-                islandWidget.previousState = islandWidget.islandState;
-            }
-            islandWidget.islandState = 3;
-            notifTimer.restart();
-            popSound.play();
-            
-            // Trigger Edge Lighting
-            State.GlobalStates.notificationTriggered();
-        }
-    }
-    
-    // MPRIS / Cider Player Tracking
-    property var mprisPlayer: CiderService.activePlayer
-    
-    function cyclePlayer() {
-        // cycling could be implemented in CiderService if multiple fallbacks are needed
-    }
+    function cyclePlayer() {}
 
     // The actual island container (Outer Bezel)
     Rectangle {
@@ -334,15 +65,17 @@ Item {
             hoverEnabled: true
             
             onEntered: {
+                controller.isHovered = true;
                 if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
-                if (islandWidget.islandState === 3) notifTimer.stop();
-                else if (islandWidget.islandState === 5) osdTimer.stop();
+                if (islandWidget.islandState === 3) controller.stopTimers();
+                else if (islandWidget.islandState === 5) controller.stopTimers();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9 && islandWidget.islandState !== 13) islandWidget.islandState = 1
             }
             onExited: {
+                controller.isHovered = false;
                 if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
-                if (islandWidget.islandState === 3) notifTimer.restart();
-                else if (islandWidget.islandState === 5) osdTimer.restart();
+                if (islandWidget.islandState === 3) controller.restartTimers();
+                else if (islandWidget.islandState === 5) controller.restartTimers();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9 && islandWidget.islandState !== 13) islandWidget.islandState = 0
             }
             onClicked: {

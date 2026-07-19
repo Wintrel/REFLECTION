@@ -31,7 +31,7 @@ Item {
     property int islandHoverH: 50
     
     property int islandNotifW: 400
-    property int islandNotifH: 80
+    property int islandNotifH: 100
     
     property int islandMaxW: 600
     property int islandMaxH: 200

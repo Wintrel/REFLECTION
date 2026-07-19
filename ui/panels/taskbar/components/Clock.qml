@@ -1,9 +1,9 @@
 import QtQuick
 import Quickshell
 
-Column {
+Row {
     id: root
-    spacing: 0
+    spacing: 8
     
     property var theme
     
@@ -11,21 +11,31 @@ Column {
     property string dateStr: "1 Jan"
     
     Text {
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
         text: root.timeStr
         font.family: root.theme ? root.theme.fontMain : "Inter"
-        font.pixelSize: 14
+        font.pixelSize: 15
         font.bold: true
         color: root.theme ? root.theme.textMain : "#FFF"
     }
     
     Text {
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        text: "•"
+        font.family: root.theme ? root.theme.fontMain : "Inter"
+        font.pixelSize: 12
+        color: root.theme ? root.theme.textSub : "#AAA"
+        opacity: 0.5
+    }
+    
+    Text {
+        anchors.verticalCenter: parent.verticalCenter
         text: root.dateStr
         font.family: root.theme ? root.theme.fontMain : "Inter"
-        font.pixelSize: 10
+        font.pixelSize: 14
+        font.weight: Font.Medium
         color: root.theme ? root.theme.textSub : "#AAA"
-        opacity: 0.8
+        opacity: 0.9
     }
     
     Timer {
