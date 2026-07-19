@@ -40,13 +40,7 @@ Scope {
                 item: State.GlobalStates.overviewOpen ? overviewWidget : null
             }
 
-            // Dimming background overlay
-            Rectangle {
-                anchors.fill: parent
-                color: "black"
-                opacity: State.GlobalStates.overviewOpen ? 0.45 : 0.0
-                Behavior on opacity { NumberAnimation { duration: theme.animDuration; easing.type: Easing.OutExpo } }
-            }
+            // No dark background - completely transparent overlay
 
             // Click outside to close
             MouseArea {
@@ -68,7 +62,8 @@ Scope {
                 id: overviewWidget
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
-                anchors.topMargin: 60
+                anchors.topMargin: State.GlobalStates.currentIslandHeight + 20
+                
                 theme: theme
                 overviewVisible: State.GlobalStates.overviewOpen
                 targetMonitorName: modelData.name

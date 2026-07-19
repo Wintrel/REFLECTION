@@ -33,6 +33,9 @@ Singleton {
     property bool bottomPanelOpen: false
     property bool dndEnabled: false
     
+    // Tracks the dynamic height of the island
+    property real currentIslandHeight: 40
+    
     property bool filePickerOpen: false
     property string filePickerTitle: "Select File"
     property string filePickerFilterMode: "all"

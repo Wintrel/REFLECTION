@@ -23,6 +23,10 @@ Item {
     width: islandShape.width + (2 * theme.radiusIsland)
     height: islandShape.height - theme.radiusIsland
     
+    onHeightChanged: {
+        State.GlobalStates.currentIslandHeight = height;
+    }
+    
     // State machine for the island: 0 = Minimized, 1 = Hovered, 2 = Expanded, 3 = Notification, 4 = History, 5 = OSD, 11 = Settings
     property int islandState: 0
     property int previousState: 0
