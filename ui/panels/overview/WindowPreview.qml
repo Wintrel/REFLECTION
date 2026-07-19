@@ -27,7 +27,7 @@ Item {
     width: Math.max(12, (modelData.size[0] || 0) * scaleFactor)
     height: Math.max(12, (modelData.size[1] || 0) * scaleFactor)
 
-    scale: (windowDragArea.containsMouse || (typeof closeBtnArea !== "undefined" && closeBtnArea.containsMouse)) && !windowDragArea.drag.active ? 1.05 : 1.0
+    scale: windowDragArea.containsMouse && !windowDragArea.drag.active ? 1.05 : 1.0
     Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
 
     Behavior on x { enabled: !windowDragArea.drag.active; NumberAnimation { duration: 300; easing.type: Easing.OutExpo } }
@@ -155,36 +155,4 @@ Item {
         }
     }
 
-    // Close button overlay
-    Rectangle {
-        id: closeBtn
-        width: Math.max(16, 24 * scaleFactor)
-        height: width
-        radius: width / 2
-        color: closeBtnArea.containsMouse ? theme.error : Qt.rgba(0,0,0, 0.6)
-        border.color: Qt.rgba(1,1,1, 0.2)
-        border.width: 1
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.margins: 4 * scaleFactor
-        opacity: windowDragArea.containsMouse || closeBtnArea.containsMouse ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: 150 } }
-        
-        Text {
-            anchors.centerIn: parent
-            text: "✕"
-            color: "white"
-            font.pixelSize: parent.height * 0.5
-            font.bold: true
-        }
-
-        MouseArea {
-            id: closeBtnArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: {
-                overviewRoot.dispatch('hl.dsp.window.close({ window = "address:' + windowItem.windowAddress + '" })');
-            }
-        }
-    }
 }
