@@ -59,8 +59,10 @@ Item {
                 var count = root.barCount;
                 for (var i = 0; i < count; i++) {
                     var item = visualizerRepeater.itemAt(i);
-                    if (item && item.targetHeight > 20) {
-                        item.targetHeight = 5 + Math.random() * (root.height * 0.03);
+                    if (item) {
+                        if (item.targetHeight > 20) {
+                            item.targetHeight = 5 + Math.random() * (root.height * 0.03);
+                        }
                     }
                 }
             }
@@ -83,13 +85,22 @@ Item {
                 anchors.bottom: parent.bottom
 
                 property real targetHeight: 5
+                
+                property real animatingHeight: targetHeight
+                Behavior on animatingHeight {
+                    NumberAnimation {
+                        duration: root.isPlaying ? (root.hasCava ? 60 : 150) : (1500 + (index % 3) * 500)
+                        easing.type: root.isPlaying ? Easing.OutQuad : Easing.InOutSine
+                    }
+                }
+                
                 property real localRelativeX: root.barCount > 1 ? (index / (root.barCount - 1)) : 0
 
                 // The Aurora Light Beam Base
                 Rectangle {
                     id: baseRect
                     width: parent.width
-                    height: barItem.targetHeight
+                    height: barItem.animatingHeight
                     anchors.bottom: parent.bottom
                     
                     property color baseColor: root.isPlaying ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.4) : Qt.rgba(1, 1, 1, 0.08)
@@ -104,7 +115,7 @@ Item {
                 // The Aurora Light Beam Shimmer Overlay
                 Rectangle {
                     width: parent.width
-                    height: barItem.targetHeight
+                    height: barItem.animatingHeight
                     anchors.bottom: parent.bottom
                     opacity: root.isPlaying ? 0 : _shimmerVal
                     
@@ -127,39 +138,24 @@ Item {
                     }
                 }
                 
-                // The Floating Star Cap
-                property real capHeight: targetHeight
-                Behavior on capHeight {
-                    enabled: !root.hasCava || !root.isPlaying
-                    NumberAnimation {
-                        duration: barItem.targetHeight > barItem.capHeight ? 100 : 800
-                        easing.type: barItem.targetHeight > barItem.capHeight ? Easing.OutQuad : Easing.OutBounce
-                    }
-                }
-                
                 Rectangle {
                     id: capRect
                     width: 4
                     height: 4
                     radius: 2
                     anchors.horizontalCenter: parent.horizontalCenter
-                    y: barItem.height - barItem.capHeight - 6 // Sit slightly above the beam
+                    y: barItem.height - barItem.animatingHeight - 6 // Always sit nicely above the beam
                     
                     property color activeColor: Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 1.0)
                     property color idleColor: Qt.rgba(1, 1, 1, 0.8)
                     color: root.isPlaying ? activeColor : idleColor
                     Behavior on color { ColorAnimation { duration: 500 } }
                     
-                    opacity: barItem.capHeight > 8 ? 1.0 : 0.0
+                    opacity: barItem.animatingHeight > 8 ? 1.0 : 0.0
                     Behavior on opacity { NumberAnimation { duration: 300 } }
                 }
 
-                Behavior on targetHeight {
-                    NumberAnimation {
-                        duration: root.isPlaying ? (root.hasCava ? 60 : 150) : (1500 + (index % 3) * 500)
-                        easing.type: root.isPlaying ? Easing.OutQuad : Easing.InOutSine
-                    }
-                }
+
                 
                 // INDIVIDUAL TIMERS FOR MOCK DRIFT (Organic feel)
                 Timer {
