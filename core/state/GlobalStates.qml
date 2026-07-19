@@ -64,6 +64,15 @@ Singleton {
             root.superDown = false
         }
     }
+
+    GlobalShortcut {
+        name: "overviewToggle"
+        description: "Toggles overview on press"
+
+        onPressed: {
+            root.overviewOpen = !root.overviewOpen;
+        }
+    }
     
     // Ambient States
     property bool ambientIdleActive: false
@@ -161,6 +170,13 @@ Singleton {
         target: "settings"
         function toggle() {
             root.settingsOpen = !root.settingsOpen;
+        }
+    }
+
+    IpcHandler {
+        target: "overview"
+        function toggle() {
+            root.overviewOpen = !root.overviewOpen;
         }
     }
 

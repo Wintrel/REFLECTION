@@ -11,10 +11,12 @@ def get_state():
         ws = json.loads(subprocess.check_output(["hyprctl", "workspaces", "-j"]).decode("utf-8"))
         cls = json.loads(subprocess.check_output(["hyprctl", "clients", "-j"]).decode("utf-8"))
         aws = json.loads(subprocess.check_output(["hyprctl", "activeworkspace", "-j"]).decode("utf-8"))
+        mons = json.loads(subprocess.check_output(["hyprctl", "monitors", "-j"]).decode("utf-8"))
         state = {
             "workspaces": ws,
             "clients": cls,
-            "activeWorkspace": aws
+            "activeWorkspace": aws,
+            "monitors": mons
         }
         print(json.dumps(state), flush=True)
     except Exception as e:

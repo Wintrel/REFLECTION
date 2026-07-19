@@ -9,6 +9,7 @@ Item {
     // Arrays of objects representing state
     property var workspaces: []
     property var clients: []
+    property var monitors: []
     property int activeWorkspaceId: 1
     
     // Whether the active workspace has any windows
@@ -43,6 +44,10 @@ Item {
                     
                     var activeId = state.activeWorkspace.id;
                     root.activeWorkspaceId = activeId;
+                    
+                    if (state.monitors) {
+                        root.monitors = state.monitors;
+                    }
                     
                     var hasWindows = false;
                     for (var i = 0; i < cls.length; i++) {

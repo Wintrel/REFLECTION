@@ -54,6 +54,11 @@ Item {
     property int islandFilePickerW: 1000
     property int islandFilePickerH: 600
     
+    // Overview Panel
+    property real overviewScale: 0.18
+    property int overviewRows: 2
+    property int overviewColumns: 5
+    
     // Reflection State Sizing
     property int reflectionSearchW: 450
     property int reflectionSearchH: 80
