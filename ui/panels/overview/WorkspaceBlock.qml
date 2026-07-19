@@ -13,6 +13,9 @@ Rectangle {
 
     property bool hoveredWhileDragging: false
 
+    property var wsMonitor: overviewRoot.monitorForWorkspace(wsId)
+    property bool isExternalMonitor: wsMonitor ? (wsMonitor.name !== overviewRoot.targetMonitorName) : false
+
     width: overviewRoot.wsBlockWidth
     height: overviewRoot.wsBlockHeight
     radius: theme.radiusIsland * 0.5
@@ -69,6 +72,9 @@ Rectangle {
         id: windowLayer
         anchors.fill: parent
         clip: overviewRoot.draggingFromWorkspace !== wsBlock.wsId
+        
+        opacity: isExternalMonitor ? 0.4 : 1.0
+        Behavior on opacity { NumberAnimation { duration: 250 } }
 
         // Monitor info for this workspace
         property var mon: overviewRoot.monitorForWorkspace(wsBlock.wsId)
@@ -104,6 +110,30 @@ Rectangle {
                     scaleFactor: windowLayer.scaleFactor
                 }
             }
+        }
+    }
+
+    // External Monitor Badge
+    Rectangle {
+        visible: isExternalMonitor && wsMonitor
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 8
+        width: Math.max(40, badgeText.contentWidth + 16)
+        height: 20
+        radius: 10
+        color: Qt.rgba(0, 0, 0, 0.6)
+        border.color: Qt.rgba(1, 1, 1, 0.15)
+        border.width: 1
+        z: 50 // Keep on top of windows
+
+        Text {
+            id: badgeText
+            anchors.centerIn: parent
+            text: wsMonitor ? wsMonitor.name : ""
+            color: Qt.rgba(1, 1, 1, 0.7)
+            font.pixelSize: 10
+            font.bold: true
         }
     }
 }

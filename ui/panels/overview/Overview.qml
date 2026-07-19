@@ -19,7 +19,22 @@ Scope {
             required property var modelData
             screen: modelData
 
-            visible: State.GlobalStates.overviewOpen
+            property bool wantsVisible: State.GlobalStates.overviewOpen
+            visible: wantsVisible || closeTimer.running
+
+            Timer {
+                id: closeTimer
+                interval: 300
+            }
+
+            onWantsVisibleChanged: {
+                if (!wantsVisible) {
+                    closeTimer.start();
+                } else {
+                    closeTimer.stop();
+                }
+            }
+
             color: "transparent"
 
             WlrLayershell.namespace: "quickshell:overview"
