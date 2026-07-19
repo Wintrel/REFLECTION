@@ -326,7 +326,7 @@ Item {
                             anchors.centerIn: parent
                             source: model.appIcon || ""
                             fillMode: Image.PreserveAspectFit
-                            asynchronous: true
+                            asynchronous: false
                             visible: status === Image.Ready
                         }
                         

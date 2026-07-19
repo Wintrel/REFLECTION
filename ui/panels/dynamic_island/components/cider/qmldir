@@ -1,0 +1,8 @@
+module cider
+CiderBottomBar 1.0 CiderBottomBar.qml
+CiderForYou 1.0 CiderForYou.qml
+CiderLyrics 1.0 CiderLyrics.qml
+CiderPlaylists 1.0 CiderPlaylists.qml
+CiderQueue 1.0 CiderQueue.qml
+CiderSearch 1.0 CiderSearch.qml
+CiderTopNav 1.0 CiderTopNav.qml

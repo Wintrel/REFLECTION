@@ -44,6 +44,7 @@ Item {
                         Layout.alignment: Qt.AlignHCenter
                         width: 100
                         height: 100
+                        transformOrigin: Item.Center
 
                         Rectangle {
                             id: avatarMask
@@ -86,10 +87,13 @@ Item {
                             id: avatarMa
                             anchors.fill: parent
                             hoverEnabled: true
-                            onClicked: avatarRotAnim.start()
+                            onClicked: {
+                                parent.rotation = 0
+                                avatarRotAnim.restart()
+                            }
                         }
                         
-                        RotationAnimator on rotation {
+                        NumberAnimation on rotation {
                             id: avatarRotAnim
                             from: 0
                             to: 360
