@@ -35,7 +35,7 @@ Item {
         root.brightness = p / 100.0;
         
         var cmd = "brightnessctl set " + Math.round(p) + "%";
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] ; onExited: destroy() }', root);
         proc.exited.connect(function() {
             proc.destroy();
             _isSetting = false;

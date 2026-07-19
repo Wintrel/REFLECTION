@@ -228,7 +228,7 @@ Item {
                             var inPath = root.imageSource.replace("file://", "");
                             var outPath = Quickshell.env("HOME") + "/.face";
                             
-                            var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
+                            var p = Qt.createQmlObject('import Quickshell.Io; Process { ; onExited: destroy() }', root);
                             p.command = ["magick", inPath, "-crop", realW + "x" + realH + "+" + realX + "+" + realY, "-resize", "512x512", outPath];
                             p.exited.connect(function(code) {
                                 if (code === 0) {

@@ -38,7 +38,7 @@ Item {
     function dispatch(luaCmd) {
         var escapedCmd = luaCmd.replace(/"/g, '\\"');
         var p = Qt.createQmlObject(
-            'import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "' + escapedCmd + '"] }',
+            'import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "' + escapedCmd + '"] ; onExited: destroy() }',
             root
         );
         p.exited.connect(function() { p.destroy(); });

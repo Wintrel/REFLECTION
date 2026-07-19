@@ -61,7 +61,7 @@ Item {
         root.volume = parseFloat(volStr);
         
         var cmd = "wpctl set-volume @DEFAULT_AUDIO_SINK@ " + volStr;
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] ; onExited: destroy() }', root);
         proc.exited.connect(function() {
             proc.destroy();
             _isSetting = false;
@@ -84,7 +84,7 @@ Item {
         root.micVolume = parseFloat(volStr);
         
         var cmd = "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ " + volStr;
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] ; onExited: destroy() }', root);
         proc.exited.connect(function() {
             proc.destroy();
             _micIsSetting = false;
@@ -117,7 +117,7 @@ Item {
             sinksModel.setProperty(i, "isDefault", sinksModel.get(i).sinkId === id);
         }
 
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["wpctl", "set-default", "' + id + '"] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["wpctl", "set-default", "' + id + '"] ; onExited: destroy() }', root);
         proc.exited.connect(function() {
             proc.destroy();
         });
@@ -129,7 +129,7 @@ Item {
             sourcesModel.setProperty(i, "isDefault", sourcesModel.get(i).sinkId === id);
         }
 
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["wpctl", "set-default", "' + id + '"] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["wpctl", "set-default", "' + id + '"] ; onExited: destroy() }', root);
         proc.exited.connect(function() {
             proc.destroy();
         });

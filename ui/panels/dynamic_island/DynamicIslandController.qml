@@ -48,7 +48,8 @@ Item {
     function dismissNotification() {
         if (islandState === 3) {
             notifTimer.stop();
-            if (previousState === 2 || previousState === 4 || previousState === 9) {
+            var persistentStates = [2, 4, 6, 7, 8, 9, 10, 11, 12, 13];
+            if (persistentStates.indexOf(previousState) !== -1) {
                 islandState = previousState;
             } else {
                 islandState = isHovered ? 1 : 0;
@@ -78,7 +79,8 @@ Item {
         interval: 2000 // 2 seconds
         onTriggered: {
             if (islandState === 5) {
-                if (previousState === 2 || previousState === 4 || previousState === 9) {
+                var persistentStates = [2, 4, 6, 7, 8, 9, 10, 11, 12, 13];
+                if (persistentStates.indexOf(previousState) !== -1) {
                     islandState = previousState;
                 } else {
                     islandState = isHovered ? 1 : 0;
@@ -276,11 +278,16 @@ Item {
             State.GlobalStates.notificationHistory.insert(0, notifData);
             
             controller.currentNotif = notifCopy;
-            if (controller.islandState !== 3) {
-                controller.previousState = controller.islandState;
+            
+            var modalStates = [6, 7, 8, 10, 11, 12, 13];
+            if (modalStates.indexOf(controller.islandState) === -1) {
+                if (controller.islandState !== 3) {
+                    controller.previousState = controller.islandState;
+                }
+                controller.islandState = 3;
+                notifTimer.restart();
             }
-            controller.islandState = 3;
-            notifTimer.restart();
+            
             popSound.play();
             
             State.GlobalStates.notificationTriggered();

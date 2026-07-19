@@ -12,12 +12,22 @@ Item {
     Layout.fillWidth: true
     Layout.fillHeight: true
     
-    ScrollView {
+    Flickable {
         anchors.fill: parent
-        contentWidth: availableWidth
+        contentWidth: width
+        contentHeight: colLayout.implicitHeight
         clip: true
         
+        flickDeceleration: 1000
+        maximumFlickVelocity: 4000
+        boundsBehavior: Flickable.DragAndOvershootBounds
+        
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+        }
+        
         ColumnLayout {
+            id: colLayout
             width: parent.width
             spacing: 32
             

@@ -69,7 +69,7 @@ Row {
                 anchors.margins: -4 // larger hit area
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \\"' + dot.wsId + '\\" })"] }', root);
+                    var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \\"' + dot.wsId + '\\" })"] ; onExited: destroy() }', root);
                     p.exited.connect(function() { p.destroy(); });
                     p.running = true;
                 }

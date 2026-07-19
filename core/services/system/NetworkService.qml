@@ -14,7 +14,7 @@ Item {
         // Optimistic update for instant UI feedback
         isWifiEnabled = !isWifiEnabled;
         var cmd = isWifiEnabled ? "nmcli radio wifi on" : "nmcli radio wifi off";
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] ; onExited: destroy() }', root);
         proc.exited.connect(function() {
             proc.destroy();
         });
@@ -96,7 +96,7 @@ Item {
         connectingSsid = ssid;
         ActionProgressService.actionStarted("Disconnecting...", "wifi_off", "wifi");
         
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["nmcli", "connection", "down", "id", ' + JSON.stringify(ssid) + '] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["nmcli", "connection", "down", "id", ' + JSON.stringify(ssid) + '] ; onExited: destroy() }', root);
         proc.exited.connect(function(code) {
             proc.destroy();
             connectingSsid = "";
@@ -112,7 +112,7 @@ Item {
     }
 
     function forgetWifi(ssid) {
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["nmcli", "connection", "delete", "id", ' + JSON.stringify(ssid) + '] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["nmcli", "connection", "delete", "id", ' + JSON.stringify(ssid) + '] ; onExited: destroy() }', root);
         proc.exited.connect(function() {
             proc.destroy();
             // Remove from knownNetworks array

@@ -117,7 +117,7 @@ Row {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     // Bypass the broken hyprctl lua syntax parser by directly invoking the internal dispatcher
-                    var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "hl.dsp.focus({ window = \\"address:' + modelData.address + '\\" })"] }', root);
+                    var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "hl.dsp.focus({ window = \\"address:' + modelData.address + '\\" })"] ; onExited: destroy() }', root);
                     p.exited.connect(function() { p.destroy(); });
                     p.running = true;
                 }

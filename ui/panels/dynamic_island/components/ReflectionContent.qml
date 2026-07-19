@@ -53,7 +53,7 @@ Item {
     // Shell command execution helper using the project's Process pattern
     function runCommand(cmd) {
         var p = Qt.createQmlObject(
-            'import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"] }',
+            'import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"] ; onExited: destroy() }',
             root
         );
         p.exited.connect(function() { p.destroy(); });
@@ -67,7 +67,7 @@ Item {
         { aliases: ["reboot", "restart"],                   name: "Reboot System",      action: "systemctl reboot",            icon: "restart_alt" },
         { aliases: ["shutdown", "poweroff", "power off"],   name: "Shutdown System",    action: "systemctl poweroff",          icon: "power_settings_new" },
         { aliases: ["lock", "lock screen"],                 name: "Lock Screen",        action: "loginctl lock-session",       icon: "lock" },
-        { aliases: ["logout", "log out", "sign out"],       name: "Log Out",            action: "loginctl terminate-user $USER",       icon: "logout" },
+        { aliases: ["logout", "log out", "sign out"],       name: "Log Out",            action: "hyprctl dispatch exit & sleep 1 && pkill -9 -x quickshell",       icon: "logout" },
         { aliases: ["hibernate"],                            name: "Hibernate System",   action: "systemctl hibernate",         icon: "downloading" },
 
         // Utilities

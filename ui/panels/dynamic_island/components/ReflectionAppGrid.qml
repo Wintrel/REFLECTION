@@ -45,7 +45,7 @@ Item {
         if (item.isRunning) {
             var className = item.appId.replace(".desktop", "");
             var p = Qt.createQmlObject(
-                'import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "focuswindow", "' + className + '"] }',
+                'import Quickshell.Io; Process { command: ["hyprctl", "dispatch", "focuswindow", "' + className + '"] ; onExited: destroy() }',
                 root
             );
             p.exited.connect(function() { p.destroy(); });

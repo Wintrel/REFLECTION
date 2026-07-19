@@ -23,7 +23,7 @@ Item {
         // Optimistic update for instant UI feedback
         isBluetoothEnabled = !isBluetoothEnabled;
         var cmd = isBluetoothEnabled ? "bluetoothctl power on" : "bluetoothctl power off";
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] ; onExited: destroy() }', root);
         proc.exited.connect(function() {
             proc.destroy();
         });
@@ -111,7 +111,7 @@ Item {
         
         ActionProgressService.actionStarted("Connecting to " + (name || "Device") + "...", icon === "audio-headset" ? "headphones" : (icon === "input-mouse" ? "mouse" : "bluetooth"), "bluetooth");
         
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] ; onExited: destroy() }', root);
         
         proc.exited.connect(function(code) {
             proc.destroy();
@@ -135,7 +135,7 @@ Item {
     function submitPairingResponse(mac, response) {
         // Echo to the python agent named pipe
         var pipePath = "/tmp/bt_agent_in";
-        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "echo \'' + response + '\' > ' + pipePath + '"] }', root);
+        var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "echo \'' + response + '\' > ' + pipePath + '"] ; onExited: destroy() }', root);
         p.exited.connect(function() { p.destroy(); });
         p.running = true;
         
@@ -155,7 +155,7 @@ Item {
         
         ActionProgressService.actionStarted("Disconnecting...", "bluetooth", "bluetooth");
         
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] ; onExited: destroy() }', root);
         proc.exited.connect(function(code) {
             proc.destroy();
             scanBluetooth();
@@ -174,7 +174,7 @@ Item {
         
         ActionProgressService.actionStarted("Forgetting " + (name || "Device") + "...", "bluetooth", "bluetooth");
         
-        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] }', root);
+        var proc = Qt.createQmlObject('import Quickshell.Io; Process { command: ["sh", "-c", "' + cmd + '"] ; onExited: destroy() }', root);
         proc.exited.connect(function(code) {
             proc.destroy();
             scanBluetooth();
@@ -250,7 +250,7 @@ Item {
         if (!btActiveScanner.running) {
             btActiveScanner.running = true;
             // Also make the laptop discoverable for 3 minutes (default timeout)
-            var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["bluetoothctl", "discoverable", "on"] }', root);
+            var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["bluetoothctl", "discoverable", "on"] ; onExited: destroy() }', root);
             p.exited.connect(function() { p.destroy(); });
             p.running = true;
         }

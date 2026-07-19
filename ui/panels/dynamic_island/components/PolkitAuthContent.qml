@@ -97,6 +97,11 @@ Item {
                 font.weight: Font.DemiBold
                 color: PolkitAuthService.errorMessage !== "" ? "#ff5555" : (theme ? theme.textMain : "#FFF")
                 anchors.horizontalCenter: parent.horizontalCenter
+                width: islandMaxW - 64
+                wrapMode: Text.Wrap
+                horizontalAlignment: Text.AlignHCenter
+                maximumLineCount: 3
+                elide: Text.ElideRight
             }
         }
 
