@@ -6,6 +6,7 @@ import "../../../../core/state" as State
 import "../../../../core/services/system"
 import "./audio"
 import "./personalization" as Personalization
+import "./about" as About
 
 Item {
     id: root
@@ -300,12 +301,8 @@ Item {
                 }
                 
                 // 6: About
-                Rectangle {
-                    radius: 12
-                    color: Qt.rgba(255, 255, 255, 0.02)
-                    border.width: 1
-                    border.color: Qt.rgba(255, 255, 255, 0.05)
-                    Text { anchors.centerIn: parent; text: "About Reflection"; color: root.theme ? root.theme.textSub : "#888"; font.family: "Inter" }
+                About.AboutSettings {
+                    theme: root.theme
                 }
             }
         }

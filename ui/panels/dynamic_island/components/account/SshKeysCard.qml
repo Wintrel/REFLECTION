@@ -88,22 +88,37 @@ import "../../../../../core/state" as State
                                 }
 
                                 Rectangle {
-                                    Layout.preferredWidth: justCopied ? 85 : 70
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    Layout.rightMargin: 16
+                                    Layout.preferredWidth: justCopied ? 85 : 36
                                     Layout.preferredHeight: 32
-                                    radius: 6
-                                    color: justCopied ? "#00C851" : (maCopy.containsMouse ? (root.theme ? root.theme.accentPrimary : "#555") : Qt.rgba(255, 255, 255, 0.08))
+                                    radius: 16
+                                    color: justCopied ? Qt.rgba(74, 222, 128, 0.15) : (maCopy.containsMouse ? Qt.rgba(255, 255, 255, 0.1) : Qt.rgba(255, 255, 255, 0.03))
                                     border.width: 1
-                                    border.color: justCopied ? "#00C851" : (maCopy.containsMouse ? (root.theme ? root.theme.accentPrimary : "#555") : Qt.rgba(255, 255, 255, 0.04))
-                                    Behavior on color { ColorAnimation { duration: 150 } }
-                                    Behavior on border.color { ColorAnimation { duration: 150 } }
+                                    border.color: justCopied ? "#4ADE80" : (maCopy.containsMouse ? Qt.rgba(255, 255, 255, 0.2) : Qt.rgba(255, 255, 255, 0.08))
+                                    Behavior on Layout.preferredWidth { NumberAnimation { duration: 250; easing.type: Easing.OutExpo } }
+                                    Behavior on color { ColorAnimation { duration: 200 } }
+                                    Behavior on border.color { ColorAnimation { duration: 200 } }
+                                    clip: true
 
-                                    Text {
+                                    RowLayout {
                                         anchors.centerIn: parent
-                                        text: justCopied ? "Copied!" : "Copy"
-                                        font.family: "Inter"
-                                        font.pixelSize: 12
-                                        font.weight: Font.Medium
-                                        color: justCopied || maCopy.containsMouse ? "#000" : (root.theme ? root.theme.textMain : "#FFF")
+                                        spacing: 6
+                                        Text {
+                                            visible: !justCopied
+                                            text: "content_copy"
+                                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                            font.pixelSize: 16
+                                            color: maCopy.containsMouse ? "#FFFFFF" : "#AAAAAA"
+                                        }
+                                        Text {
+                                            visible: justCopied
+                                            text: "Copied!"
+                                            font.family: "Inter"
+                                            font.pixelSize: 12
+                                            font.weight: Font.Medium
+                                            color: "#4ADE80"
+                                        }
                                     }
 
                                     MouseArea {

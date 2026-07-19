@@ -56,8 +56,7 @@ import "../../../../../core/state" as State
                             border.color: isMember ? (root.theme ? root.theme.accentPrimary : "#AAA") : (maGroupCard.containsMouse ? Qt.rgba(255, 255, 255, 0.08) : Qt.rgba(255, 255, 255, 0.04))
                             Behavior on color { ColorAnimation { duration: 150 } }
                             Behavior on border.color { ColorAnimation { duration: 150 } }
-                            scale: maGroupCard.containsMouse ? 1.01 : 1.0
-                            Behavior on scale { NumberAnimation { duration: 100 } }
+
 
                             readonly property string gName: modelData.name
                             readonly property bool isMember: AccountService.userGroupsList.indexOf(gName) !== -1
@@ -105,10 +104,21 @@ import "../../../../../core/state" as State
                                 }
 
                                 Text {
-                                    text: isMember ? "check_circle" : "add_circle_outline"
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    Layout.rightMargin: 16
+                                    text: isMember ? "check_circle" : "add_circle"
                                     font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                                    font.pixelSize: 20
-                                    color: isMember ? "#4ADE80" : (root.theme ? root.theme.textSub : "#888")
+                                    font.pixelSize: 24
+                                    color: isMember ? "#4ADE80" : (maGroupCard.containsMouse ? "#E0E0E0" : "#555")
+                                    Behavior on color { ColorAnimation { duration: 200 } }
+
+                                    layer.enabled: isMember || maGroupCard.containsMouse
+                                    layer.effect: DropShadow {
+                                        transparentBorder: true
+                                        color: isMember ? Qt.rgba(74/255, 222/255, 128/255, 0.5) : Qt.rgba(255, 255, 255, 0.2)
+                                        radius: 8
+                                        samples: 17
+                                    }
                                 }
                             }
                         }
