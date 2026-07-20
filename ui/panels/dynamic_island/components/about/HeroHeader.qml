@@ -9,6 +9,11 @@ Item {
     Layout.fillWidth: true
     implicitHeight: 200
 
+    property string iconName: "blur_on"
+    property string title: "Reflection"
+    property string version: "v1.2.4"
+    property string tagline: "Highlights attention. Never demands it."
+
     signal easterEggTriggered()
 
     // --- Easter egg click tracking ---
@@ -152,7 +157,7 @@ Item {
             Text {
                 id: logoIcon
                 Layout.alignment: Qt.AlignHCenter
-                text: "blur_on"
+                text: root.iconName
                 font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                 font.pixelSize: 64
                 color: root.theme ? root.theme.accentPrimary : "#4ADE80"
@@ -209,7 +214,7 @@ Item {
 
                 Text {
                     id: titleText
-                    text: "Reflection"
+                    text: root.title
                     font.family: "Inter"
                     font.pixelSize: 24
                     font.weight: Font.Black
@@ -232,7 +237,7 @@ Item {
             // Version
             Text {
                 Layout.alignment: Qt.AlignHCenter
-                text: "v1.2.4"
+                text: root.version
                 font.family: "Inter"
                 font.pixelSize: 12
                 color: root.theme ? root.theme.textSub : "#888"
@@ -242,7 +247,7 @@ Item {
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 4
-                text: "Highlights attention. Never demands it."
+                text: root.tagline
                 font.family: "Inter"
                 font.pixelSize: 11
                 font.italic: true

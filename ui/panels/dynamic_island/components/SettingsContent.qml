@@ -7,6 +7,7 @@ import "../../../../core/services/system"
 import "./audio"
 import "./personalization" as Personalization
 import "./about" as About
+import "./updates" as Updates
 
 Item {
     id: root
@@ -34,7 +35,7 @@ Item {
     
     // State to track selected category
     property int currentCategory: 0
-    property var categories: isSecretUnlocked ? ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "About", "Wintrel"] : ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "About"]
+    property var categories: isSecretUnlocked ? ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "Updates", "About", "Wintrel"] : ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "Updates", "About"]
     
     // Consume clicks on the actual UI so they don't fall through and close the settings,
     // but leave the 20px margins (the "tippy top" and edges) open to be clicked to close!
@@ -179,6 +180,7 @@ Item {
                                 if (modelData === "Personalization") return "palette";
                                 if (modelData === "Behavior") return "psychology";
                                 if (modelData === "Shell") return "desktop_windows";
+                                if (modelData === "Updates") return "update";
                                 if (modelData === "Wintrel") return "terminal";
                                 return "info";
                             }
@@ -311,14 +313,19 @@ Item {
                     border.color: Qt.rgba(255, 255, 255, 0.05)
                     Text { anchors.centerIn: parent; text: "Shell Settings"; color: root.theme ? root.theme.textSub : "#888"; font.family: "Inter" }
                 }
+
+                // 6: Updates
+                Updates.UpdatesSettings {
+                    theme: root.theme
+                }
                 
-                // 6: About
+                // 7: About
                 About.AboutSettings {
                     theme: root.theme
                     onSecretUnlocked: root.isSecretUnlocked = true
                 }
                 
-                // 7: Wintrel
+                // 8: Wintrel
                 About.WintrelSettings {
                     theme: root.theme
                 }
