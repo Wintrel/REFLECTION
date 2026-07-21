@@ -11,7 +11,7 @@ Item {
 
     property string iconName: "blur_on"
     property string title: "Reflection"
-    property string version: "v1.2.4"
+    property string version: "v1.2.5"
     property string tagline: "Highlights attention. Never demands it."
 
     signal easterEggTriggered()
