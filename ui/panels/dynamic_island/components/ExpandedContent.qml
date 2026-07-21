@@ -502,8 +502,23 @@ Item {
                 
                 on_RawPosChanged: {
                     let p = _rawPos;
-                    if (p === 0 || p >= _smoothedPos || (_smoothedPos - p) > 1500000) {
+                    let isCider = root.mprisPlayer && root.mprisPlayer.identity === "Cider";
+                    let threshold = isCider ? 1500000 : 1.5;
+                    
+                    if (p === 0 || Math.abs(_smoothedPos - p) > threshold) {
                         _smoothedPos = p;
+                    }
+                }
+                
+                Timer {
+                    interval: 32
+                    running: root.mprisPlayer && root.mprisPlayer.isPlaying && !progressBar.isDragging && root.mprisPlayer.identity !== "Cider"
+                    repeat: true
+                    onTriggered: {
+                        fillRect._smoothedPos += 0.032;
+                        if (root.mprisPlayer && fillRect._smoothedPos > root.mprisPlayer.length) {
+                            fillRect._smoothedPos = root.mprisPlayer.length;
+                        }
                     }
                 }
                 

@@ -51,7 +51,9 @@ Item {
         controller.dismissNotification();
     }
     
-    function cyclePlayer() {}
+    function cyclePlayer() {
+        CiderService.cycleFallbackPlayer();
+    }
 
     // The actual island container (Outer Bezel)
     Rectangle {

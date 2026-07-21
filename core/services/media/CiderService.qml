@@ -39,10 +39,11 @@ Singleton {
     property bool normalizationEnabled: false
     
     property bool ciderActive: trackTitle !== "" || isPlaying
+    onCiderActiveChanged: updateActivePlayer()
+    onIsPlayingChanged: updateActivePlayer()
     
-    property var activePlayer: ciderActive ? root : mprisFallbackPlayer
+    property var activePlayer: null
 
-    property var mprisFallbackPlayer: null
     property bool _isDaemonUpdate: false
 
     property real _lastUpdateRealTime: 0
@@ -72,35 +73,91 @@ Singleton {
             property var player: modelData
             Connections {
                 target: player
-                function onIsPlayingChanged() { updateFallback(); }
+                function onIsPlayingChanged() { updateActivePlayer(); }
             }
         }
-        onObjectAdded: updateFallback()
-        onObjectRemoved: updateFallback()
+        onObjectAdded: updateActivePlayer()
+        onObjectRemoved: updateActivePlayer()
     }
     
-    function updateFallback() {
-        if (mprisInst.count === 0) {
-            root.mprisFallbackPlayer = null;
-            return;
-        }
-        var best = null;
-        var bestScore = -1;
+    property bool _manualPlayerOverridden: false
+    property string _manualPlayerId: ""
+
+    function cycleFallbackPlayer() {
+        var available = [];
+        if (root.ciderActive) available.push(root);
+
         for (var i = 0; i < mprisInst.count; i++) {
             var p = mprisInst.objectAt(i).player;
             if (!p) continue;
-            // Ignore cider if it exposes an MPRIS interface itself
             if (p.identity && p.identity.toLowerCase().indexOf("cider") !== -1) continue;
-            
+            available.push(p);
+        }
+        if (available.length === 0) return;
+        
+        var currentIndex = -1;
+        if (root.activePlayer) {
+            currentIndex = available.indexOf(root.activePlayer);
+        }
+        
+        var nextIndex = (currentIndex + 1) % available.length;
+        root.activePlayer = available[nextIndex];
+        
+        root._manualPlayerOverridden = true;
+        if (available[nextIndex] === root) {
+            root._manualPlayerId = "cider";
+        } else {
+            root._manualPlayerId = available[nextIndex].busName;
+        }
+    }
+
+    function updateActivePlayer() {
+        var available = [];
+        if (root.ciderActive) available.push(root);
+
+        for (var i = 0; i < mprisInst.count; i++) {
+            var p = mprisInst.objectAt(i).player;
+            if (!p) continue;
+            if (p.identity && p.identity.toLowerCase().indexOf("cider") !== -1) continue;
+            available.push(p);
+        }
+        
+        if (available.length === 0) {
+            root.activePlayer = null;
+            root._manualPlayerOverridden = false;
+            root._manualPlayerId = "";
+            return;
+        }
+
+        if (root._manualPlayerOverridden) {
+            if (root._manualPlayerId === "cider" && root.ciderActive) {
+                root.activePlayer = root;
+                return;
+            }
+            for (var j = 0; j < available.length; j++) {
+                if (available[j] !== root && available[j].busName === root._manualPlayerId) {
+                    root.activePlayer = available[j];
+                    return;
+                }
+            }
+            root._manualPlayerOverridden = false;
+            root._manualPlayerId = "";
+        }
+
+        var best = null;
+        var bestScore = -1;
+        for (var k = 0; k < available.length; k++) {
             var score = 0;
-            if (p.isPlaying) score = 10;
-            if (p.length > 0) score += 2;
+            if (available[k] === root) score += 5; // Bias towards native cider
+            if (available[k].isPlaying) score += 10;
+            if (available[k].length > 0) score += 2;
+            
             if (score > bestScore) {
                 bestScore = score;
-                best = p;
+                best = available[k];
             }
         }
-        root.mprisFallbackPlayer = best;
+        root.activePlayer = best;
     }
 
     Connections {
