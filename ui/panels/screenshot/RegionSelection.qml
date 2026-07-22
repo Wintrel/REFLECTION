@@ -34,6 +34,7 @@ PanelWindow {
     property real regionY: Math.min(dragStartY, draggingY)
     property real regionWidth: Math.abs(draggingX - dragStartX)
     property real regionHeight: Math.abs(draggingY - dragStartY)
+    property bool snipping: false
 
     function dismiss() {
         ScreenshotState.isOpen = false;
@@ -45,6 +46,8 @@ PanelWindow {
             return;
         }
 
+        root.snipping = true;
+
         const gx = Math.round(root.monitorOffsetX + root.regionX);
         const gy = Math.round(root.monitorOffsetY + root.regionY);
         const gw = Math.round(root.regionWidth);
@@ -54,12 +57,43 @@ PanelWindow {
         const filename = "Screenshot_" + d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate() + "_" + d.getHours() + "-" + d.getMinutes() + "-" + d.getSeconds() + ".png";
         const filepath = `~/Pictures/Screenshots/${filename}`;
 
-        Quickshell.execDetached([
-            "bash", "-c", 
-            `sleep 0.2 && mkdir -p ~/Pictures/Screenshots && grim -g "${gx},${gy} ${gw}x${gh}" ${filepath} && wl-copy < ${filepath} && notify-send "Screenshot Saved" "Copied to clipboard and saved to Pictures" -i ${filepath} -a "REFLECTION"`
-        ]);
+        snipTimer.gx = gx;
+        snipTimer.gy = gy;
+        snipTimer.gw = gw;
+        snipTimer.gh = gh;
+        snipTimer.filepath = filepath;
+        snipTimer.start();
+    }
 
-        root.dismiss();
+    Timer {
+        id: snipTimer
+        interval: 100 // Wait for UI to hide overlays
+        repeat: false
+        property int gx
+        property int gy
+        property int gw
+        property int gh
+        property string filepath
+        
+        onTriggered: {
+            // execDetached runs asynchronously, so grim takes a moment to start
+            Quickshell.execDetached([
+                "bash", "-c", 
+                `mkdir -p ~/Pictures/Screenshots && grim -g "${gx},${gy} ${gw}x${gh}" ${filepath} && wl-copy < ${filepath} && notify-send "Screenshot Saved" "Copied to clipboard and saved to Pictures" -i ${filepath} -a "REFLECTION"`
+            ]);
+            // Give grim enough time to capture the clean screen before we restore the UI and close
+            dismissTimer.start();
+        }
+    }
+
+    Timer {
+        id: dismissTimer
+        interval: 400
+        repeat: false
+        onTriggered: {
+            root.snipping = false;
+            root.dismiss();
+        }
     }
 
     ScreencopyView {
@@ -76,38 +110,44 @@ PanelWindow {
     }
 
     // Dim overlay cutouts
-    Rectangle {
-        color: "#99000000" // 60% black
-        x: 0; y: 0; width: root.width; height: root.dragging ? root.regionY : root.height
-    }
-    Rectangle {
-        color: "#99000000"
-        x: 0; y: root.dragging ? root.regionY + root.regionHeight : root.height
-        width: root.width; height: root.height - y
-    }
-    Rectangle {
-        color: "#99000000"
-        x: 0; y: root.regionY
-        width: root.regionX; height: root.regionHeight
-        visible: root.dragging
-    }
-    Rectangle {
-        color: "#99000000"
-        x: root.regionX + root.regionWidth; y: root.regionY
-        width: root.width - x; height: root.regionHeight
-        visible: root.dragging
-    }
+    Item {
+        anchors.fill: parent
+        visible: !root.snipping
 
-    // Selection box
-    Rectangle {
-        visible: root.dragging
-        x: root.regionX
-        y: root.regionY
-        width: root.regionWidth
-        height: root.regionHeight
-        color: "#1Affffff" // faint fill
-        border.color: "#710cee" // Reflection Purple
-        border.width: 2
+        // Dim overlay cutouts
+        Rectangle {
+            color: "#99000000" // 60% black
+            x: 0; y: 0; width: root.width; height: root.dragging ? root.regionY : root.height
+        }
+        Rectangle {
+            color: "#99000000"
+            x: 0; y: root.dragging ? root.regionY + root.regionHeight : root.height
+            width: root.width; height: root.height - y
+        }
+        Rectangle {
+            color: "#99000000"
+            x: 0; y: root.regionY
+            width: root.regionX; height: root.regionHeight
+            visible: root.dragging
+        }
+        Rectangle {
+            color: "#99000000"
+            x: root.regionX + root.regionWidth; y: root.regionY
+            width: root.width - x; height: root.regionHeight
+            visible: root.dragging
+        }
+
+        // Selection box
+        Rectangle {
+            visible: root.dragging
+            x: root.regionX
+            y: root.regionY
+            width: root.regionWidth
+            height: root.regionHeight
+            color: "#1Affffff" // faint fill
+            border.color: "#710cee" // Reflection Purple
+            border.width: 2
+        }
     }
 
     MouseArea {
