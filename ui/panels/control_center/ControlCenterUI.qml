@@ -36,26 +36,36 @@ Item {
         }
         
         // Inner inset area
-        Rectangle {
+        Item {
             anchors.fill: parent
             anchors.margins: theme.taskbarBorderWidth
-            radius: parent.radius - 2
-            color: theme.bgInner
+            
+            Item {
+                id: innerMask
+                anchors.fill: parent
+                layer.enabled: true
+                
+                Rectangle {
+                    anchors.fill: parent
+                    radius: bg.radius - 2
+                    color: theme.bgInner
+                }
+                
+                Rectangle {
+                    height: theme.taskbarRadius
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    color: theme.bgInner
+                }
+            }
             
             ReflectionGradient {
                 theme: root.theme
                 startColor: theme.bgInner
                 endColor: theme.bgInnerGradientEnd
                 anchors.fill: parent
-            }
-            
-            // Square off bottom inner corners
-            Rectangle {
-                height: theme.taskbarRadius
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
-                color: theme.bgInner
+                source: innerMask
             }
         }
     }
