@@ -57,6 +57,48 @@ ColumnLayout {
         color: root.theme ? root.theme.textMain : "#FFF"
     }
 
+    RowLayout {
+        Layout.fillWidth: true
+        Text {
+            text: "Use Gradients"
+            font.family: root.theme ? root.theme.fontMain : "Inter"
+            font.pixelSize: 13
+            color: root.theme ? root.theme.textMain : "#FFF"
+            Layout.fillWidth: true
+        }
+        Rectangle {
+            id: gradSwitch
+            width: 44
+            height: 24
+            radius: 12
+            color: ThemeService.useGradients ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : Qt.rgba(255,255,255,0.1)
+            border.width: 1
+            border.color: ThemeService.useGradients ? "transparent" : Qt.rgba(255,255,255,0.2)
+            
+            Behavior on color { ColorAnimation { duration: 150 } }
+            
+            Rectangle {
+                width: 18
+                height: 18
+                radius: 9
+                color: "#FFF"
+                x: ThemeService.useGradients ? (parent.width - width - 3) : 3
+                y: 3
+                
+                Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+            }
+            
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    ThemeService.setUseGradients(!ThemeService.useGradients)
+                }
+            }
+        }
+    }
+
+
     // Property Selector
     GridLayout {
         Layout.fillWidth: true
@@ -78,7 +120,11 @@ ColumnLayout {
                 { id: "textMain", name: "Primary Text" },
                 { id: "textSub", name: "Sub Text" },
                 { id: "textMuted", name: "Muted Text" },
-                { id: "colorSystemShimmer", name: "Shimmer Effect" }
+                { id: "colorSystemShimmer", name: "Shimmer Effect" },
+
+                { id: "bgInnerGradientEnd", name: "BgInner Grad" },
+                { id: "surfaceCardGradientEnd", name: "Card Grad" },
+                { id: "accentPrimaryGradientEnd", name: "Primary Grad" },
             ]
             
             delegate: Rectangle {

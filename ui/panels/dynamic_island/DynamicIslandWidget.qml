@@ -1,4 +1,5 @@
 import QtQuick
+import "../../components"
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Wayland
@@ -192,6 +193,13 @@ Item {
             radius: parent.radius - 2
             color: theme.bgInner
             clip: true
+            
+            ReflectionGradient {
+                theme: theme
+                startColor: theme.bgInner
+                endColor: theme.bgInnerGradientEnd
+                anchors.fill: parent
+            }
             
             IslandComponents.MinimizedContent {
                 anchors.fill: parent

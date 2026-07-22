@@ -21,6 +21,10 @@ Item {
     property color surfaceOverlay: '#1A1A22'
     property color textMuted: '#50505A'
     property color accentSecondary: '#8C8C9E'
+    property bool useGradients: false
+    property color bgInnerGradientEnd: '#000000'
+    property color surfaceCardGradientEnd: '#111115'
+    property color accentPrimaryGradientEnd: '#8C8C9E'
 
     // Geometry & Motion
     property int radiusIsland: 12
@@ -48,7 +52,11 @@ Item {
             surfaceCard: "#111115",
             surfaceOverlay: "#1A1A22",
             textMuted: "#50505A",
-            accentSecondary: "#8C8C9E"
+            accentSecondary: "#8C8C9E",
+            useGradients: false,
+            bgInnerGradientEnd: "#000000",
+            surfaceCardGradientEnd: "#0A0A0D",
+            accentPrimaryGradientEnd: "#727282"
         },
         {
             name: "Neon Cyber",
@@ -65,7 +73,11 @@ Item {
             surfaceCard: "#10161A",
             surfaceOverlay: "#152026",
             textMuted: "#304040",
-            accentSecondary: "#00AAAA"
+            accentSecondary: "#00AAAA",
+            useGradients: true,
+            bgInnerGradientEnd: "#050A0F",
+            surfaceCardGradientEnd: "#0A1015",
+            accentPrimaryGradientEnd: "#00FFCC"
         },
         {
             name: "Crimson Velvet",
@@ -82,12 +94,16 @@ Item {
             surfaceCard: "#150505",
             surfaceOverlay: "#200A0A",
             textMuted: "#503030",
-            accentSecondary: "#AA2244"
+            accentSecondary: "#AA2244",
+            useGradients: false,
+            bgInnerGradientEnd: "#050000",
+            surfaceCardGradientEnd: "#100000",
+            accentPrimaryGradientEnd: "#CC2244"
         },
         {
             name: "Midnight Winter",
             bgBezel: "#000000",
-            bgInner: "#06080d",
+            bgInner: "#0b101a",
             textMain: "#E2E8F0",
             textSub: "#94A3B8",
             accentNotification: "#1E293B",
@@ -96,10 +112,14 @@ Item {
             accentPrimary: "#A5B4FC",
             colorSystemShimmer: "#E0E7FF",
             bgBase: "#000000",
-            surfaceCard: "#0D1017",
-            surfaceOverlay: "#161A25",
+            surfaceCard: "#121825",
+            surfaceOverlay: "#1a2233",
             textMuted: "#475569",
-            accentSecondary: "#818CF8"
+            accentSecondary: "#818CF8",
+            useGradients: true,
+            bgInnerGradientEnd: "#000000",
+            surfaceCardGradientEnd: "#06090f",
+            accentPrimaryGradientEnd: "#818CF8"
         },
         {
             name: "Custom",
@@ -116,7 +136,11 @@ Item {
             surfaceCard: "#1A1A1A",
             surfaceOverlay: "#252525",
             textMuted: "#666666",
-            accentSecondary: "#AA00AA"
+            accentSecondary: "#AA00AA",
+            useGradients: false,
+            bgInnerGradientEnd: "#0A0A0A",
+            surfaceCardGradientEnd: "#151515",
+            accentPrimaryGradientEnd: "#880088"
         }
     ]
 
@@ -142,6 +166,10 @@ Item {
                 surfaceOverlay: root.surfaceOverlay.toString(),
                 textMuted: root.textMuted.toString(),
                 accentSecondary: root.accentSecondary.toString(),
+                useGradients: root.useGradients,
+                bgInnerGradientEnd: root.bgInnerGradientEnd.toString(),
+                surfaceCardGradientEnd: root.surfaceCardGradientEnd.toString(),
+                accentPrimaryGradientEnd: root.accentPrimaryGradientEnd.toString(),
             }
         };
         var p = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
@@ -182,6 +210,10 @@ Item {
             root.surfaceOverlay = theme.surfaceOverlay;
             root.textMuted = theme.textMuted;
             root.accentSecondary = theme.accentSecondary;
+            root.useGradients = theme.useGradients !== undefined ? theme.useGradients : false;
+            root.bgInnerGradientEnd = theme.bgInnerGradientEnd || root.bgInner;
+            root.surfaceCardGradientEnd = theme.surfaceCardGradientEnd || root.surfaceCard;
+            root.accentPrimaryGradientEnd = theme.accentPrimaryGradientEnd || root.accentPrimary;
             
             root.saveConfig();
         }
@@ -191,11 +223,21 @@ Item {
         if (root.currentTheme !== "Custom") {
             root.currentTheme = "Custom";
         }
-        
+
         if (propertyName in root) {
             root[propertyName] = hexColor;
         }
         
+        root.saveConfig();
+    }
+
+    function setUseGradients(val) {
+        if (root.useGradients === val) return;
+        root.useGradients = val;
+        
+        if (currentTheme !== "Custom") {
+            currentTheme = "Custom";
+        }
         root.saveConfig();
     }
 

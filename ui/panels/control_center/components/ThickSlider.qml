@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../components"
 import Quickshell
 
 Item {
@@ -36,6 +37,13 @@ Item {
             Behavior on width { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
             // 250ms fade back to neutral after release
             Behavior on color { ColorAnimation { duration: 250 } }
+
+            ReflectionGradient {
+                theme: root.theme
+                startColor: parent.color
+                endColor: ma.pressed ? (root.theme ? root.theme.accentPrimaryGradientEnd : parent.color) : parent.color
+                anchors.fill: parent
+            }
         }
         
         // Icon

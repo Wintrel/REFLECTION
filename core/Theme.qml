@@ -19,6 +19,10 @@ Item {
     property color surfaceOverlay: ThemeService.surfaceOverlay
     property color textMuted: ThemeService.textMuted
     property color accentSecondary: ThemeService.accentSecondary
+    property bool useGradients: ThemeService.useGradients
+    property color bgInnerGradientEnd: ThemeService.bgInnerGradientEnd
+    property color surfaceCardGradientEnd: ThemeService.surfaceCardGradientEnd
+    property color accentPrimaryGradientEnd: ThemeService.accentPrimaryGradientEnd
     
     // Fonts
     property string fontMain: "Inter" // Fallback main font

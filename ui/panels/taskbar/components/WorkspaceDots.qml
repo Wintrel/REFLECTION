@@ -1,4 +1,5 @@
 import QtQuick
+import "../../../components"
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
@@ -62,6 +63,14 @@ Row {
                 
                 Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
                 Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
+                ReflectionGradient {
+                    theme: root.theme
+                    startColor: parent.color
+                    endColor: dot.isActive && root.theme ? root.theme.accentPrimaryGradientEnd : parent.color
+                    anchors.fill: parent
+                    visible: root.theme && root.theme.useGradients && dot.isActive
+                }
             }
             
             MouseArea {

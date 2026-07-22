@@ -1,4 +1,5 @@
 import QtQuick
+import "../../components"
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
 import Quickshell
@@ -40,6 +41,13 @@ Item {
             anchors.margins: theme.taskbarBorderWidth
             radius: parent.radius - 2
             color: theme.bgInner
+            
+            ReflectionGradient {
+                theme: root.theme
+                startColor: theme.bgInner
+                endColor: theme.bgInnerGradientEnd
+                anchors.fill: parent
+            }
             
             // Square off bottom inner corners
             Rectangle {
