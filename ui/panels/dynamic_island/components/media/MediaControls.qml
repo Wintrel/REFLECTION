@@ -27,7 +27,7 @@ Row {
         text: "skip_previous"
         font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
         font.pixelSize: 32
-        color: maPrev.pressed ? (root.theme ? root.theme.colorMusic : "#5611f8") : (maPrev.containsMouse ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : (root.theme ? root.theme.textMain : "#FFF"))
+        color: maPrev.pressed ? (root.theme ? root.theme.accentMusic : "#5611f8") : (maPrev.containsMouse ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : (root.theme ? root.theme.textMain : "#FFF"))
         anchors.verticalCenter: parent.verticalCenter 
         
         scale: maPrev.pressed ? 0.85 : (maPrev.containsMouse ? 1.1 : 1)
@@ -47,7 +47,7 @@ Row {
         text: (root.mprisPlayer && root.mprisPlayer.isPlaying) ? "pause_circle" : "play_circle"
         font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
         font.pixelSize: 42
-        color: maPlay.pressed ? (root.theme ? root.theme.colorMusic : "#5611f8") : (maPlay.containsMouse ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : (root.theme ? root.theme.textMain : "#FFF"))
+        color: maPlay.pressed ? (root.theme ? root.theme.accentMusic : "#5611f8") : (maPlay.containsMouse ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : (root.theme ? root.theme.textMain : "#FFF"))
         anchors.verticalCenter: parent.verticalCenter 
         
         scale: maPlay.pressed ? 0.85 : (maPlay.containsMouse ? 1.05 : 1)
@@ -67,7 +67,7 @@ Row {
         text: "skip_next"
         font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
         font.pixelSize: 32
-        color: maNext.pressed ? (root.theme ? root.theme.colorMusic : "#5611f8") : (maNext.containsMouse ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : (root.theme ? root.theme.textMain : "#FFF"))
+        color: maNext.pressed ? (root.theme ? root.theme.accentMusic : "#5611f8") : (maNext.containsMouse ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : (root.theme ? root.theme.textMain : "#FFF"))
         anchors.verticalCenter: parent.verticalCenter 
         
         scale: maNext.pressed ? 0.85 : (maNext.containsMouse ? 1.1 : 1)

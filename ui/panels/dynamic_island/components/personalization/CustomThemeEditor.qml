@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
 import "../../../../../core/services/system"
+import "../../../control_center/components" as CC
 
 ColumnLayout {
     id: root
@@ -10,11 +11,37 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: 16
     
-    // Only visible if current theme is Custom
     visible: ThemeService.currentTheme === "Custom"
     
-    // Property Selector State
     property string activeEditProperty: "accentPrimary"
+    
+    // Convert hex to HSL (simplified approximation for UI init)
+    function hexToHsl(hex) {
+        var r = parseInt(hex.substring(1, 3), 16) / 255;
+        var g = parseInt(hex.substring(3, 5), 16) / 255;
+        var b = parseInt(hex.substring(5, 7), 16) / 255;
+        
+        var max = Math.max(r, g, b), min = Math.min(r, g, b);
+        var h, s, l = (max + min) / 2;
+        
+        if (max === min) {
+            h = s = 0; // achromatic
+        } else {
+            var d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+        return {h: h*100, s: s*100, l: l*100};
+    }
+    
+    function rgbToHex(r, g, b) {
+        return "#" + (1 << 24 | Math.round(r*255) << 16 | Math.round(g*255) << 8 | Math.round(b*255)).toString(16).slice(1).toUpperCase();
+    }
     
     Rectangle {
         Layout.fillWidth: true
@@ -30,144 +57,151 @@ ColumnLayout {
         color: root.theme ? root.theme.textMain : "#FFF"
     }
 
-    // Component Target Selector
-    Text {
-        text: "Select Component to Tint"
-        font.family: root.theme ? root.theme.fontMain : "Inter"
-        font.pixelSize: 12
-        color: root.theme ? root.theme.textSub : "#888"
-    }
-
-    RowLayout {
+    // Property Selector
+    GridLayout {
         Layout.fillWidth: true
-        spacing: 8
+        columns: 4
+        columnSpacing: 8
+        rowSpacing: 8
         
         Repeater {
             model: [
-                { id: "accentPrimary", name: "Global Accent" },
-                { id: "colorNotification", name: "Notifications" },
-                { id: "colorMusic", name: "Music Player" },
-                { id: "accentWorkspace", name: "Workspaces" }
+                { id: "accentPrimary", name: "Primary Accent" },
+                { id: "accentSecondary", name: "Secondary Accent" },
+                { id: "accentNotification", name: "Notifications" },
+                { id: "accentMusic", name: "Music" },
+                { id: "bgBase", name: "Base BG" },
+                { id: "bgBezel", name: "Bezel BG" },
+                { id: "bgInner", name: "Inner BG" },
+                { id: "surfaceCard", name: "Card Surface" },
+                { id: "surfaceOverlay", name: "Overlay (Hover)" },
+                { id: "textMain", name: "Primary Text" },
+                { id: "textSub", name: "Sub Text" },
+                { id: "textMuted", name: "Muted Text" },
+                { id: "colorSystemShimmer", name: "Shimmer Effect" }
             ]
             
             delegate: Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 32
-                radius: 8
-                color: root.activeEditProperty === modelData.id ? ThemeService.accentPrimary : Qt.rgba(255, 255, 255, 0.05)
-                border.width: root.activeEditProperty === modelData.id ? 0 : (maTab.containsMouse ? 1 : 0)
+                radius: 6
+                
+                property bool isActive: root.activeEditProperty === modelData.id
+                color: isActive ? ThemeService.accentPrimary : Qt.rgba(255, 255, 255, 0.05)
+                border.width: isActive ? 0 : (maProp.containsMouse ? 1 : 0)
                 border.color: Qt.rgba(255, 255, 255, 0.2)
                 
                 Text {
                     anchors.centerIn: parent
                     text: modelData.name
                     font.family: root.theme ? root.theme.fontMain : "Inter"
-                    font.pixelSize: 12
-                    font.weight: root.activeEditProperty === modelData.id ? Font.Bold : Font.Normal
-                    color: root.activeEditProperty === modelData.id ? "#000" : (root.theme ? root.theme.textMain : "#FFF")
+                    font.pixelSize: 11
+                    font.weight: isActive ? Font.Bold : Font.Normal
+                    color: isActive ? "#000" : (root.theme ? root.theme.textMain : "#FFF")
                 }
                 
                 MouseArea {
-                    id: maTab
+                    id: maProp
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.activeEditProperty = modelData.id
-                }
-            }
-        }
-    }
-
-    GridLayout {
-        Layout.fillWidth: true
-        columns: 8
-        rowSpacing: 12
-        columnSpacing: 12
-        Layout.topMargin: 8
-        
-        Repeater {
-            model: [
-                // Vibrant Accents
-                "#FF3366", "#FF6B33", "#FFD633", "#33FF55", 
-                "#00FFAA", "#3399FF", "#6633FF", "#FF33FF", 
-                "#8C8C9E", "#FFFFFF",
-                // Muted/Dark Background Accents
-                "#2A2A30", "#3A3A40", "#15151A", "#1C1C24",
-                "#3F3F4A", "#000000"
-            ]
-            
-            delegate: Rectangle {
-                Layout.preferredWidth: 32
-                Layout.preferredHeight: 32
-                radius: 16
-                color: modelData
-                
-                property bool isSelected: ThemeService[root.activeEditProperty].toString().toUpperCase() === modelData.toUpperCase()
-                
-                border.width: isSelected ? 3 : 0
-                border.color: "#FFF"
-                
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        ThemeService.updateCustomColor(root.activeEditProperty, modelData);
-                        // Only auto-update shimmer when global accent is changed. 
-                        // We NO LONGER auto-tint other components, granting true granular control!
-                        if (root.activeEditProperty === "accentPrimary") {
-                            ThemeService.updateCustomColor("colorSystemShimmer", Qt.lighter(modelData, 1.2));
-                        }
+                        root.activeEditProperty = modelData.id
                     }
                 }
             }
         }
     }
     
-    // Background Mode
-    Text {
-        text: "Global Background Style"
-        font.family: root.theme ? root.theme.fontMain : "Inter"
-        font.pixelSize: 12
-        color: root.theme ? root.theme.textSub : "#888"
-        Layout.topMargin: 12
-    }
-
-    RowLayout {
+    // Color Picker Area
+    Rectangle {
         Layout.fillWidth: true
-        spacing: 12
+        Layout.preferredHeight: 200
+        radius: 12
+        color: Qt.rgba(0, 0, 0, 0.2)
+        border.width: 1
+        border.color: Qt.rgba(255, 255, 255, 0.1)
         
-        Repeater {
-            model: [
-                { name: "Pitch Black", bgBezel: "#000000", bgInner: "#000000", bgBase: "#000000", textMain: "#D4D4D8", textSub: "#82828C" },
-                { name: "Deep Gray", bgBezel: "#000000", bgInner: "#0A0A0F", bgBase: "#050505", textMain: "#E0F0F0", textSub: "#508080" },
-                { name: "Slate", bgBezel: "#050505", bgInner: "#15151A", bgBase: "#101015", textMain: "#FFFFFF", textSub: "#AAAAAA" }
-            ]
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 24
             
-            delegate: Rectangle {
-                Layout.preferredWidth: 100
-                Layout.preferredHeight: 40
-                radius: 8
-                color: modelData.bgInner
-                border.width: ThemeService.bgInner.toString().toUpperCase() === modelData.bgInner.toUpperCase() ? 2 : 1
-                border.color: ThemeService.bgInner.toString().toUpperCase() === modelData.bgInner.toUpperCase() ? ThemeService.accentPrimary : Qt.rgba(255, 255, 255, 0.1)
+            // Preview Circle
+            ColumnLayout {
+                spacing: 12
                 
-                Text {
-                    anchors.centerIn: parent
-                    text: modelData.name
-                    font.family: root.theme ? root.theme.fontMain : "Inter"
-                    font.pixelSize: 12
-                    color: ThemeService.bgInner.toString().toUpperCase() === modelData.bgInner.toUpperCase() ? ThemeService.accentPrimary : (root.theme ? root.theme.textMain : "#FFF")
+                Rectangle {
+                    width: 80
+                    height: 80
+                    radius: 40
+                    color: ThemeService[root.activeEditProperty]
+                    border.width: 2
+                    border.color: Qt.rgba(255, 255, 255, 0.2)
                 }
                 
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        ThemeService.updateCustomColor("bgBezel", modelData.bgBezel);
-                        ThemeService.updateCustomColor("bgInner", modelData.bgInner);
-                        ThemeService.updateCustomColor("bgBase", modelData.bgBase);
-                        ThemeService.updateCustomColor("textMain", modelData.textMain);
-                        ThemeService.updateCustomColor("textSub", modelData.textSub);
+                Text {
+                    text: ThemeService[root.activeEditProperty].toString().toUpperCase()
+                    font.family: "Monospace"
+                    font.pixelSize: 14
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                    Layout.alignment: Qt.AlignHCenter
+                }
+            }
+            
+            // Sliders
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 16
+                
+                // Hue
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text { text: "H"; color: root.theme ? root.theme.textSub : "#AAA"; font.pixelSize: 12 }
+                    CC.ThickSlider {
+                        id: hueSlider
+                        Layout.fillWidth: true
+                        theme: root.theme
+                        icon: "palette"
+                        value: root.hexToHsl(ThemeService[root.activeEditProperty].toString()).h
+                        onValueChangedByUser: (val) => {
+                            var c = Qt.hsla(val/100.0, satSlider.value/100.0, lightSlider.value/100.0, 1.0)
+                            ThemeService.updateCustomColor(root.activeEditProperty, root.rgbToHex(c.r, c.g, c.b))
+                        }
+                    }
+                }
+                
+                // Saturation
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text { text: "S"; color: root.theme ? root.theme.textSub : "#AAA"; font.pixelSize: 12 }
+                    CC.ThickSlider {
+                        id: satSlider
+                        Layout.fillWidth: true
+                        theme: root.theme
+                        icon: "contrast"
+                        value: root.hexToHsl(ThemeService[root.activeEditProperty].toString()).s
+                        onValueChangedByUser: (val) => {
+                            var c = Qt.hsla(hueSlider.value/100.0, val/100.0, lightSlider.value/100.0, 1.0)
+                            ThemeService.updateCustomColor(root.activeEditProperty, root.rgbToHex(c.r, c.g, c.b))
+                        }
+                    }
+                }
+                
+                // Lightness
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text { text: "L"; color: root.theme ? root.theme.textSub : "#AAA"; font.pixelSize: 12 }
+                    CC.ThickSlider {
+                        id: lightSlider
+                        Layout.fillWidth: true
+                        theme: root.theme
+                        icon: "lightbulb"
+                        value: root.hexToHsl(ThemeService[root.activeEditProperty].toString()).l
+                        onValueChangedByUser: (val) => {
+                            var c = Qt.hsla(hueSlider.value/100.0, satSlider.value/100.0, val/100.0, 1.0)
+                            ThemeService.updateCustomColor(root.activeEditProperty, root.rgbToHex(c.r, c.g, c.b))
+                        }
                     }
                 }
             }

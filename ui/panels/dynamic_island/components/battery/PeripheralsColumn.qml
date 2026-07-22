@@ -5,7 +5,7 @@ Column {
     id: peripheralsColumn
     property Item rootItem
 
-    spacing: 5
+    spacing: 8
 
     opacity: rootItem.panelOpen ? 1 : 0
     transform: Translate {
@@ -24,31 +24,37 @@ Column {
         }
     }
 
+    Text {
+        text: "CONNECTED DEVICES"
+        font.family: rootItem.mainFont
+        font.pixelSize: 10
+        font.capitalization: Font.AllUppercase
+        font.letterSpacing: 0.8
+        color: rootItem.textSub
+        opacity: 0.6
+        visible: BatteryService.peripheralBatteries.length > 0
+    }
+
     Repeater {
         model: BatteryService.peripheralBatteries
 
-        delegate: Rectangle {
+        delegate: Item {
             required property var modelData
 
             width: parent.width
-            height: 32
-            radius: 7
-            color: rootItem.surfaceLow
-            border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.045)
+            height: 20
 
             Row {
                 anchors.left: parent.left
-                anchors.leftMargin: 10
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 7
+                spacing: 10
 
                 Text {
-                    text: modelData.icon || "battery_full"
+                    text: modelData.icon || "speaker"
                     font.family: rootItem.iconFont
-                    font.pixelSize: 15
+                    font.pixelSize: 14
                     color: rootItem.textSub
-                    opacity: 0.76
+                    opacity: 0.6
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
@@ -56,28 +62,44 @@ Column {
                     text: modelData.name || "Device"
                     font.family: rootItem.mainFont
                     font.pixelSize: 12
-                    font.weight: Font.Medium
-                    color: rootItem.textMain
-                    opacity: 0.92
+                    color: rootItem.textSub
+                    opacity: 0.9
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
-
+            
             Text {
+                id: pctText
                 anchors.right: parent.right
-                anchors.rightMargin: 10
                 anchors.verticalCenter: parent.verticalCenter
                 text: modelData.percentage + "%"
                 font.family: rootItem.mainFont
-                font.pixelSize: 12
-                font.weight: Font.DemiBold
-                color: {
-                    var pct = Number(modelData.percentage) || 0;
-                    if (pct > 20)
-                        return rootItem.textMain;
-                    if (pct > 10)
-                        return "#D99672";
-                    return "#D96673";
+                font.pixelSize: 11
+                color: rootItem.textSub
+                opacity: 0.8
+            }
+
+            Rectangle {
+                anchors.right: pctText.left
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                width: 100
+                height: 4
+                radius: 2
+                color: Qt.rgba(1, 1, 1, 0.08)
+                
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: parent.width * (Number(modelData.percentage) / 100.0)
+                    radius: 2
+                    color: {
+                        var pct = Number(modelData.percentage) || 0;
+                        if (pct > 20) return rootItem.textSub;
+                        if (pct > 10) return "#D99672";
+                        return "#D96673";
+                    }
                 }
             }
         }

@@ -67,6 +67,7 @@ Item {
             id: ma
             anchors.fill: parent
             acceptedButtons: Qt.LeftButton | Qt.RightButton
+            preventStealing: true
             
             function updateValue(mouse) {
                 if (mouse.button === Qt.RightButton) return;

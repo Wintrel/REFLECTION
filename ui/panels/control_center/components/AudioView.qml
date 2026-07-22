@@ -37,7 +37,7 @@ ControlCenterMenu {
                 anchors.fill: parent
                 radius: 12
                 color: maAudio.pressed ? (audioMenu.theme ? audioMenu.theme.accentPrimary : "#ff9900")
-                     : (model.isDefault ? (audioMenu.theme ? audioMenu.theme.accentWorkspace : "#5611f8")
+                     : (model.isDefault ? (audioMenu.theme ? audioMenu.theme.accentSecondary : "#5611f8")
                                         : Qt.rgba(255,255,255,0.03))
                 
                 border.width: 1

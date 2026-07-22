@@ -30,7 +30,7 @@ Rectangle {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         radius: parent.radius
-        color: root.theme ? root.theme.colorMusic : "#5611f8"
+        color: root.theme ? root.theme.accentMusic : "#5611f8"
         
         property real _smoothedPos: 0
         property real _rawPos: root.mprisPlayer ? root.mprisPlayer.position : 0

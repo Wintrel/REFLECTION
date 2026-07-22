@@ -117,7 +117,7 @@ Scope {
                     anchors.bottomMargin: 10
                     visible: State.GlobalStates.ambientActiveMode
                     isPlaying: true
-                    accentColor: theme.colorMusic // Matches Ghostly Stardust theme
+                    accentColor: theme.accentMusic // Matches Ghostly Stardust theme
                 }
             }
         } // end PanelWindow

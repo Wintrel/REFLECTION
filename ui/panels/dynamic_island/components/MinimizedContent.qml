@@ -52,7 +52,7 @@ Item {
                 Rectangle {
                     width: 3
                     radius: 1.5
-                    color: root.theme ? root.theme.colorMusic : "#5611f8"
+                    color: root.theme ? root.theme.accentMusic : "#5611f8"
                     anchors.verticalCenter: parent.verticalCenter
                     
                     SequentialAnimation on height {
@@ -94,7 +94,7 @@ Item {
                 width: 6
                 height: 6
                 radius: 3
-                color: root.theme ? root.theme.colorNotification : "#710cee"
+                color: root.theme ? root.theme.accentNotification : "#710cee"
                 anchors.verticalCenter: parent.verticalCenter
                 
                 // Outer breathing glow ring

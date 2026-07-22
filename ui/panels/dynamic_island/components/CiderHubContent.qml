@@ -42,7 +42,7 @@ Item {
         anchors.fill: parent
         anchors.margins: -8
         isPlaying: root.islandState === 13 && (root.mprisPlayer ? root.mprisPlayer.isPlaying : false)
-        accentColor: root.theme ? root.theme.colorMusic : "#5611f8"
+        accentColor: root.theme ? root.theme.accentMusic : "#5611f8"
     }
 
     // TOP AREA: Navigation

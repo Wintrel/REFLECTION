@@ -304,7 +304,7 @@ Item {
                     anchors.leftMargin: 2
                     anchors.verticalCenter: parent.verticalCenter
                     radius: 1.5
-                    color: root.theme ? root.theme.colorNotification : "#710cee"
+                    color: root.theme ? root.theme.accentNotification : "#710cee"
                     opacity: 0.6
                 }
                 
@@ -382,9 +382,9 @@ Item {
                         width: wsText.implicitWidth + 14
                         height: 22
                         radius: 11
-                        color: root.theme ? Qt.rgba(root.theme.colorNotification.r, root.theme.colorNotification.g, root.theme.colorNotification.b, 0.15) : "rgba(113, 12, 238, 0.15)"
+                        color: root.theme ? Qt.rgba(root.theme.accentNotification.r, root.theme.accentNotification.g, root.theme.accentNotification.b, 0.15) : "rgba(113, 12, 238, 0.15)"
                         border.width: 1
-                        border.color: root.theme ? Qt.rgba(root.theme.colorNotification.r, root.theme.colorNotification.g, root.theme.colorNotification.b, 0.3) : "rgba(113, 12, 238, 0.3)"
+                        border.color: root.theme ? Qt.rgba(root.theme.accentNotification.r, root.theme.accentNotification.g, root.theme.accentNotification.b, 0.3) : "rgba(113, 12, 238, 0.3)"
                         
                         Text {
                             id: wsText
@@ -393,7 +393,7 @@ Item {
                             font.family: root.theme ? root.theme.fontMain : "Inter"
                             font.pixelSize: 10
                             font.weight: Font.Bold
-                            color: root.theme ? root.theme.colorNotification : "#710cee"
+                            color: root.theme ? root.theme.accentNotification : "#710cee"
                         }
                     }
                 }

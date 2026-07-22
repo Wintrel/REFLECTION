@@ -18,7 +18,7 @@ Item {
         
         // Background State Machine
         color: ma.pressed ? (root.theme ? root.theme.accentPrimary : "#ff9900") 
-             : (root.isActive ? (root.theme ? root.theme.accentWorkspace : "#5611f8") 
+             : (root.isActive ? (root.theme ? root.theme.accentSecondary : "#5611f8") 
                               : (root.theme ? Qt.rgba(255,255,255,0.05) : "#111"))
                               
         // Border Hover Glow State Machine

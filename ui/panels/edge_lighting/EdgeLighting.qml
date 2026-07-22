@@ -33,7 +33,7 @@ Scope {
             Core.Theme { id: theme }
 
             property bool isActive: false
-            property color currentColor: theme.colorNotification
+            property color currentColor: theme.accentNotification
             
             Connections {
                 target: State.GlobalStates
@@ -43,7 +43,7 @@ Scope {
                         console.log("EdgeLighting: prompt is active, ignoring notification");
                         return;
                     }
-                    edgeWindow.currentColor = theme.colorNotification;
+                    edgeWindow.currentColor = theme.accentNotification;
                     edgeWindow.isActive = true;
                     console.log("EdgeLighting: isActive set to true (notification), currentColor:", edgeWindow.currentColor);
                     hideTimer.restart();

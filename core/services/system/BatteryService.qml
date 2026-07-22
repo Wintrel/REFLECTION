@@ -190,8 +190,9 @@ QtObject {
     property var peripheralBatteries: []
     property int peripheralCount: 0
     
-    property Process setProfileProcess: Process { onExited: destroy() }
+    property Process setProfileProcess: Process { }
     function setAsusProfile(profile) {
+        setProfileProcess.running = false;
         setProfileProcess.command = ["asusctl", "profile", "set", profile];
         setProfileProcess.running = true;
         root.asusProfile = profile; // Optimistic update
@@ -230,16 +231,18 @@ QtObject {
         if (root.panelOpen) root.refreshProfile();
     }
 
-    property Process setLimitProcess: Process { onExited: destroy() }
+    property Process setLimitProcess: Process { }
     function setChargeLimit(limit) {
+        setLimitProcess.running = false;
         setLimitProcess.command = ["python", Quickshell.env("HOME") + "/.config/quickshell/reflection/core/services/system/battery_poller.py", "set_limit", limit.toString()];
         setLimitProcess.running = true;
         root.batteryLimit = limit; // Optimistic update
     }
     
     // One-time full charge via asusctl battery oneshot
-    property Process oneshotProcess: Process { onExited: destroy() }
+    property Process oneshotProcess: Process { }
     function chargeFullOnce() {
+        oneshotProcess.running = false;
         oneshotProcess.command = ["python", Quickshell.env("HOME") + "/.config/quickshell/reflection/core/services/system/battery_poller.py", "set_oneshot", "true"];
         oneshotProcess.running = true;
         root.isOneshotCharging = true;
@@ -248,6 +251,7 @@ QtObject {
     
     // Cancel oneshot by resetting to the current limit
     function cancelOneshot() {
+        oneshotProcess.running = false;
         oneshotProcess.command = ["python", Quickshell.env("HOME") + "/.config/quickshell/reflection/core/services/system/battery_poller.py", "set_oneshot", "false"];
         oneshotProcess.running = true;
         root.isOneshotCharging = false;

@@ -26,7 +26,7 @@ Item {
         anchors.fill: parent
         anchors.margins: -8
         isPlaying: root.islandState === 2 && (root.mprisPlayer ? root.mprisPlayer.isPlaying : false)
-        accentColor: root.isSwitchingTracks ? "#11111b" : (root.theme ? root.theme.colorMusic : "#5611f8")
+        accentColor: root.isSwitchingTracks ? "#11111b" : (root.theme ? root.theme.accentMusic : "#5611f8")
         Behavior on accentColor { ColorAnimation { duration: 400; easing.type: Easing.InOutQuad } }
     }
     

@@ -164,62 +164,71 @@ Item {
         }
     }
 
-    BatteryComponents.TopSliver {
-        id: topSliver
-        rootItem: root
+    Column {
         anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-    }
-
-    Item {
-        anchors.top: topSliver.bottom
         anchors.topMargin: 10
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        spacing: 8
 
-        BatteryComponents.HeroSection {
-            id: heroSection
+        BatteryComponents.HeaderRow {
+            id: headerRow
             rootItem: root
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
+            width: parent.width
         }
 
         BatteryComponents.BatteryBar {
             id: batteryBarContainer
             rootItem: root
-            anchors.top: heroSection.bottom
-            anchors.topMargin: 10
-            anchors.left: parent.left
-            anchors.right: parent.right
+            width: parent.width
         }
 
-        BatteryComponents.StatsColumn {
-            id: statsColumn
+        Rectangle {
+            width: parent.width
+            height: 1
+            color: root.hairline
+            opacity: root.panelOpen ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: root.motionMedium } }
+        }
+
+        BatteryComponents.HealthRow {
+            id: healthRow
             rootItem: root
-            anchors.top: batteryBarContainer.bottom
-            anchors.topMargin: 14
-            anchors.left: parent.left
-            anchors.right: parent.right
+            width: parent.width
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 1
+            color: root.hairline
+            opacity: root.panelOpen ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: root.motionMedium } }
+        }
+
+        BatteryComponents.ChargeLimitRow {
+            id: chargeLimitRow
+            rootItem: root
+            width: parent.width
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 1
+            color: root.hairline
+            opacity: root.panelOpen ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: root.motionMedium } }
         }
 
         BatteryComponents.ProfileRow {
             id: profileRow
             rootItem: root
-            anchors.top: statsColumn.bottom
-            anchors.topMargin: 18
-            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width
         }
 
         BatteryComponents.PeripheralsColumn {
             id: peripheralsColumn
             rootItem: root
-            anchors.top: profileRow.bottom
-            anchors.topMargin: 12
-            anchors.left: parent.left
-            anchors.right: parent.right
+            width: parent.width
         }
     }
 }

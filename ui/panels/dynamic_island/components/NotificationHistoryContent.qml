@@ -84,7 +84,7 @@ Item {
                 height: 32
                 radius: 16
                 visible: root.mprisPlayer !== null
-                color: musicMa.containsMouse ? (root.theme ? Qt.rgba(root.theme.colorMusic.r, root.theme.colorMusic.g, root.theme.colorMusic.b, 0.2) : "#305611f8") : "transparent"
+                color: musicMa.containsMouse ? (root.theme ? Qt.rgba(root.theme.accentMusic.r, root.theme.accentMusic.g, root.theme.accentMusic.b, 0.2) : "#305611f8") : "transparent"
                 Behavior on color { ColorAnimation { duration: 150 } }
                 
                 Text {
@@ -92,7 +92,7 @@ Item {
                     text: "music_note"
                     font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                     font.pixelSize: 20
-                    color: musicMa.containsMouse ? (root.theme ? root.theme.colorMusic : "#5611f8") : (root.theme ? root.theme.textSub : "#A6ADC8")
+                    color: musicMa.containsMouse ? (root.theme ? root.theme.accentMusic : "#5611f8") : (root.theme ? root.theme.textSub : "#A6ADC8")
                     Behavior on color { ColorAnimation { duration: 150 } }
                 }
                 
@@ -114,7 +114,7 @@ Item {
                 width: 32
                 height: 32
                 radius: 16
-                color: clearMa.containsMouse ? (root.theme ? Qt.rgba(root.theme.colorNotification.r, root.theme.colorNotification.g, root.theme.colorNotification.b, 0.2) : "#30710cee") : "transparent"
+                color: clearMa.containsMouse ? (root.theme ? Qt.rgba(root.theme.accentNotification.r, root.theme.accentNotification.g, root.theme.accentNotification.b, 0.2) : "#30710cee") : "transparent"
                 Behavior on color { ColorAnimation { duration: 150 } }
                 
                 Text {
@@ -122,7 +122,7 @@ Item {
                     text: "delete_sweep"
                     font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                     font.pixelSize: 20
-                    color: clearMa.containsMouse ? (root.theme ? root.theme.colorNotification : "#710cee") : (root.theme ? root.theme.textSub : "#A6ADC8")
+                    color: clearMa.containsMouse ? (root.theme ? root.theme.accentNotification : "#710cee") : (root.theme ? root.theme.textSub : "#A6ADC8")
                     Behavior on color { ColorAnimation { duration: 150 } }
                 }
                 
@@ -267,7 +267,7 @@ Item {
                             text: "notifications"
                             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                             font.pixelSize: 24
-                            color: root.theme ? root.theme.colorNotification : "#710cee"
+                            color: root.theme ? root.theme.accentNotification : "#710cee"
                             visible: !parent.children[0].visible
                         }
                     }
@@ -301,7 +301,7 @@ Item {
                                 text: "close"
                                 font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                                 font.pixelSize: 16
-                                color: closeMa.containsMouse ? (root.theme ? root.theme.colorNotification : "#710cee") : (root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.5) : "#80A6ADC8")
+                                color: closeMa.containsMouse ? (root.theme ? root.theme.accentNotification : "#710cee") : (root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.5) : "#80A6ADC8")
                                 opacity: maItem.containsMouse ? 1 : 0
                                 Behavior on opacity { NumberAnimation { duration: 150 } }
                                 Behavior on color { ColorAnimation { duration: 150 } }

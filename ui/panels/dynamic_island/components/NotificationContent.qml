@@ -42,7 +42,7 @@ Item {
             width: 48
             height: 48
             radius: 12
-            color: root.theme ? Qt.rgba(root.theme.colorNotification.r, root.theme.colorNotification.g, root.theme.colorNotification.b, 0.15) : "#20710cee"
+            color: root.theme ? Qt.rgba(root.theme.accentNotification.r, root.theme.accentNotification.g, root.theme.accentNotification.b, 0.15) : "#20710cee"
             anchors.verticalCenter: parent.verticalCenter
             
             property bool isVisible: root.islandState === 3
@@ -84,7 +84,7 @@ Item {
                 text: "notifications"
                 font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                 font.pixelSize: 28
-                color: root.theme ? root.theme.colorNotification : "#710cee"
+                color: root.theme ? root.theme.accentNotification : "#710cee"
                 visible: !parent.children[0].visible // If image is hidden
             }
         }

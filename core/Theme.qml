@@ -9,12 +9,16 @@ Item {
     property color textSub: ThemeService.textSub
     
     // Status Colors
-    property color colorNotification: ThemeService.colorNotification
-    property color colorMusic: ThemeService.colorMusic
+    property color accentNotification: ThemeService.accentNotification
+    property color accentMusic: ThemeService.accentMusic
     property color accentWorkspace: ThemeService.accentWorkspace
     property color accentPrimary: ThemeService.accentPrimary
     property color colorSystemShimmer: ThemeService.colorSystemShimmer
     property color bgBase: ThemeService.bgBase
+    property color surfaceCard: ThemeService.surfaceCard
+    property color surfaceOverlay: ThemeService.surfaceOverlay
+    property color textMuted: ThemeService.textMuted
+    property color accentSecondary: ThemeService.accentSecondary
     
     // Fonts
     property string fontMain: "Inter" // Fallback main font
@@ -40,7 +44,7 @@ Item {
     property int islandProgressH: 80
     
     property int islandBatteryW: 600
-    property int islandBatteryH: 260 + (BatteryService.peripheralCount * 46)
+    property int islandBatteryH: 270 + (BatteryService.peripheralCount * 28)
     
     property int islandHistoryW: 600
     property int islandHistoryH: 400

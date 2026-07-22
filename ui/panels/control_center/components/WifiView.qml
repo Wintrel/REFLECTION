@@ -38,7 +38,7 @@ ControlCenterMenu {
                 anchors.fill: parent
                 radius: 12
                 color: maWifi.pressed ? (wifiMenu.theme ? wifiMenu.theme.accentPrimary : "#ff9900")
-                     : (model.inUse ? (wifiMenu.theme ? wifiMenu.theme.accentWorkspace : "#5611f8")
+                     : (model.inUse ? (wifiMenu.theme ? wifiMenu.theme.accentSecondary : "#5611f8")
                                     : Qt.rgba(255,255,255,0.03))
                 
                 border.width: 1

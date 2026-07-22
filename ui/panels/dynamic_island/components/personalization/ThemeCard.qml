@@ -69,7 +69,7 @@ ColumnLayout {
                             width: 20
                             height: 20
                             radius: 10
-                            color: modelData.colorNotification
+                            color: modelData.accentNotification
                             anchors.bottom: parent.bottom
                             anchors.right: parent.right
                         }
