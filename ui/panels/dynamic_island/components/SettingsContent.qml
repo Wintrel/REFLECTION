@@ -98,7 +98,7 @@ Item {
                         anchors.fill: parent
                         source: AccountService.profilePicture
                         fillMode: Image.PreserveAspectCrop
-                        asynchronous: false
+                        asynchronous: true
                         visible: false
                     }
                     

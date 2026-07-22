@@ -162,6 +162,11 @@ Item {
         }
         Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
         
+        Behavior on contentY {
+            enabled: !listView.dragging && !listView.flicking
+            NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+        }
+        
         // Empty State
         Item {
             anchors.fill: parent
@@ -253,7 +258,7 @@ Item {
                                 return "";
                             }
                             fillMode: Image.PreserveAspectFit
-                            asynchronous: false
+                            asynchronous: true
                             visible: source != ""
                         }
                         

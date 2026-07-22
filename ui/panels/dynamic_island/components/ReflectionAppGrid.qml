@@ -219,6 +219,11 @@ Item {
         currentIndex: root.selectedIndex
         highlightFollowsCurrentItem: false
         
+        Behavior on contentY {
+            enabled: !listView.dragging && !listView.flicking
+            NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+        }
+        
         // Empty State
         Item {
             anchors.fill: parent
@@ -326,7 +331,7 @@ Item {
                             anchors.centerIn: parent
                             source: model.appIcon || ""
                             fillMode: Image.PreserveAspectFit
-                            asynchronous: false
+                            asynchronous: true
                             visible: status === Image.Ready
                         }
                         

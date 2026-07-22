@@ -22,6 +22,11 @@ Item {
         maximumFlickVelocity: 4000
         boundsBehavior: Flickable.DragAndOvershootBounds
         
+        Behavior on contentY {
+            enabled: !dragging && !flicking
+            NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+        }
+        
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
         }

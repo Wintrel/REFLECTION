@@ -74,7 +74,7 @@ Item {
                 }
                 source: getSource()
                 fillMode: Image.PreserveAspectFit
-                asynchronous: false
+                asynchronous: true
                 visible: source != ""
             }
             
