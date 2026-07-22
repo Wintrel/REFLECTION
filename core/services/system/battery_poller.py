@@ -125,6 +125,63 @@ def get_battery_stats(no_asus=False):
         state['last_profile'] = profile
         save_state(state)
 
+    # Fetch peripherals via upower
+    peripherals = []
+    debug_log = []
+    try:
+        upower_out = subprocess.check_output(['upower', '-d'], timeout=5).decode()
+        devices = []
+        current_dev = {}
+        for line in upower_out.split('\n'):
+            if line.startswith('Device: '):
+                if current_dev:
+                    devices.append(current_dev)
+                current_dev = {'path': line.split('Device: ')[1].strip()}
+            else:
+                stripped = line.strip()
+                if ':' in stripped:
+                    k, v = stripped.split(':', 1)
+                    current_dev[k.strip()] = v.strip()
+                # standalone section labels (e.g. 'mouse', 'battery') — ignore
+        if current_dev:
+            devices.append(current_dev)
+
+        for dev in devices:
+            if 'battery_BAT' in dev.get('path', ''): continue
+            if 'line_power' in dev.get('path', ''): continue
+            if 'DisplayDevice' in dev.get('path', ''): continue
+
+            try:
+                pct_raw = dev.get('percentage', '')
+                model = dev.get('model', '').strip("'")
+                if not pct_raw or not model:
+                    continue
+                # Strip trailing '%' and any extra text like '(0.75)'
+                pct_clean = pct_raw.split()[0].strip('%')
+                pct = int(pct_clean)
+
+                icon_name = dev.get('icon-name', "'battery'").strip()
+                if 'good' in icon_name:   icon_name = "battery_full"
+                elif 'low' in icon_name:  icon_name = "battery_1_bar"
+                elif 'empty' in icon_name: icon_name = "battery_alert"
+                else:
+                    path = dev.get('path', '')
+                    icon_name = "mouse" if 'mouse' in path or 'hidpp' in path else "headphones"
+
+                peripherals.append({'name': model, 'percentage': pct, 'icon': icon_name})
+                debug_log.append(f"OK: {model} @ {pct}%")
+            except Exception as dev_err:
+                debug_log.append(f"SKIP {dev.get('path','?')}: {dev_err}")
+    except Exception as e:
+        debug_log.append(f"upower error: {e}")
+
+    try:
+        with open("/tmp/battery_poller_debug.log", "w") as f:
+            f.write(json.dumps(peripherals) + "\n")
+            f.write("\n".join(debug_log))
+    except:
+        pass
+
     print(json.dumps({
         "percentage": capacity,
         "status": status,
@@ -135,7 +192,8 @@ def get_battery_stats(no_asus=False):
         "energyFull": energy_full,
         "asusProfile": profile,
         "batteryLimit": target_limit,
-        "isOneshot": is_oneshot
+        "isOneshot": is_oneshot,
+        "peripherals": peripherals
     }))
 
 def set_limit(limit):

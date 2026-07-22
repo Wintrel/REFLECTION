@@ -68,14 +68,14 @@ Item {
             
             onEntered: {
                 controller.isHovered = true;
-                if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 14 || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) controller.stopTimers();
                 else if (islandWidget.islandState === 5) controller.stopTimers();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9 && islandWidget.islandState !== 13) islandWidget.islandState = 1
             }
             onExited: {
                 controller.isHovered = false;
-                if (islandWidget.isLocked || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === 14 || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 if (islandWidget.islandState === 3) controller.restartTimers();
                 else if (islandWidget.islandState === 5) controller.restartTimers();
                 else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9 && islandWidget.islandState !== 13) islandWidget.islandState = 0
@@ -83,6 +83,10 @@ Item {
             onClicked: {
                 if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
                 
+                if (islandWidget.islandState === 14) {
+                    State.GlobalStates.clipboardOpen = false;
+                    return;
+                }
                 if (islandWidget.islandState === 12) {
                     State.GlobalStates.closeFilePicker();
                     return;
@@ -124,6 +128,7 @@ Item {
                 if (reflectionContent.currentIntent === 0) return theme.reflectionGridW; // App Grid
                 return theme.reflectionFocusW; // Math / Command Intents
             }
+            if (islandState === 14) return theme.islandClipboardW; // Clipboard
             if (islandState === 13) return theme.islandCiderW; // Cider Ultra Expanded
             if (islandState === 12) return theme.islandFilePickerW; // File Picker
             if (islandState === 11) return theme.islandSettingsW; // Settings Hub
@@ -148,6 +153,7 @@ Item {
                 else if (reflectionContent.currentIntent === 0) targetH = theme.reflectionGridH; // App Grid
                 else targetH = theme.reflectionFocusH; // Math / Command Intents
             }
+            else if (islandState === 14) targetH = theme.islandClipboardH; // Clipboard
             else if (islandState === 13) targetH = theme.islandCiderH; // Cider Ultra Expanded
             else if (islandState === 12) targetH = theme.islandFilePickerH; // File Picker
             else if (islandState === 11) targetH = theme.islandSettingsH; // Settings Hub
@@ -285,6 +291,13 @@ Item {
                 theme: theme
                 islandCiderW: theme.islandCiderW
                 islandCiderH: theme.islandCiderH
+            }
+
+            IslandComponents.ClipboardContent {
+                islandState: islandWidget.islandState
+                theme: theme
+                islandClipboardW: theme.islandClipboardW
+                islandClipboardH: theme.islandClipboardH
             }
 
             // Ambient hide shimmer sweep overlay

@@ -38,10 +38,12 @@ Item {
     property var _bt: BluetoothService
 
     onIslandStateChanged: {
+        console.log("Island state changed to:", islandState);
         // Keep global state synced
-        if (islandState !== 12 && islandState !== 11 && islandState !== 10 && islandState !== 7 && islandState !== 6 && islandState !== 5 && islandState !== 3) {
+        if (islandState !== 14 && islandState !== 13 && islandState !== 12 && islandState !== 11 && islandState !== 10 && islandState !== 7 && islandState !== 6 && islandState !== 5 && islandState !== 3) {
             if (State.GlobalStates.settingsOpen) State.GlobalStates.settingsOpen = false;
             if (State.GlobalStates.filePickerOpen) State.GlobalStates.closeFilePicker();
+            if (State.GlobalStates.clipboardOpen) State.GlobalStates.clipboardOpen = false;
         }
     }
 
@@ -79,7 +81,7 @@ Item {
         interval: 2000 // 2 seconds
         onTriggered: {
             if (islandState === 5) {
-                var persistentStates = [2, 4, 6, 7, 8, 9, 10, 11, 12, 13];
+                var persistentStates = [2, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14];
                 if (persistentStates.indexOf(previousState) !== -1) {
                     islandState = previousState;
                 } else {
@@ -106,7 +108,7 @@ Item {
             
             if (controller.islandState !== 3 || priority >= 2) {
                 if (priority === 1) {
-                    var modalStates = [6, 7, 8, 10, 11, 12, 13];
+                    var modalStates = [6, 7, 8, 10, 11, 12, 13, 14];
                     if (modalStates.indexOf(controller.islandState) !== -1) {
                         return;
                     }
@@ -224,6 +226,21 @@ Item {
                 if (controller.islandState === 12) {
                     var targetState = controller.previousState;
                     if (targetState === 12) targetState = 0;
+                    controller.islandState = targetState || 0;
+                }
+            }
+        }
+        function onClipboardOpenChanged() {
+            console.log("Clipboard open changed:", State.GlobalStates.clipboardOpen);
+            if (State.GlobalStates.clipboardOpen) {
+                if (controller.islandState !== 14 && controller.islandState !== 3) {
+                    controller.previousState = controller.islandState;
+                }
+                controller.islandState = 14;
+            } else {
+                if (controller.islandState === 14) {
+                    var targetState = controller.previousState;
+                    if (targetState === 14) targetState = 0;
                     controller.islandState = targetState || 0;
                 }
             }

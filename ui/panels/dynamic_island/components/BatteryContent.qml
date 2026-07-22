@@ -3,25 +3,46 @@ import Qt5Compat.GraphicalEffects
 import "../../../../core" as Core
 import "../../../../core/services/system"
 import "../../../components" as Components
+import "battery" as BatteryComponents
 
 Item {
     id: root
-    
+
     property int islandState: 0
     property var theme: null
     property real islandBatteryW: 0
     property real islandBatteryH: 0
-    
-    // Contextual battery colors
-    readonly property color chargingColor: "#00FFCC"
-    readonly property color oneshotColor: root.theme ? root.theme.colorSystemShimmer : "#0051ff" // Electric blue override
-    readonly property color acColor: "#89B4FA"        // On AC but not actively charging (Full / Limit)
-    
-    // Derived active charging color (gold during oneshot, cyan otherwise)
-    readonly property color activeChargingColor: BatteryService.isOneshotCharging ? oneshotColor : chargingColor
-    
-    // Smooth color interpolation helper
-    function lerpColor(a, b, t) {
+
+    readonly property bool panelOpen: islandState === 9
+    readonly property real percentage: Math.max(0, Math.min(100, Number(BatteryService.percentage) || 0))
+    readonly property real wattage: Math.abs(Number(BatteryService.smoothWattage) || 0)
+
+    // Visual tokens: restrained, dark, and slightly luminous.
+    readonly property string mainFont: theme ? theme.fontMain : "Inter"
+    readonly property string iconFont: theme ? theme.fontIcon : "Material Symbols Rounded"
+    readonly property color textMain: theme ? theme.textMain : "#E8EAF2"
+    readonly property color textSub: theme ? theme.textSub : "#9298AB"
+    readonly property color hairline: Qt.rgba(1, 1, 1, 0.08)
+    readonly property color surfaceLow: Qt.rgba(1, 1, 1, 0.025)
+    readonly property color surfaceHigh: Qt.rgba(1, 1, 1, 0.075)
+
+    readonly property color chargingColor: "#63E6C7"
+    readonly property color oneshotColor: theme ? theme.colorSystemShimmer : "#7C9CFF"
+    readonly property color acColor: "#89B4FA"
+    readonly property color activeChargingColor: BatteryService.isOneshotCharging
+                                                   ? oneshotColor
+                                                   : chargingColor
+
+    readonly property int motionFast: 150
+    readonly property int motionMedium: 280
+    readonly property int motionSlow: 420
+
+    function clamp(value, minimum, maximum) {
+        return Math.max(minimum, Math.min(maximum, value));
+    }
+
+    function mixColor(a, b, amount) {
+        var t = clamp(amount, 0, 1);
         return Qt.rgba(
             a.r + (b.r - a.r) * t,
             a.g + (b.g - a.g) * t,
@@ -29,626 +50,176 @@ Item {
             1.0
         );
     }
-    
-    // Dynamic bar color: smooth gradient across battery level
-    //   Charging     →  Cyan (#00FFCC)
-    //   On AC (idle) →  Soft blue (#89B4FA)
-    //   100–60%      →  Green (#4ADE80) to Yellow (#FACC15)
-    //    60–30%      →  Yellow (#FACC15) to Orange (#F97316)
-    //    30–10%      →  Orange (#F97316) to Red (#EF4444)
-    //    10– 0%      →  Deep Red (#DC2626)
+
     readonly property color barColor: {
-        if (BatteryService.isCharging) return activeChargingColor;
-        if (BatteryService.isOnAC) return acColor;
-        var pct = BatteryService.percentage;
-        if (pct > 60) return lerpColor(Qt.color("#FACC15"), Qt.color("#4ADE80"), (pct - 60) / 40.0);
-        if (pct > 30) return lerpColor(Qt.color("#F97316"), Qt.color("#FACC15"), (pct - 30) / 30.0);
-        if (pct > 10) return lerpColor(Qt.color("#EF4444"), Qt.color("#F97316"), (pct - 10) / 20.0);
-        return Qt.color("#DC2626");
+        if (BatteryService.isCharging)
+            return activeChargingColor;
+        if (BatteryService.isOnAC)
+            return acColor;
+
+        var pct = percentage;
+        if (pct > 60)
+            return mixColor(Qt.color("#D8C982"), Qt.color("#79D6A1"), (pct - 60) / 40.0);
+        if (pct > 30)
+            return mixColor(Qt.color("#D99672"), Qt.color("#D8C982"), (pct - 30) / 30.0);
+        if (pct > 10)
+            return mixColor(Qt.color("#D4777E"), Qt.color("#D99672"), (pct - 10) / 20.0);
+        return Qt.color("#D96673");
     }
-    
-    // Wattage-based color for power draw text
-    //   < 8W   →  Efficient green
-    //   8–20W  →  Moderate yellow
-    //   20–35W →  High orange
-    //   > 45W  →  Heavy red
+
     readonly property color wattageColor: {
-        var w = Math.abs(BatteryService.smoothWattage);
-        if (w < 8)  return "#4ADE80";
-        if (w < 20) return lerpColor(Qt.color("#4ADE80"), Qt.color("#FACC15"), (w - 8) / 12.0);
-        if (w < 45) return lerpColor(Qt.color("#FACC15"), Qt.color("#F97316"), (w - 20) / 15.0);
-        return "#EF4444";
+        var w = wattage;
+        if (w < 8)
+            return "#79D6A1";
+        if (w < 20)
+            return mixColor(Qt.color("#79D6A1"), Qt.color("#D8C982"), (w - 8) / 12.0);
+        if (w < 35)
+            return mixColor(Qt.color("#D8C982"), Qt.color("#D99672"), (w - 20) / 15.0);
+        if (w < 45)
+            return mixColor(Qt.color("#D99672"), Qt.color("#D4777E"), (w - 35) / 10.0);
+        return "#D96673";
     }
-    
-    width: islandBatteryW - 32
-    height: islandBatteryH - 32
+
+    readonly property color statusColor: {
+        if (BatteryService.isOneshotCharging)
+            return oneshotColor;
+        if (BatteryService.isCharging)
+            return chargingColor;
+        if (BatteryService.isOnAC)
+            return acColor;
+        return textSub;
+    }
+
+    readonly property string statusText: {
+        if (BatteryService.isOneshotCharging)
+            return "One-Shot Override";
+        if (BatteryService.isCharging)
+            return "Charging";
+        if (BatteryService.isOnAC)
+            return BatteryService.status === "Full" ? "Fully Charged" : "Plugged In";
+        return "On Battery";
+    }
+
+    readonly property string statusIcon: {
+        if (BatteryService.isCharging)
+            return "bolt";
+        if (BatteryService.isOnAC)
+            return "power";
+        return "battery_horiz_050";
+    }
+
+    readonly property string batteryIcon: {
+        if (BatteryService.isCharging)
+            return "battery_charging_full";
+        if (percentage > 80)
+            return "battery_full";
+        if (percentage > 60)
+            return "battery_5_bar";
+        if (percentage > 40)
+            return "battery_4_bar";
+        if (percentage > 20)
+            return "battery_3_bar";
+        if (percentage > 10)
+            return "battery_1_bar";
+        return "battery_alert";
+    }
+
+    width: Math.max(0, islandBatteryW - 32)
+    height: Math.max(0, islandBatteryH - 32)
     anchors.top: parent.top
     anchors.horizontalCenter: parent.horizontalCenter
-    anchors.topMargin: (islandBatteryH - height) / 2
-    
-    opacity: root.islandState === 9 ? 1 : 0
+    anchors.topMargin: Math.max(0, (islandBatteryH - height) / 2)
+
+    opacity: panelOpen ? 1 : 0
     visible: opacity > 0
-    layer.enabled: true
-    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
-    
-    // Tell the service the panel is open so it fetches the real profile immediately
-    Binding { target: BatteryService; property: "panelOpen"; value: root.islandState === 9 }
-    
-    // Ambient Void Background
+
+    Behavior on opacity {
+        NumberAnimation {
+            duration: root.motionFast
+            easing.type: Easing.OutSine
+        }
+    }
+
+    Binding {
+        target: BatteryService
+        property: "panelOpen"
+        value: root.panelOpen
+    }
+
     Components.Starfield {
         anchors.fill: parent
-        starCount: 30
-        starColor: root.theme ? root.theme.textMain : "#ffffff"
-        opacity: 0.5 // Subtle depth
+        starCount: 24
+        starColor: root.textMain
+        opacity: 0.28
     }
-    
-    // ── Top Sliver ──
-    Item {
+
+    // A soft veil keeps the stars atmospheric rather than decorative.
+    Rectangle {
+        anchors.fill: parent
+        color: "transparent"
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.08) }
+            GradientStop { position: 0.55; color: Qt.rgba(0, 0, 0, 0.22) }
+            GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.42) }
+        }
+    }
+
+    BatteryComponents.TopSliver {
         id: topSliver
+        rootItem: root
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        height: 20
-        
-        Item {
-            anchors.left: parent.left
-            width: 32
-            height: 24
-            anchors.verticalCenter: parent.verticalCenter
-            
-            Text {
-                id: musicIcon
-                anchors.centerIn: parent
-                text: "music_note"
-                font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                font.pixelSize: 18
-                color: root.theme ? root.theme.colorMusic : "#5611f8"
-                scale: musicMa.pressed ? 0.9 : (musicMa.containsMouse ? 1.1 : 1)
-                opacity: musicMa.pressed ? 0.7 : 1
-                Behavior on scale { NumberAnimation { duration: 150 } }
-            }
-            
-            MouseArea {
-                id: musicMa
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (typeof islandWidget !== "undefined") {
-                        islandWidget.islandState = 2; // Switch back to music
-                    }
-                }
-            }
-        }
-        
-        Row {
-            anchors.right: parent.right
-            spacing: 6
-            Text {
-                text: BatteryService.percentage + "%"
-                font.family: root.theme ? root.theme.fontMain : "Inter"
-                font.pixelSize: 13
-                color: root.theme ? root.theme.accentPrimary : "#ff9900"
-                anchors.verticalCenter: parent.verticalCenter
-            }
-            Text {
-                text: {
-                    if (BatteryService.isCharging) return "battery_charging_full";
-                    if (BatteryService.percentage > 80) return "battery_full";
-                    if (BatteryService.percentage > 60) return "battery_5_bar";
-                    if (BatteryService.percentage > 40) return "battery_4_bar";
-                    if (BatteryService.percentage > 20) return "battery_3_bar";
-                    if (BatteryService.percentage > 10) return "battery_1_bar";
-                    return "battery_alert";
-                }
-                font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                font.pixelSize: 18
-                color: root.theme ? root.theme.accentPrimary : "#ff9900"
-                anchors.verticalCenter: parent.verticalCenter
-            }
-        }
     }
-    
-    // ── Main Content ──
+
     Item {
         anchors.top: topSliver.bottom
         anchors.topMargin: 10
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        
-        // ── Hero: Large Percentage + Status ──
-        Item {
+
+        BatteryComponents.HeroSection {
             id: heroSection
+            rootItem: root
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 34
-            
-            // Materialization transition
-            property bool isVisible: root.islandState === 9
-            opacity: (root.islandState === 9) ? 1 : 0
-            transform: Translate {
-                y: (root.islandState === 9) ? 0 : 10
-                Behavior on y { SequentialAnimation { PauseAnimation { duration: heroSection.isVisible ? 0 : 150 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
-            }
-            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: heroSection.isVisible ? 0 : 150 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
-            
-            Text {
-                id: bigPercentage
-                anchors.left: parent.left
-                anchors.bottom: parent.bottom
-                text: BatteryService.percentage + "%"
-                font.family: root.theme ? root.theme.fontMain : "Inter"
-                font.pixelSize: 30
-                font.weight: Font.Light // Ethereal weight
-                color: BatteryService.isOneshotCharging ? root.oneshotColor : (root.theme ? root.theme.textMain : "#CDD6F4")
-                Behavior on color { ColorAnimation { duration: 500 } }
-                
-                layer.enabled: root.islandState === 9
-                layer.effect: Glow {
-                    radius: 8
-                    samples: 16
-                    color: Qt.rgba(bigPercentage.color.r, bigPercentage.color.g, bigPercentage.color.b, 0.4)
-                    transparentBorder: true
-                }
-            }
-            
-            Row {
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 4
-                spacing: 6
-                
-                Text {
-                    text: {
-                        if (BatteryService.isOneshotCharging) return "One-Shot Override";
-                        if (BatteryService.isCharging) return "Charging";
-                        if (BatteryService.isOnAC) {
-                            if (BatteryService.status === "Full") return "Fully Charged";
-                            return "Plugged In";
-                        }
-                        return "On Battery";
-                    }
-                    font.family: root.theme ? root.theme.fontMain : "Inter"
-                    font.pixelSize: 14
-                    color: {
-                        if (BatteryService.isOneshotCharging) return root.oneshotColor;
-                        if (BatteryService.isCharging) return root.chargingColor;
-                        if (BatteryService.isOnAC) return root.acColor;
-                        return root.theme ? root.theme.textSub : "#A6ADC8";
-                    }
-                    anchors.verticalCenter: parent.verticalCenter
-                    Behavior on color { ColorAnimation { duration: 400 } }
-                }
-                
-                Text {
-                    text: {
-                        if (BatteryService.isCharging) return "bolt";
-                        if (BatteryService.isOnAC) return "power";
-                        return "battery_horiz_050";
-                    }
-                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                    font.pixelSize: 18
-                    color: {
-                        if (BatteryService.isOneshotCharging) return root.oneshotColor;
-                        if (BatteryService.isCharging) return root.chargingColor;
-                        if (BatteryService.isOnAC) return root.acColor;
-                        return root.theme ? root.theme.textSub : "#A6ADC8";
-                    }
-                    anchors.verticalCenter: parent.verticalCenter
-                    Behavior on color { ColorAnimation { duration: 400 } }
-                }
-            }
         }
-        
-        // ── Horizontal Battery Bar ──
-        Item {
+
+        BatteryComponents.BatteryBar {
             id: batteryBarContainer
+            rootItem: root
             anchors.top: heroSection.bottom
             anchors.topMargin: 10
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 14
-            
-            // Materialization transition
-            property bool isVisible: root.islandState === 9
-            opacity: (root.islandState === 9) ? 1 : 0
-            transform: Translate {
-                y: (root.islandState === 9) ? 0 : 10
-                Behavior on y { SequentialAnimation { PauseAnimation { duration: batteryBarContainer.isVisible ? 50 : 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
-            }
-            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: batteryBarContainer.isVisible ? 50 : 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
-            
-            // Thin Track
-            Rectangle {
-                id: barTrack
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                height: 2 // Delicate ethereal line
-                radius: 1
-                color: Qt.rgba(1, 1, 1, 0.08)
-            }
-            
-            // Oneshot pulsing glow on the fill
-            Rectangle {
-                id: oneshotGlow
-                anchors.left: barFill.left
-                anchors.right: barFill.right
-                anchors.top: barFill.top
-                anchors.bottom: barFill.bottom
-                anchors.margins: -2
-                radius: (height + 4) / 2
-                color: "transparent"
-                border.width: 1.5
-                border.color: root.oneshotColor
-                visible: BatteryService.isOneshotCharging && root.islandState === 9
-                opacity: 0
-                layer.enabled: visible // Only allocate GPU layer when glow is actually shown
-                
-                SequentialAnimation on opacity {
-                    loops: Animation.Infinite
-                    running: BatteryService.isOneshotCharging && root.islandState === 9
-                    NumberAnimation { from: 0; to: 0.6; duration: 1200; easing.type: Easing.InOutSine }
-                    NumberAnimation { from: 0.6; to: 0; duration: 1200; easing.type: Easing.InOutSine }
-                }
-            }
-            
-            // Outer Glow for the Beam
-            RectangularGlow {
-                anchors.fill: barFill
-                glowRadius: 8
-                spread: 0.1
-                color: Qt.rgba(root.barColor.r, root.barColor.g, root.barColor.b, 0.4)
-                cornerRadius: barFill.radius + glowRadius
-            }
-            
-            // Fill Beam
-            Rectangle {
-                id: barFill
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                height: 4 // Slightly thicker than 2px track for a "glow on rail" look
-                width: parent.width * (BatteryService.percentage / 100.0)
-                radius: height / 2
-                clip: true
-                
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: Qt.rgba(root.barColor.r, root.barColor.g, root.barColor.b, 0.4) }
-                    GradientStop { position: 0.8; color: Qt.rgba(root.barColor.r, root.barColor.g, root.barColor.b, 0.9) }
-                    GradientStop { position: 1.0; color: root.barColor }
-                }
-                
-                Behavior on width { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
-                
-                // Charging shimmer sweep (faster + brighter during oneshot)
-                Rectangle {
-                    id: shimmer
-                    visible: BatteryService.isCharging && root.islandState === 9
-                    width: BatteryService.isOneshotCharging ? 70 : 50
-                    height: parent.height
-                    radius: parent.radius
-                    layer.enabled: visible // Only allocate GPU layer when shimmer is shown
-                    
-                    gradient: Gradient {
-                        orientation: Gradient.Horizontal
-                        GradientStop { position: 0.0; color: "transparent" }
-                        GradientStop { position: 0.5; color: Qt.rgba(1, 1, 1, BatteryService.isOneshotCharging ? 0.45 : 0.3) }
-                        GradientStop { position: 1.0; color: "transparent" }
-                    }
-                    
-                    SequentialAnimation on x {
-                        loops: Animation.Infinite
-                        running: BatteryService.isCharging && root.islandState === 9
-                        NumberAnimation {
-                            from: -70
-                            to: barFill.width + 10
-                            duration: BatteryService.isOneshotCharging ? 1500 : 2500
-                            easing.type: Easing.InOutSine
-                        }
-                        PauseAnimation { duration: BatteryService.isOneshotCharging ? 300 : 600 }
-                    }
-                }
-            }
         }
-        
-        // ── Stats Rows ──
-        Column {
+
+        BatteryComponents.StatsColumn {
             id: statsColumn
+            rootItem: root
             anchors.top: batteryBarContainer.bottom
             anchors.topMargin: 14
             anchors.left: parent.left
             anchors.right: parent.right
-            spacing: 8
-            
-            // Materialization transition
-            property bool isVisible: root.islandState === 9
-            opacity: (root.islandState === 9) ? 1 : 0
-            transform: Translate {
-                y: (root.islandState === 9) ? 0 : 10
-                Behavior on y { SequentialAnimation { PauseAnimation { duration: statsColumn.isVisible ? 100 : 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
-            }
-            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: statsColumn.isVisible ? 100 : 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
-            
-            // Row 1: Time remaining + Power draw
-            Item {
-                width: parent.width
-                height: 18
-                
-                Row {
-                    anchors.left: parent.left
-                    spacing: 6
-                    anchors.verticalCenter: parent.verticalCenter
-                    
-                    Text {
-                        text: "schedule"
-                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                        font.pixelSize: 14
-                        color: root.theme ? root.theme.textSub : "#A6ADC8"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    Text {
-                        text: BatteryService.smoothTimeRemaining !== "" ? BatteryService.smoothTimeRemaining + (BatteryService.smoothTimeLabel !== "" ? " " + BatteryService.smoothTimeLabel : "") : "Calculating..."
-                        font.family: root.theme ? root.theme.fontMain : "Inter"
-                        font.pixelSize: 13
-                        color: root.theme ? root.theme.textSub : "#A6ADC8"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
-                
-                Row {
-                    anchors.right: parent.right
-                    spacing: 6
-                    anchors.verticalCenter: parent.verticalCenter
-                    
-                    Text {
-                        text: "electric_bolt"
-                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                        font.pixelSize: 14
-                        color: root.wattageColor
-                        anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: 400 } }
-                    }
-                    Text {
-                        text: {
-                            if (BatteryService.isOnAC && BatteryService.smoothWattage < 2.0) return "Idle";
-                            return BatteryService.smoothWattage.toFixed(1) + " W";
-                        }
-                        font.family: root.theme ? root.theme.fontMain : "Inter"
-                        font.pixelSize: 13
-                        font.weight: Font.Medium
-                        color: root.wattageColor
-                        anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: 400 } }
-                    }
-                }
-            }
-            
-            // Row 2: Health + Charge limit
-            Item {
-                width: parent.width
-                height: 22
-                
-                Row {
-                    anchors.left: parent.left
-                    spacing: 6
-                    anchors.verticalCenter: parent.verticalCenter
-                    
-                    Text {
-                        text: "health_and_safety"
-                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                        font.pixelSize: 14
-                        color: root.theme ? root.theme.textSub : "#A6ADC8"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    Text {
-                        text: "Health " + BatteryService.health + "%"
-                        font.family: root.theme ? root.theme.fontMain : "Inter"
-                        font.pixelSize: 13
-                        color: root.theme ? root.theme.textSub : "#A6ADC8"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
-                
-                // Charge limit segmented toggle
-                Row {
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 6
-                    
-                    Text {
-                        text: "battery_saver"
-                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                        font.pixelSize: 14
-                        color: root.theme ? root.theme.textSub : "#A6ADC8"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    
-                    Text {
-                        text: "Limit"
-                        font.family: root.theme ? root.theme.fontMain : "Inter"
-                        font.pixelSize: 11
-                        color: root.theme ? root.theme.textSub : "#A6ADC8"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    
-                    // Segmented control: 60% | Charge Full
-                    Rectangle {
-                        width: segRow.width + 6
-                        height: 22
-                        radius: 6
-                        color: Qt.rgba(1, 1, 1, 0.06)
-                        anchors.verticalCenter: parent.verticalCenter
-                        
-                        Row {
-                            id: segRow
-                            anchors.centerIn: parent
-                            spacing: 2
-                            
-                            // 60% segment
-                            Rectangle {
-                                property bool isActive: BatteryService.batteryLimit <= 60 && !BatteryService.isOneshotCharging
-                                width: 36
-                                height: 18
-                                radius: 4
-                                color: isActive ? (root.theme ? root.theme.accentPrimary : "#ff9900") : "transparent"
-                                Behavior on color { ColorAnimation { duration: 200 } }
-                                
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "60%"
-                                    font.family: root.theme ? root.theme.fontMain : "Inter"
-                                    font.pixelSize: 11
-                                    font.weight: Font.Bold
-                                    color: parent.isActive ? "#000" : (root.theme ? root.theme.textSub : "#A6ADC8")
-                                    Behavior on color { ColorAnimation { duration: 200 } }
-                                }
-                                
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: BatteryService.setChargeLimit(60)
-                                }
-                            }
-                            
-                            // Charge Full (oneshot) segment
-                            Rectangle {
-                                property bool isActive: BatteryService.isOneshotCharging
-                                width: chargePill.width + 10
-                                height: 18
-                                radius: 4
-                                color: isActive ? root.chargingColor : "transparent"
-                                Behavior on color { ColorAnimation { duration: 200 } }
-                                
-                                Row {
-                                    id: chargePill
-                                    anchors.centerIn: parent
-                                    spacing: 3
-                                    
-                                    Text {
-                                        text: parent.parent.isActive ? (chargeMa.containsMouse ? "close" : "bolt") : "bolt"
-                                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                                        font.pixelSize: 11
-                                        color: parent.parent.isActive ? "#000" : (root.theme ? root.theme.textSub : "#A6ADC8")
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        Behavior on color { ColorAnimation { duration: 200 } }
-                                    }
-                                    Text {
-                                        text: parent.parent.isActive ? (chargeMa.containsMouse ? "Cancel" : "Charging...") : "Full Once"
-                                        font.family: root.theme ? root.theme.fontMain : "Inter"
-                                        font.pixelSize: 11
-                                        font.weight: Font.Bold
-                                        color: parent.parent.isActive ? "#000" : (root.theme ? root.theme.textSub : "#A6ADC8")
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        Behavior on color { ColorAnimation { duration: 200 } }
-                                    }
-                                }
-                                
-                                MouseArea {
-                                    id: chargeMa
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        if (!BatteryService.isOneshotCharging) {
-                                            BatteryService.chargeFullOnce();
-                                        } else {
-                                            BatteryService.cancelOneshot();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
-        
-        // ── Power Profile Pills ──
-        Row {
+
+        BatteryComponents.ProfileRow {
             id: profileRow
-            anchors.bottom: parent.bottom
+            rootItem: root
+            anchors.top: statsColumn.bottom
+            anchors.topMargin: 18
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 8
-            
-            // Materialization transition
-            property bool isVisible: root.islandState === 9
-            opacity: (root.islandState === 9) ? 1 : 0
-            transform: Translate {
-                y: (root.islandState === 9) ? 0 : 10
-                Behavior on y { SequentialAnimation { PauseAnimation { duration: profileRow.isVisible ? 150 : 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
-            }
-            Behavior on opacity { SequentialAnimation { PauseAnimation { duration: profileRow.isVisible ? 150 : 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
-            
-            Repeater {
-                model: [
-                    { label: "Quiet", icon: "eco" },
-                    { label: "Balanced", icon: "balance" },
-                    { label: "Performance", icon: "bolt" }
-                ]
-                
-                delegate: Rectangle {
-                    required property var modelData
-                    
-                    property bool isActive: BatteryService.asusProfile === modelData.label
-                    property bool isHovered: pillMa.containsMouse
-                    property bool isPressed: pillMa.pressed
-                    
-                    width: pillInnerRow.width + 20
-                    height: 28
-                    radius: 14
-                    
-                    color: {
-                        if (isActive) return Qt.rgba(1, 1, 1, 0.1); // Ghostly inner fill
-                        if (isPressed) return Qt.rgba(1, 1, 1, 0.08);
-                        if (isHovered) return Qt.rgba(1, 1, 1, 0.04);
-                        return "transparent";
-                    }
-                    border.width: 1
-                    border.color: isActive ? (root.theme ? root.theme.textMain : "#FFF") : (isHovered ? Qt.rgba(1, 1, 1, 0.3) : Qt.rgba(1, 1, 1, 0.1))
-                    
-                    scale: isPressed ? 0.96 : (isHovered && !isActive ? 1.03 : 1)
-                    
-                    Behavior on color { ColorAnimation { duration: 200 } }
-                    Behavior on border.color { ColorAnimation { duration: 200 } }
-                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-                    
-                    Row {
-                        id: pillInnerRow
-                        anchors.centerIn: parent
-                        spacing: 5
-                        
-                        Text {
-                            text: modelData.icon
-                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                            font.pixelSize: 14
-                            color: isActive ? (root.theme ? root.theme.textMain : "#FFF") : (root.theme ? root.theme.textSub : "#A6ADC8")
-                            anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: 200 } }
-                        }
-                        
-                        Text {
-                            text: modelData.label
-                            font.family: root.theme ? root.theme.fontMain : "Inter"
-                            font.pixelSize: 12
-                            font.weight: isActive ? Font.Bold : Font.Medium
-                            color: isActive ? (root.theme ? root.theme.textMain : "#FFF") : (root.theme ? root.theme.textSub : "#A6ADC8")
-                            anchors.verticalCenter: parent.verticalCenter
-                            Behavior on color { ColorAnimation { duration: 200 } }
-                        }
-                    }
-                    
-                    MouseArea {
-                        id: pillMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: BatteryService.setAsusProfile(modelData.label)
-                    }
-                }
-            }
+        }
+
+        BatteryComponents.PeripheralsColumn {
+            id: peripheralsColumn
+            rootItem: root
+            anchors.top: profileRow.bottom
+            anchors.topMargin: 12
+            anchors.left: parent.left
+            anchors.right: parent.right
         }
     }
 }

@@ -39,8 +39,8 @@ Item {
     property int islandProgressW: 450
     property int islandProgressH: 80
     
-    property int islandBatteryW: 500
-    property int islandBatteryH: 220
+    property int islandBatteryW: 600
+    property int islandBatteryH: 260 + (BatteryService.peripheralCount * 46)
     
     property int islandHistoryW: 600
     property int islandHistoryH: 400
@@ -53,6 +53,9 @@ Item {
     
     property int islandFilePickerW: 1000
     property int islandFilePickerH: 600
+    
+    property int islandClipboardW: 600
+    property int islandClipboardH: 400
     
     // Overview Panel
     property real overviewScale: 0.18

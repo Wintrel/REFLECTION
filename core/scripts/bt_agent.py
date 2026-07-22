@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 import os
 import dbus
 import dbus.service
@@ -10,6 +9,7 @@ from gi.repository import GLib
 AGENT_INTERFACE = "org.bluez.Agent1"
 AGENT_PATH = "/quickshell/agent"
 BUS_NAME = "org.bluez"
+PIPE_PATH = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "bt_agent_in")
 
 def set_trusted(bus, device_path):
     props = dbus.Interface(bus.get_object("org.bluez", device_path), "org.freedesktop.DBus.Properties")
@@ -21,21 +21,20 @@ class Agent(dbus.service.Object):
         self.bus = bus
     
     def prompt_ui(self, prompt_type, device_path, data=""):
-        mac = device_path.split("_")[1:]
-        mac = ":".join(mac)
+        mac = device_path.split("/")[-1].removeprefix("dev_").replace("_", ":")
         
         # Emit to QML Process stdout
         print(f"PROMPT|{prompt_type}|{mac}|{data}", flush=True)
         
-        pipe_path = "/tmp/bt_agent_in"
-        if not os.path.exists(pipe_path):
-            os.mkfifo(pipe_path)
-            
+        if not os.path.exists(PIPE_PATH):
+            os.mkfifo(PIPE_PATH, 0o600)
+
         try:
-            with open(pipe_path, "r") as f:
+            with open(PIPE_PATH, "r") as f:
                 response = f.readline().strip()
                 return response
-        except Exception:
+        except Exception as e:
+            print(f"ERROR|prompt_ui|{e}", flush=True)
             return "no"
 
     @dbus.service.method(AGENT_INTERFACE, in_signature="os", out_signature="")
@@ -46,34 +45,35 @@ class Agent(dbus.service.Object):
     def RequestConfirmation(self, device, passkey):
         # passkey is an integer up to 6 digits
         pk = f"{passkey:06d}"
-        set_trusted(self.bus, device)
         resp = self.prompt_ui("PASSKEY", device, pk)
         if resp.lower() == "yes":
+            set_trusted(self.bus, device)
             return
         raise dbus.exceptions.DBusException("org.bluez.Error.Rejected", "User rejected")
 
     @dbus.service.method(AGENT_INTERFACE, in_signature="o", out_signature="")
     def RequestAuthorization(self, device):
-        set_trusted(self.bus, device)
         resp = self.prompt_ui("AUTHORIZE", device)
         if resp.lower() == "yes":
+            set_trusted(self.bus, device)
             return
         raise dbus.exceptions.DBusException("org.bluez.Error.Rejected", "User rejected")
 
     @dbus.service.method(AGENT_INTERFACE, in_signature="o", out_signature="s")
     def RequestPinCode(self, device):
-        set_trusted(self.bus, device)
         resp = self.prompt_ui("PIN", device)
         if resp:
+            set_trusted(self.bus, device)
             return resp
         raise dbus.exceptions.DBusException("org.bluez.Error.Rejected", "User rejected")
 
     @dbus.service.method(AGENT_INTERFACE, in_signature="o", out_signature="u")
     def RequestPasskey(self, device):
-        set_trusted(self.bus, device)
         resp = self.prompt_ui("ENTER_PASSKEY", device)
         try:
-            return dbus.UInt32(resp)
+            passkey = dbus.UInt32(resp)
+            set_trusted(self.bus, device)
+            return passkey
         except Exception:
             raise dbus.exceptions.DBusException("org.bluez.Error.Rejected", "User rejected")
 
@@ -98,6 +98,13 @@ def main():
         loop.run()
     except KeyboardInterrupt:
         pass
+    finally:
+        try:
+            manager.UnregisterAgent(AGENT_PATH)
+        except Exception:
+            pass
+        if os.path.exists(PIPE_PATH):
+            os.unlink(PIPE_PATH)
 
 if __name__ == '__main__':
     main()

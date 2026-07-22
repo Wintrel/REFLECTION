@@ -21,6 +21,7 @@ Singleton {
     property bool searchOpen: false
     property bool settingsOpen: false
     property bool screenLocked: false
+    property bool clipboardOpen: false
     property bool controlCenterOpen: false
     property bool screenLockContainsCharacters: false
     property bool screenUnlockFailed: false
@@ -193,5 +194,12 @@ Singleton {
     
     function closeFilePicker() {
         root.filePickerOpen = false;
+    }
+    
+    IpcHandler {
+        target: "clipboard"
+        function toggle() {
+            root.clipboardOpen = !root.clipboardOpen;
+        }
     }
 }

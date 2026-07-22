@@ -174,12 +174,21 @@ QtObject {
                         }
                     }
                     root.isOneshotCharging = newOneshot;
+                    
+                    if (stats.peripherals) {
+                        console.log("Got peripherals from python: " + JSON.stringify(stats.peripherals));
+                        root.peripheralBatteries = stats.peripherals;
+                        root.peripheralCount = stats.peripherals.length;
+                    }
                 } catch (e) {
                     console.log("Error parsing battery stats: " + e);
                 }
             }
         }
     }
+    
+    property var peripheralBatteries: []
+    property int peripheralCount: 0
     
     property Process setProfileProcess: Process { onExited: destroy() }
     function setAsusProfile(profile) {
@@ -250,11 +259,13 @@ QtObject {
         repeat: true
         interval: 10000 // every 10 seconds
         onTriggered: {
+            root.statsProcess.running = false;
             root.statsProcess.running = true;
         }
     }
     
     Component.onCompleted: {
+        root.statsProcess.running = false;
         root.statsProcess.running = true;
     }
 }
