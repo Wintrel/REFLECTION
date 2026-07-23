@@ -21,6 +21,9 @@ Scope {
 
             WlrLayershell.keyboardFocus: (widget.islandState === State.IslandState.prompt || widget.islandState === State.IslandState.reflectionGrid || widget.islandState === State.IslandState.polkitAuth) ? WlrKeyboardFocus.Exclusive : ((widget.islandState === State.IslandState.settingsHub || widget.islandState === State.IslandState.filePicker || widget.islandState === State.IslandState.ciderExpanded) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None)
             
+            // Render on top of fullscreen windows if enabled, otherwise use normal top layer
+            WlrLayershell.layer: State.GlobalStates.islandInOverlay ? WlrLayer.Overlay : WlrLayer.Top
+            
             // Anchor only to the top, so it centers horizontally by default
             anchors {
                 top: true

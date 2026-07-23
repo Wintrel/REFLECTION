@@ -33,6 +33,7 @@ Singleton {
     property bool workspaceShowNumbers: false
     property bool bottomPanelOpen: false
     property bool dndEnabled: false
+    property bool islandInOverlay: false // Controls if island renders on WlrLayer.Overlay
     
     // Tracks the dynamic height of the island
     property real currentIslandHeight: 40
@@ -75,6 +76,15 @@ Singleton {
 
         onPressed: {
             root.overviewOpen = !root.overviewOpen;
+        }
+    }
+    
+    GlobalShortcut {
+        name: "islandOverlayToggle"
+        description: "Toggles whether the dynamic island renders on top of fullscreen windows"
+
+        onPressed: {
+            root.islandInOverlay = !root.islandInOverlay;
         }
     }
     
