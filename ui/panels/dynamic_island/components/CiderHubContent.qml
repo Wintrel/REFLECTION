@@ -1,4 +1,4 @@
-import "core/state" as State
+import "../../../../core/state" as State
 import QtQuick
 import Qt5Compat.GraphicalEffects
 import "../../../../core" as Core

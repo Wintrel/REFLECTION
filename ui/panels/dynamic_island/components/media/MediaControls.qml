@@ -1,4 +1,4 @@
-import "core/state" as State
+import "../../../../../core/state" as State
 import QtQuick
 
 Row {
