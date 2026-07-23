@@ -17,8 +17,8 @@ Item {
         anchors.fill: parent
         anchors.margins: -8
         visible: root.visible
-        starColor: root.theme ? root.theme.textMain : "#ffffff"
-        opacity: 0.85
+        starColor: root.theme ? root.theme.textMuted : "#475569"
+        opacity: 0.4
     }
     
     // Background Visualizer
@@ -27,7 +27,7 @@ Item {
         anchors.fill: parent
         anchors.margins: -8
         isPlaying: root.islandState === State.IslandState.expanded && (root.mprisPlayer ? root.mprisPlayer.isPlaying : false)
-        accentColor: root.isSwitchingTracks ? "#11111b" : (root.theme ? root.theme.accentMusic : "#5611f8")
+        accentColor: root.isSwitchingTracks ? (root.theme ? root.theme.surfaceCard : "#11111b") : (root.theme ? root.theme.accentMusic : "#5611f8")
         Behavior on accentColor { ColorAnimation { duration: 400; easing.type: Easing.InOutQuad } }
     }
     

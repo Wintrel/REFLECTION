@@ -32,7 +32,7 @@ Item {
             text: "notifications"
             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
             font.pixelSize: 18
-            color: root.theme ? root.theme.accentNotification : "#710cee"
+            color: notifMa.containsMouse ? (root.theme ? root.theme.textMain : "#FFF") : (root.theme ? root.theme.textSub : "#A6ADC8")
             scale: notifMa.pressed ? 0.9 : (notifMa.containsMouse ? 1.1 : 1)
             opacity: notifMa.pressed ? 0.7 : 1
             Behavior on scale { NumberAnimation { duration: 150 } }

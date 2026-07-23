@@ -18,8 +18,8 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         width: 60
         height: 60
-        radius: 8
-        color: "#313244"
+        radius: root.theme ? root.theme.radiusIsland : 8
+        color: root.theme ? root.theme.surfaceOverlay : "#313244"
         
         property bool isVisible: root.islandState === State.IslandState.expanded
         opacity: (root.islandState === State.IslandState.expanded) ? 1 : 0
@@ -40,7 +40,7 @@ Item {
             visible: source != ""
             layer.enabled: true
             layer.effect: OpacityMask {
-                maskSource: Rectangle { width: 60; height: 60; radius: 8 }
+                maskSource: Rectangle { width: 60; height: 60; radius: root.theme ? root.theme.radiusIsland : 8 }
             }
         }
         
