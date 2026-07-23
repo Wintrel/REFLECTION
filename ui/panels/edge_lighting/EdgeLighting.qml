@@ -1,8 +1,6 @@
 import QtQuick
-import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Wayland
-import "../../components" as Components
 import "../../../core" as Core
 import "../../../core/state" as State
 import "../../../core/services/system"
@@ -38,14 +36,9 @@ Scope {
             Connections {
                 target: State.GlobalStates
                 function onNotificationTriggered() {
-                    console.log("EdgeLighting: notificationTriggered signal received!");
-                    if (edgeWindow.isPromptActive) {
-                        console.log("EdgeLighting: prompt is active, ignoring notification");
-                        return;
-                    }
-                    edgeWindow.currentColor = theme.accentNotification;
+                    if (edgeWindow.isPromptActive) return;
+                    edgeWindow.currentColor = theme.accentPrimary;
                     edgeWindow.isActive = true;
-                    console.log("EdgeLighting: isActive set to true (notification), currentColor:", edgeWindow.currentColor);
                     hideTimer.restart();
                 }
             }
@@ -55,19 +48,16 @@ Scope {
             Connections {
                 target: PromptService
                 function onPromptRequested() {
-                    console.log("EdgeLighting: promptRequested signal received!");
                     edgeWindow.isPromptActive = true;
                     edgeWindow.currentColor = theme.accentPrimary;
                     edgeWindow.isActive = true;
                     hideTimer.stop();
                 }
                 function onCanceled() {
-                    console.log("EdgeLighting: prompt canceled");
                     edgeWindow.isPromptActive = false;
                     edgeWindow.isActive = false;
                 }
                 function onSubmitted() {
-                    console.log("EdgeLighting: prompt submitted");
                     edgeWindow.isPromptActive = false;
                     edgeWindow.isActive = false;
                 }
@@ -76,21 +66,15 @@ Scope {
             Connections {
                 target: PolkitAuthService
                 function onPolkitRequestStarted() {
-                    console.log("EdgeLighting: polkitRequestStarted signal received!");
                     edgeWindow.isPromptActive = true;
-                    edgeWindow.currentColor = "#ff4444"; // Aggressive red for Polkit
+                    edgeWindow.currentColor = "#ff4444"; // Aggressive red for Polkit.
                     edgeWindow.isActive = true;
                     hideTimer.stop();
                 }
                 function onPolkitRequestFinished() {
-                    console.log("EdgeLighting: polkitRequestFinished");
                     edgeWindow.isPromptActive = false;
                     edgeWindow.isActive = false;
                 }
-            }
-            
-            onIsActiveChanged: {
-                console.log("EdgeLighting isActive changed to:", isActive, "dimensions:", width, "x", height, "currentColor:", currentColor);
             }
 
             Timer {
@@ -103,154 +87,154 @@ Scope {
                 }
             }
 
+            // ── Samsung Edge Lighting ──
+            // Thin gradient lines that travel along the screen border.
+            // No orbs, no RadialGradient blobs — just slim rectangles.
+
+            property real perimeter: 2 * (width + height)
+            property real travelProgress: 0
+            property real trailWidth: 550 // Length of the visible light trail (px)
+
+            NumberAnimation {
+                target: edgeWindow
+                property: "travelProgress"
+                from: 0; to: 1
+                duration: 4200
+                loops: Animation.Infinite
+                running: edgeWindow.isActive
+            }
+
+            // Convert normalized perimeter position (0–1) to screen X,Y
+            function perimeterToXY(t) {
+                if (perimeter <= 0) return { x: 0, y: 0 };
+                var p = ((t % 1) + 1) % 1;
+                var d = p * perimeter;
+                var w = width, h = height;
+                if (d < w)     return { x: d,     y: 0 };
+                d -= w;
+                if (d < h)     return { x: w,     y: d };
+                d -= h;
+                if (d < w)     return { x: w - d, y: h };
+                d -= w;
+                return           { x: 0,     y: h - d };
+            }
+
+            // Two light streams, offset by half the perimeter
+            property var s1: perimeterToXY(travelProgress)
+            property var s2: perimeterToXY(travelProgress + 0.5)
+
+            // ── Light Trail Component ──
+            // A slim traveling light: 2px bright line at the screen edge
+            // + layered bloom fading inward (total ~10px visible depth).
+            // Uses Rectangle with Gradient — no heavy effects.
+            component LightTrail: Item {
+                id: lt
+                property real headPos: 0      // x for horizontal edges, y for vertical
+                property bool horiz: true      // horizontal (top/bottom) vs vertical (left/right)
+                property bool atStart: true    // edge is at start side (top or left)
+
+                property color c: edgeWindow.currentColor
+                property real intensity: theme.edgeLightingIntensity
+
+                // ─ Main bright line (2px) ─
+                Rectangle {
+                    width:  lt.horiz ? edgeWindow.trailWidth : 2
+                    height: lt.horiz ? 2 : edgeWindow.trailWidth
+                    x: lt.horiz
+                        ? lt.headPos - width / 2
+                        : (lt.atStart ? 0 : lt.width - 2)
+                    y: lt.horiz
+                        ? (lt.atStart ? 0 : lt.height - 2)
+                        : lt.headPos - height / 2
+                    gradient: Gradient {
+                        orientation: lt.horiz ? Gradient.Horizontal : Gradient.Vertical
+                        GradientStop { position: 0.0;  color: "transparent" }
+                        GradientStop { position: 0.20; color: Qt.rgba(lt.c.r, lt.c.g, lt.c.b, lt.intensity * 0.15) }
+                        GradientStop { position: 0.45; color: Qt.rgba(lt.c.r, lt.c.g, lt.c.b, lt.intensity * 0.85) }
+                        GradientStop { position: 0.50; color: Qt.rgba(lt.c.r, lt.c.g, lt.c.b, lt.intensity) }
+                        GradientStop { position: 0.55; color: Qt.rgba(lt.c.r, lt.c.g, lt.c.b, lt.intensity * 0.85) }
+                        GradientStop { position: 0.80; color: Qt.rgba(lt.c.r, lt.c.g, lt.c.b, lt.intensity * 0.15) }
+                        GradientStop { position: 1.0;  color: "transparent" }
+                    }
+                }
+
+                // ─ Bloom layer 1: soft inner glow (4px, offset 2px from edge) ─
+                Rectangle {
+                    width:  lt.horiz ? edgeWindow.trailWidth * 0.7 : 4
+                    height: lt.horiz ? 4 : edgeWindow.trailWidth * 0.7
+                    x: lt.horiz
+                        ? lt.headPos - width / 2
+                        : (lt.atStart ? 2 : lt.width - 6)
+                    y: lt.horiz
+                        ? (lt.atStart ? 2 : lt.height - 6)
+                        : lt.headPos - height / 2
+                    gradient: Gradient {
+                        orientation: lt.horiz ? Gradient.Horizontal : Gradient.Vertical
+                        GradientStop { position: 0.0; color: "transparent" }
+                        GradientStop { position: 0.5; color: Qt.rgba(lt.c.r, lt.c.g, lt.c.b, lt.intensity * 0.12) }
+                        GradientStop { position: 1.0; color: "transparent" }
+                    }
+                }
+
+                // ─ Bloom layer 2: faint outer halo (3px, offset 6px from edge) ─
+                Rectangle {
+                    width:  lt.horiz ? edgeWindow.trailWidth * 0.45 : 3
+                    height: lt.horiz ? 3 : edgeWindow.trailWidth * 0.45
+                    x: lt.horiz
+                        ? lt.headPos - width / 2
+                        : (lt.atStart ? 6 : lt.width - 9)
+                    y: lt.horiz
+                        ? (lt.atStart ? 6 : lt.height - 9)
+                        : lt.headPos - height / 2
+                    gradient: Gradient {
+                        orientation: lt.horiz ? Gradient.Horizontal : Gradient.Vertical
+                        GradientStop { position: 0.0; color: "transparent" }
+                        GradientStop { position: 0.5; color: Qt.rgba(lt.c.r, lt.c.g, lt.c.b, lt.intensity * 0.04) }
+                        GradientStop { position: 1.0; color: "transparent" }
+                    }
+                }
+            }
+
+            // ── Visual container ──
             Item {
                 id: visualContainer
                 anchors.fill: parent
                 opacity: edgeWindow.isActive ? 1 : 0
                 visible: opacity > 0
                 Behavior on opacity {
-                    NumberAnimation {
-                        duration: 800
-                        easing.type: Easing.InOutSine
-                    }
+                    NumberAnimation { duration: 800; easing.type: Easing.InOutSine }
                 }
 
-                // Top Edge Glow
-                Rectangle {
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: 100
-                    color: "transparent"
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, theme.edgeLightingIntensity) }
-                        GradientStop { position: 1.0; color: "transparent" }
-                    }
-                }
-
-                // Bottom Edge Glow
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: 100
-                    color: "transparent"
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: "transparent" }
-                        GradientStop { position: 1.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, theme.edgeLightingIntensity) }
-                    }
-                }
-
-                // Left Edge Glow
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: 100
-                    color: "transparent"
-                    gradient: Gradient {
-                        orientation: Gradient.Horizontal
-                        GradientStop { position: 0.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, theme.edgeLightingIntensity) }
-                        GradientStop { position: 1.0; color: "transparent" }
-                    }
-                }
-
-                // Right Edge Glow
-                Rectangle {
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: 100
-                    color: "transparent"
-                    gradient: Gradient {
-                        orientation: Gradient.Horizontal
-                        GradientStop { position: 0.0; color: "transparent" }
-                        GradientStop { position: 1.0; color: Qt.rgba(edgeWindow.currentColor.r, edgeWindow.currentColor.g, edgeWindow.currentColor.b, theme.edgeLightingIntensity) }
-                    }
-                }
-
-                // Inner sharp focus border lines (4px)
-                Rectangle {
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: 4
-                    color: edgeWindow.currentColor
-                }
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: 4
-                    color: edgeWindow.currentColor
-                }
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: 4
-                    color: edgeWindow.currentColor
-                }
-                Rectangle {
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: 4
-                    color: edgeWindow.currentColor
-                }
-
-                // Segmented Edge Starfields (avoiding OpacityMask shader compiler issues)
-                // Top Starfield
+                // ─ Top edge ─
                 Item {
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: 150
-                    clip: true
-                    Components.Starfield {
-                        anchors.fill: parent
-                        starCount: 40
-                        starColor: theme.textMain
-                    }
+                    anchors { top: parent.top; left: parent.left; right: parent.right }
+                    height: 12; clip: true
+                    LightTrail { anchors.fill: parent; horiz: true;  atStart: true;  headPos: edgeWindow.s1.x }
+                    LightTrail { anchors.fill: parent; horiz: true;  atStart: true;  headPos: edgeWindow.s2.x }
                 }
-                // Bottom Starfield
+
+                // ─ Bottom edge ─
                 Item {
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: 150
-                    clip: true
-                    Components.Starfield {
-                        anchors.fill: parent
-                        starCount: 40
-                        starColor: theme.textMain
-                    }
+                    anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
+                    height: 12; clip: true
+                    LightTrail { anchors.fill: parent; horiz: true;  atStart: false; headPos: edgeWindow.s1.x }
+                    LightTrail { anchors.fill: parent; horiz: true;  atStart: false; headPos: edgeWindow.s2.x }
                 }
-                // Left Starfield
+
+                // ─ Left edge ─
                 Item {
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: 150
-                    clip: true
-                    Components.Starfield {
-                        anchors.fill: parent
-                        starCount: 40
-                        starColor: theme.textMain
-                    }
+                    anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
+                    width: 12; clip: true
+                    LightTrail { anchors.fill: parent; horiz: false; atStart: true;  headPos: edgeWindow.s1.y }
+                    LightTrail { anchors.fill: parent; horiz: false; atStart: true;  headPos: edgeWindow.s2.y }
                 }
-                // Right Starfield
+
+                // ─ Right edge ─
                 Item {
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    width: 150
-                    clip: true
-                    Components.Starfield {
-                        anchors.fill: parent
-                        starCount: 40
-                        starColor: theme.textMain
-                    }
+                    anchors { right: parent.right; top: parent.top; bottom: parent.bottom }
+                    width: 12; clip: true
+                    LightTrail { anchors.fill: parent; horiz: false; atStart: false; headPos: edgeWindow.s1.y }
+                    LightTrail { anchors.fill: parent; horiz: false; atStart: false; headPos: edgeWindow.s2.y }
                 }
             }
         }
