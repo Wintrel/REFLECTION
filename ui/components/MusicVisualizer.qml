@@ -6,6 +6,7 @@ Item {
     
     property bool isPlaying: true
     property color accentColor: "#A6E3A1"
+    property var colorPalette: []
     
     clip: true
     
@@ -97,6 +98,8 @@ Item {
                 
                 property real localRelativeX: root.barCount > 1 ? (index / (root.barCount - 1)) : 0
 
+                property color activeBarColor: root.colorPalette && root.colorPalette.length > 0 ? root.colorPalette[index % root.colorPalette.length] : root.accentColor
+
                 // The Aurora Light Beam Base
                 Rectangle {
                     id: baseRect
@@ -104,7 +107,7 @@ Item {
                     height: barItem.animatingHeight
                     anchors.bottom: parent.bottom
                     
-                    property color baseColor: root.isPlaying ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.4) : Qt.rgba(1, 1, 1, 0.08)
+                    property color baseColor: root.isPlaying ? Qt.rgba(barItem.activeBarColor.r, barItem.activeBarColor.g, barItem.activeBarColor.b, 0.4) : Qt.rgba(1, 1, 1, 0.08)
                     Behavior on baseColor { ColorAnimation { duration: 500 } }
                     
                     gradient: Gradient {
@@ -147,7 +150,7 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     y: barItem.height - barItem.animatingHeight - 6 // Always sit nicely above the beam
                     
-                    property color activeColor: Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 1.0)
+                    property color activeColor: Qt.rgba(barItem.activeBarColor.r, barItem.activeBarColor.g, barItem.activeBarColor.b, 1.0)
                     property color idleColor: Qt.rgba(1, 1, 1, 0.8)
                     color: root.isPlaying ? activeColor : idleColor
                     Behavior on color { ColorAnimation { duration: 500 } }

@@ -56,6 +56,20 @@ Item {
         CiderService.cycleFallbackPlayer();
     }
 
+    // Outer Frosty Glow
+    RectangularGlow {
+        anchors.fill: islandShape
+        glowRadius: 16
+        spread: 0.1
+        color: theme.accentPrimary
+        cornerRadius: islandShape.radius + glowRadius
+        
+        property bool isActive: islandWidget.islandState !== State.IslandState.idle
+        opacity: isActive ? 0.25 : 0.0
+        Behavior on opacity { NumberAnimation { duration: theme.animDuration; easing.type: Easing.OutSine } }
+        Behavior on color { ColorAnimation { duration: 300 } }
+    }
+
     // The actual island container (Outer Bezel)
     Rectangle {
         id: islandShape
@@ -172,6 +186,10 @@ Item {
         
         radius: theme.radiusIsland
         color: theme.bgBezel
+        
+        // Glass edge look (1px frosty border)
+        border.width: theme.islandBorderWidth > 0 ? 1 : 0
+        border.color: Qt.rgba(theme.colorSystemShimmer.r, theme.colorSystemShimmer.g, theme.colorSystemShimmer.b, 0.4)
         
         Behavior on width {
             NumberAnimation { duration: theme.animDuration; easing.type: Easing.OutExpo }

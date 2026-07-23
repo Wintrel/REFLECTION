@@ -6,7 +6,7 @@ import Quickshell.Io
 Item {
     id: root
 
-    // Active Colors
+    // Active Colors.
     property color bgBezel: "#000000"
     property color bgInner: "#000000"
     property color textMain: "#D4D4D8"
@@ -110,7 +110,7 @@ Item {
             accentMusic: "#1F2937",
             accentWorkspace: "#111827",
             accentPrimary: '#5151ad',
-            colorSystemShimmer: "#A5F3FC",
+            colorSystemShimmer: '#aba4e7',
             bgBase: "#000000",
             surfaceCard: "#08080C",
             surfaceOverlay: "#111827",

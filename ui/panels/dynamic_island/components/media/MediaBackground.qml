@@ -28,6 +28,7 @@ Item {
         anchors.margins: -8
         isPlaying: root.islandState === State.IslandState.expanded && (root.mprisPlayer ? root.mprisPlayer.isPlaying : false)
         accentColor: root.isSwitchingTracks ? (root.theme ? root.theme.surfaceCard : "#11111b") : (root.theme ? root.theme.accentMusic : "#5611f8")
+        colorPalette: root.isSwitchingTracks ? [] : (root.theme ? [root.theme.accentPrimary, root.theme.colorSystemShimmer, root.theme.accentSecondary] : [])
         Behavior on accentColor { ColorAnimation { duration: 400; easing.type: Easing.InOutQuad } }
     }
     

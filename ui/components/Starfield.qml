@@ -4,13 +4,17 @@ import Qt5Compat.GraphicalEffects
 Item {
     id: root
 
-    // Amount of stars in the void
-    property int starCount: 40
+    // Amount of snowflakes (increased to maintain density in the massive 1500px column)
+    property int starCount: 150
 
-    // Base color of the stars
+    // Base color
     property color starColor: "#ffffff"
 
     clip: true
+    
+
+    // Frosty colors for snow (white, deep purples, and icy blues for Midnight Winter)
+    property var starColors: ["#ffffff", "#5151ad", "#0830b2", "#A5F3FC", "#818CF8", "#ffffff"]
 
     Repeater {
         model: root.starCount
@@ -18,98 +22,78 @@ Item {
         Item {
             id: starWrapper
 
-            // Generate random constants ONCE so they don't re-evaluate on resize
-            property real randX:      Math.random()
-            property real randY:      Math.random()
+            // Random initial placement (spread across the entire 1500px column)
+            property real initialX: Math.random() * 2000 // Wide enough for any screen
+            property real initialY: Math.random() * 1500
 
-            // Vertical drift
-            property real driftDistY: 3 + Math.random() * 8
-            property int  driftTimeY: 15000 + Math.random() * 10000
+            // Fall speed (pixels per millisecond)
+            property real fallSpeed: 0.02 + Math.random() * 0.04
+            
+            // Wind properties
+            property real windSway: 15 + Math.random() * 30
+            property real windSpeed: 3000 + Math.random() * 4000
 
-            // Horizontal drift — slower and shorter so it reads as depth, not movement
-            property real driftDistX: 2 + Math.random() * 5
-            property int  driftTimeX: 20000 + Math.random() * 15000
 
-            property int  pauseTime:  Math.random() * 4000
-
-            // Bind to the parent's size using the stable random percentages
-            x: randX * root.width
-            y: randY * root.height
-
-            // Randomize size between 1.0 and 2.5 pixels
-            property real size: 1.0 + Math.random() * 2.5
+            // Randomize size
+            property real size: 1.5 + Math.random() * 3.5
             width:  size
             height: size
 
+            // Snowflake
             Rectangle {
                 anchors.fill: parent
                 radius: width / 2
-                color: root.starColor
-                opacity: 0.2
+                color: root.starColors[index % root.starColors.length]
+                // Smaller flakes are more transparent (further away)
+                opacity: size < 2.5 ? 0.3 + Math.random() * 0.3 : 0.6 + Math.random() * 0.4
+            }
 
-                SequentialAnimation on opacity {
-                    loops:   Animation.Infinite
-                    running: root.visible
+            x: initialX
+            y: initialY
 
-                    PauseAnimation { duration: Math.random() * 2000 }
+            // Fall Animation (GPU)
+            SequentialAnimation on y {
+                loops: Animation.Infinite
+                running: true // Keep running in background
 
-                    NumberAnimation {
-                        from: 0.15
-                        to:   0.4 + Math.random() * 0.5
-                        duration: 2000 + Math.random() * 3000
-                        easing.type: Easing.InOutSine
-                    }
-                    NumberAnimation {
-                        from: 0.4 + Math.random() * 0.5
-                        to:   0.15
-                        duration: 2000 + Math.random() * 3000
-                        easing.type: Easing.InOutSine
-                    }
-                    PauseAnimation { duration: 500 + Math.random() * 1500 }
+                // 1. Initial fall from random start position to bottom of the massive column
+                NumberAnimation {
+                    to: 1500
+                    duration: (1500 - starWrapper.initialY) / starWrapper.fallSpeed
+                }
+
+                // 2. Snap to top
+                PropertyAction { value: -20 }
+
+                // 3. Full falls for the rest of eternity
+                NumberAnimation {
+                    to: 1500
+                    duration: 1520 / starWrapper.fallSpeed
                 }
             }
 
-            // Two-axis drift via a single Translate transform
-            transform: Translate {
-                id: drift
+            // Wind Sway Animation (GPU)
+            SequentialAnimation on x {
+                loops: Animation.Infinite
+                running: true
 
-                SequentialAnimation on y {
-                    loops:   Animation.Infinite
-                    running: root.visible
-
-                    PauseAnimation { duration: starWrapper.pauseTime }
-                    NumberAnimation {
-                        from: 0
-                        to:   -starWrapper.driftDistY
-                        duration: starWrapper.driftTimeY
-                        easing.type: Easing.InOutSine
-                    }
-                    NumberAnimation {
-                        from: -starWrapper.driftDistY
-                        to:   0
-                        duration: starWrapper.driftTimeY
-                        easing.type: Easing.InOutSine
-                    }
+                NumberAnimation {
+                    from: starWrapper.initialX
+                    to: starWrapper.initialX + starWrapper.windSway
+                    duration: starWrapper.windSpeed
+                    easing.type: Easing.InOutSine
                 }
-
-                // Horizontal drift — offset phase so it doesn't sync with Y
-                SequentialAnimation on x {
-                    loops:   Animation.Infinite
-                    running: root.visible
-
-                    PauseAnimation { duration: starWrapper.pauseTime + starWrapper.driftTimeY / 3 }
-                    NumberAnimation {
-                        from: 0
-                        to:   starWrapper.driftDistX
-                        duration: starWrapper.driftTimeX
-                        easing.type: Easing.InOutSine
-                    }
-                    NumberAnimation {
-                        from: starWrapper.driftDistX
-                        to:   0
-                        duration: starWrapper.driftTimeX
-                        easing.type: Easing.InOutSine
-                    }
+                NumberAnimation {
+                    from: starWrapper.initialX + starWrapper.windSway
+                    to: starWrapper.initialX - starWrapper.windSway
+                    duration: starWrapper.windSpeed * 2
+                    easing.type: Easing.InOutSine
+                }
+                NumberAnimation {
+                    from: starWrapper.initialX - starWrapper.windSway
+                    to: starWrapper.initialX
+                    duration: starWrapper.windSpeed
+                    easing.type: Easing.InOutSine
                 }
             }
         }
