@@ -1,3 +1,4 @@
+import "core/state" as State
 import QtQuick
 import "../../../../core" as Core
 
@@ -6,7 +7,7 @@ Item {
     
     signal dismissRequested()
     
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var theme: null
     property real islandNotifW: 400
     property real islandNotifH: 80
@@ -17,7 +18,7 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.topMargin: (islandNotifH - height) / 2
     
-    opacity: root.islandState === 3 ? 1 : 0
+    opacity: root.islandState === State.IslandState.notification ? 1 : 0
     visible: opacity > 0
     layer.enabled: true
     Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
@@ -45,10 +46,10 @@ Item {
             color: root.theme ? Qt.rgba(root.theme.accentNotification.r, root.theme.accentNotification.g, root.theme.accentNotification.b, 0.15) : "#20710cee"
             anchors.verticalCenter: parent.verticalCenter
             
-            property bool isVisible: root.islandState === 3
-            opacity: (root.islandState === 3) ? 1 : 0
+            property bool isVisible: root.islandState === State.IslandState.notification
+            opacity: (root.islandState === State.IslandState.notification) ? 1 : 0
             transform: Translate {
-                y: (root.islandState === 3) ? 0 : -5
+                y: (root.islandState === State.IslandState.notification) ? 0 : -5
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -95,10 +96,10 @@ Item {
             width: parent.width - iconRect.width - 16
             spacing: 2
             
-            property bool isVisible: root.islandState === 3
-            opacity: (root.islandState === 3) ? 1 : 0
+            property bool isVisible: root.islandState === State.IslandState.notification
+            opacity: (root.islandState === State.IslandState.notification) ? 1 : 0
             transform: Translate {
-                y: (root.islandState === 3) ? 0 : 10
+                y: (root.islandState === State.IslandState.notification) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }

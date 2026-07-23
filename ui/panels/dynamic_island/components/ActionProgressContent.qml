@@ -1,3 +1,4 @@
+import "core/state" as State
 import QtQuick
 import Qt5Compat.GraphicalEffects
 import "../../../../core" as Core
@@ -8,7 +9,7 @@ Item {
     id: root
     Component.onCompleted: console.log("ActionProgressContent loaded, inProgress:", ActionProgressService.inProgress, "text:", ActionProgressService.statusText)
     
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var theme: null
     
     property real islandMaxW: 600
@@ -18,7 +19,7 @@ Item {
     width: islandMaxW
     height: islandMaxH
     
-    property bool isActive: islandState === 7
+    property bool isActive: islandState === State.IslandState.actionProgress
     opacity: isActive ? 1 : 0
     visible: opacity > 0
     layer.enabled: true

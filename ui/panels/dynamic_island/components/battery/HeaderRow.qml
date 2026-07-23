@@ -1,3 +1,4 @@
+import "core/state" as State
 import QtQuick
 import Qt5Compat.GraphicalEffects
 import "../../../../../core/services/system"
@@ -49,7 +50,7 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (typeof islandWidget !== "undefined")
-                        islandWidget.islandState = 2;
+                        islandWidget.islandState = State.IslandState.expanded;
                 }
             }
         }

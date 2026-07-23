@@ -13,7 +13,7 @@ Item {
 
     property var theme
     property int islandState
-    property bool isActive: islandState === 12
+    property bool isActive: islandState === State.IslandState.filePicker
     property string title: State.GlobalStates.filePickerTitle
     property string filterMode: State.GlobalStates.filePickerFilterMode
     property string currentPath: ""

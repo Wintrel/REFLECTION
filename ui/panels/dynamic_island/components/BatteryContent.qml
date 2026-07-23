@@ -1,3 +1,4 @@
+import "core/state" as State
 import QtQuick
 import Qt5Compat.GraphicalEffects
 import "../../../../core" as Core
@@ -8,12 +9,12 @@ import "battery" as BatteryComponents
 Item {
     id: root
 
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var theme: null
     property real islandBatteryW: 0
     property real islandBatteryH: 0
 
-    readonly property bool panelOpen: islandState === 9
+    readonly property bool panelOpen: islandState === State.IslandState.battery
     readonly property real percentage: Math.max(0, Math.min(100, Number(BatteryService.percentage) || 0))
     readonly property real wattage: Math.abs(Number(BatteryService.smoothWattage) || 0)
 

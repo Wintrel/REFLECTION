@@ -1,16 +1,17 @@
+import "core/state" as State
 import QtQuick
 
 Rectangle {
     id: root
 
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var mprisPlayer: null
     property var theme: null
     
-    property bool isVisible: root.islandState === 2
-    opacity: (root.islandState === 2) ? 1 : 0
+    property bool isVisible: root.islandState === State.IslandState.expanded
+    opacity: (root.islandState === State.IslandState.expanded) ? 1 : 0
     transform: Translate {
-        y: (root.islandState === 2) ? 0 : 10
+        y: (root.islandState === State.IslandState.expanded) ? 0 : 10
         Behavior on y { SequentialAnimation { PauseAnimation { duration: 150 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
     }
     Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 150 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }

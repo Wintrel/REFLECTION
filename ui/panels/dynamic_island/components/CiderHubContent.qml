@@ -1,3 +1,4 @@
+import "core/state" as State
 import QtQuick
 import Qt5Compat.GraphicalEffects
 import "../../../../core" as Core
@@ -8,7 +9,7 @@ import "cider" as Cider
 Item {
     id: root
     
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var mprisPlayer: null
     property var theme: null
     property real islandCiderW: 800
@@ -22,7 +23,7 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.topMargin: (islandCiderH - height) / 2
     
-    opacity: root.islandState === 13 ? 1 : 0
+    opacity: root.islandState === State.IslandState.ciderExpanded ? 1 : 0
     visible: opacity > 0
     layer.enabled: true
     Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
@@ -41,7 +42,7 @@ Item {
         id: bgVisualizer
         anchors.fill: parent
         anchors.margins: -8
-        isPlaying: root.islandState === 13 && (root.mprisPlayer ? root.mprisPlayer.isPlaying : false)
+        isPlaying: root.islandState === State.IslandState.ciderExpanded && (root.mprisPlayer ? root.mprisPlayer.isPlaying : false)
         accentColor: root.theme ? root.theme.accentMusic : "#5611f8"
     }
 
@@ -54,16 +55,16 @@ Item {
         theme: root.theme
         currentTab: root.currentTab
         
-        opacity: (root.islandState === 13) ? 1 : 0
+        opacity: (root.islandState === State.IslandState.ciderExpanded) ? 1 : 0
         transform: Translate {
-            y: (root.islandState === 13) ? 0 : -5
+            y: (root.islandState === State.IslandState.ciderExpanded) ? 0 : -5
             Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
         }
         Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
         
         onCloseClicked: {
             if (typeof islandWidget !== "undefined") {
-                islandWidget.islandState = 2;
+                islandWidget.islandState = State.IslandState.expanded;
             }
         }
         onTabSelected: (index) => {
@@ -137,9 +138,9 @@ Item {
         theme: root.theme
         mprisPlayer: root.mprisPlayer
         
-        opacity: (root.islandState === 13) ? 1 : 0
+        opacity: (root.islandState === State.IslandState.ciderExpanded) ? 1 : 0
         transform: Translate {
-            y: (root.islandState === 13) ? 0 : 10
+            y: (root.islandState === State.IslandState.ciderExpanded) ? 0 : 10
             Behavior on y { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
         }
         Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }

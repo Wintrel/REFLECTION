@@ -1,3 +1,4 @@
+import "core/state" as State
 import QtQuick
 import "../../../../../core" as Core
 import "../../../../../core/services/system"
@@ -5,16 +6,16 @@ import "../../../../../core/services/system"
 Item {
     id: root
 
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var mprisPlayer: null
     property var theme: null
 
     height: 20
     
-    property bool isVisible: root.islandState === 2
-    opacity: (root.islandState === 2) ? 1 : 0
+    property bool isVisible: root.islandState === State.IslandState.expanded
+    opacity: (root.islandState === State.IslandState.expanded) ? 1 : 0
     transform: Translate {
-        y: (root.islandState === 2) ? 0 : -5
+        y: (root.islandState === State.IslandState.expanded) ? 0 : -5
         Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
     }
     Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -44,7 +45,7 @@ Item {
             cursorShape: Qt.PointingHandCursor
             onClicked: {
                 if (typeof islandWidget !== "undefined") {
-                    islandWidget.islandState = 4;
+                    islandWidget.islandState = State.IslandState.notificationHistory;
                 }
             }
         }
@@ -86,7 +87,7 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         if (typeof islandWidget !== "undefined") {
-                            islandWidget.islandState = 13;
+                            islandWidget.islandState = State.IslandState.ciderExpanded;
                         }
                     }
                 }
@@ -103,7 +104,7 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         if (typeof islandWidget !== "undefined") {
-                            islandWidget.islandState = 9; // Switch to Battery View
+                            islandWidget.islandState = State.IslandState.battery; // Switch to Battery View
                         }
                     }
                 }

@@ -69,49 +69,49 @@ Item {
             
             onEntered: {
                 controller.isHovered = true;
-                if (islandWidget.isLocked || islandWidget.islandState === 14 || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
-                if (islandWidget.islandState === 3) controller.stopTimers();
-                else if (islandWidget.islandState === 5) controller.stopTimers();
-                else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9 && islandWidget.islandState !== 13) islandWidget.islandState = 1
+                if (islandWidget.isLocked || islandWidget.islandState === State.IslandState.clipboard || islandWidget.islandState === State.IslandState.settingsHub || islandWidget.islandState === State.IslandState.filePicker || islandWidget.islandState === State.IslandState.reflectionGrid || islandWidget.islandState === State.IslandState.polkitAuth || islandWidget.islandState === State.IslandState.prompt || islandWidget.islandState === State.IslandState.actionProgress) return;
+                if (islandWidget.islandState === State.IslandState.notification) controller.stopTimers();
+                else if (islandWidget.islandState === State.IslandState.osd) controller.stopTimers();
+                else if (islandWidget.islandState !== State.IslandState.expanded && islandWidget.islandState !== State.IslandState.notificationHistory && islandWidget.islandState !== State.IslandState.battery && islandWidget.islandState !== State.IslandState.ciderExpanded) islandWidget.islandState = State.IslandState.hover
             }
             onExited: {
                 controller.isHovered = false;
-                if (islandWidget.isLocked || islandWidget.islandState === 14 || islandWidget.islandState === 11 || islandWidget.islandState === 12 || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
-                if (islandWidget.islandState === 3) controller.restartTimers();
-                else if (islandWidget.islandState === 5) controller.restartTimers();
-                else if (islandWidget.islandState !== 2 && islandWidget.islandState !== 4 && islandWidget.islandState !== 9 && islandWidget.islandState !== 13) islandWidget.islandState = 0
+                if (islandWidget.isLocked || islandWidget.islandState === State.IslandState.clipboard || islandWidget.islandState === State.IslandState.settingsHub || islandWidget.islandState === State.IslandState.filePicker || islandWidget.islandState === State.IslandState.reflectionGrid || islandWidget.islandState === State.IslandState.polkitAuth || islandWidget.islandState === State.IslandState.prompt || islandWidget.islandState === State.IslandState.actionProgress) return;
+                if (islandWidget.islandState === State.IslandState.notification) controller.restartTimers();
+                else if (islandWidget.islandState === State.IslandState.osd) controller.restartTimers();
+                else if (islandWidget.islandState !== State.IslandState.expanded && islandWidget.islandState !== State.IslandState.notificationHistory && islandWidget.islandState !== State.IslandState.battery && islandWidget.islandState !== State.IslandState.ciderExpanded) islandWidget.islandState = State.IslandState.idle
             }
             onClicked: {
-                if (islandWidget.isLocked || islandWidget.islandState === 8 || islandWidget.islandState === 10 || islandWidget.islandState === 6 || islandWidget.islandState === 7) return;
+                if (islandWidget.isLocked || islandWidget.islandState === State.IslandState.reflectionGrid || islandWidget.islandState === State.IslandState.polkitAuth || islandWidget.islandState === State.IslandState.prompt || islandWidget.islandState === State.IslandState.actionProgress) return;
                 
-                if (islandWidget.islandState === 14) {
+                if (islandWidget.islandState === State.IslandState.clipboard) {
                     State.GlobalStates.clipboardOpen = false;
                     return;
                 }
-                if (islandWidget.islandState === 12) {
+                if (islandWidget.islandState === State.IslandState.filePicker) {
                     State.GlobalStates.closeFilePicker();
                     return;
                 }
-                if (islandWidget.islandState === 11) {
+                if (islandWidget.islandState === State.IslandState.settingsHub) {
                     State.GlobalStates.settingsOpen = false;
                     return;
                 }
-                if (islandWidget.islandState === 3) {
-                    if (islandWidget.previousState === 2 || islandWidget.previousState === 4 || islandWidget.previousState === 9) {
+                if (islandWidget.islandState === State.IslandState.notification) {
+                    if (islandWidget.previousState === State.IslandState.expanded || islandWidget.previousState === State.IslandState.notificationHistory || islandWidget.previousState === State.IslandState.battery) {
                         islandWidget.islandState = islandWidget.previousState;
                     } else {
-                        islandWidget.islandState = 1;
+                        islandWidget.islandState = State.IslandState.hover;
                     }
                     if (islandWidget.currentNotif) {
                         islandWidget.currentNotif.close();
                     }
-                    islandWidget.previousState = 0;
-                } else if (islandWidget.islandState === 4) {
-                    islandWidget.islandState = 0;
-                } else if (islandWidget.islandState === 2 || islandWidget.islandState === 9 || islandWidget.islandState === 13) {
-                    islandWidget.islandState = containsMouse ? 1 : 0
+                    islandWidget.previousState = State.IslandState.idle;
+                } else if (islandWidget.islandState === State.IslandState.notificationHistory) {
+                    islandWidget.islandState = State.IslandState.idle;
+                } else if (islandWidget.islandState === State.IslandState.expanded || islandWidget.islandState === State.IslandState.battery || islandWidget.islandState === State.IslandState.ciderExpanded) {
+                    islandWidget.islandState = containsMouse ? State.IslandState.hover : State.IslandState.idle
                 } else {
-                    islandWidget.islandState = 2
+                    islandWidget.islandState = State.IslandState.expanded
                 }
             }
         }
@@ -124,24 +124,24 @@ Item {
         
         // Smooth sizing based on state
         width: {
-            if (islandState === 8) {
+            if (islandState === State.IslandState.reflectionGrid) {
                 if (State.ReflectionState.searchQuery.length === 0) return theme.reflectionSearchW; // Search bar only
                 if (reflectionContent.currentIntent === 0) return theme.reflectionGridW; // App Grid
                 return theme.reflectionFocusW; // Math / Command Intents
             }
-            if (islandState === 14) return theme.islandClipboardW; // Clipboard
-            if (islandState === 13) return theme.islandCiderW; // Cider Ultra Expanded
-            if (islandState === 12) return theme.islandFilePickerW; // File Picker
-            if (islandState === 11) return theme.islandSettingsW; // Settings Hub
-            if (islandState === 10) return theme.islandMaxW; // Polkit Auth
-            if (islandState === 7) return theme.islandProgressW; // Action Progress
-            if (islandState === 6) return theme.islandMaxW; // Prompt
-            if (islandState === 5) return theme.islandHoverW;
-            if (islandState === 4) return theme.islandHistoryW;
-            if (islandState === 3) return theme.islandNotifW;
-            if (islandState === 9) return theme.islandBatteryW;
-            if (islandState === 2) return theme.islandMaxW;
-            if (islandState === 1) return theme.islandHoverW;
+            if (islandState === State.IslandState.clipboard) return theme.islandClipboardW; // Clipboard
+            if (islandState === State.IslandState.ciderExpanded) return theme.islandCiderW; // Cider Ultra Expanded
+            if (islandState === State.IslandState.filePicker) return theme.islandFilePickerW; // File Picker
+            if (islandState === State.IslandState.settingsHub) return theme.islandSettingsW; // Settings Hub
+            if (islandState === State.IslandState.polkitAuth) return theme.islandMaxW; // Polkit Auth
+            if (islandState === State.IslandState.actionProgress) return theme.islandProgressW; // Action Progress
+            if (islandState === State.IslandState.prompt) return theme.islandMaxW; // Prompt
+            if (islandState === State.IslandState.osd) return theme.islandHoverW;
+            if (islandState === State.IslandState.notificationHistory) return theme.islandHistoryW;
+            if (islandState === State.IslandState.notification) return theme.islandNotifW;
+            if (islandState === State.IslandState.battery) return theme.islandBatteryW;
+            if (islandState === State.IslandState.expanded) return theme.islandMaxW;
+            if (islandState === State.IslandState.hover) return theme.islandHoverW;
             
             var hasM = islandWidget.mprisPlayer && islandWidget.mprisPlayer.isPlaying;
             var hasN = State.GlobalStates.notificationHistory.count > 0;
@@ -149,24 +149,24 @@ Item {
         }
         height: {
             var targetH = theme.islandMinH;
-            if (islandState === 8) {
+            if (islandState === State.IslandState.reflectionGrid) {
                 if (State.ReflectionState.searchQuery.length === 0) targetH = theme.reflectionSearchH; // Search bar only
                 else if (reflectionContent.currentIntent === 0) targetH = theme.reflectionGridH; // App Grid
                 else targetH = theme.reflectionFocusH; // Math / Command Intents
             }
-            else if (islandState === 14) targetH = theme.islandClipboardH; // Clipboard
-            else if (islandState === 13) targetH = theme.islandCiderH; // Cider Ultra Expanded
-            else if (islandState === 12) targetH = theme.islandFilePickerH; // File Picker
-            else if (islandState === 11) targetH = theme.islandSettingsH; // Settings Hub
-            else if (islandState === 10) targetH = theme.islandMaxH; // Polkit Auth
-            else if (islandState === 7) targetH = theme.islandProgressH; // Action Progress
-            else if (islandState === 6) targetH = theme.islandMaxH; // Prompt
-            else if (islandState === 5) targetH = theme.islandHoverH;
-            else if (islandState === 4) targetH = historyContent.computedHeight;
-            else if (islandState === 3) targetH = theme.islandNotifH;
-            else if (islandState === 9) targetH = theme.islandBatteryH;
-            else if (islandState === 2) targetH = theme.islandMaxH;
-            else if (islandState === 1) targetH = theme.islandHoverH;
+            else if (islandState === State.IslandState.clipboard) targetH = theme.islandClipboardH; // Clipboard
+            else if (islandState === State.IslandState.ciderExpanded) targetH = theme.islandCiderH; // Cider Ultra Expanded
+            else if (islandState === State.IslandState.filePicker) targetH = theme.islandFilePickerH; // File Picker
+            else if (islandState === State.IslandState.settingsHub) targetH = theme.islandSettingsH; // Settings Hub
+            else if (islandState === State.IslandState.polkitAuth) targetH = theme.islandMaxH; // Polkit Auth
+            else if (islandState === State.IslandState.actionProgress) targetH = theme.islandProgressH; // Action Progress
+            else if (islandState === State.IslandState.prompt) targetH = theme.islandMaxH; // Prompt
+            else if (islandState === State.IslandState.osd) targetH = theme.islandHoverH;
+            else if (islandState === State.IslandState.notificationHistory) targetH = historyContent.computedHeight;
+            else if (islandState === State.IslandState.notification) targetH = theme.islandNotifH;
+            else if (islandState === State.IslandState.battery) targetH = theme.islandBatteryH;
+            else if (islandState === State.IslandState.expanded) targetH = theme.islandMaxH;
+            else if (islandState === State.IslandState.hover) targetH = theme.islandHoverH;
             return targetH + theme.radiusIsland;
         }
         

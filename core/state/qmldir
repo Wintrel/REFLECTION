@@ -3,3 +3,4 @@ singleton PopupManager PopupManager.qml
 PopupScrim 1.0 PopupScrim.qml
 singleton GlobalStates GlobalStates.qml
 singleton ReflectionState ReflectionState.qml
+singleton IslandState IslandState.qml

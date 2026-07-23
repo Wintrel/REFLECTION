@@ -9,13 +9,13 @@ Item {
     id: root
     anchors.fill: parent
 
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var theme: null
     property real islandMaxW: 600
     property real islandMaxH: 200
 
-    // islandState === 10 is Polkit
-    property bool isActive: islandState === 10
+    // islandState === State.IslandState.polkitAuth is Polkit
+    property bool isActive: islandState === State.IslandState.polkitAuth
     opacity: isActive ? 1 : 0
     visible: opacity > 0
     layer.enabled: true

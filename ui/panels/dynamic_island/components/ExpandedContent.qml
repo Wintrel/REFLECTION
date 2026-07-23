@@ -1,3 +1,4 @@
+import "core/state" as State
 import QtQuick
 import Qt5Compat.GraphicalEffects
 import "../../../../core" as Core
@@ -8,7 +9,7 @@ import "media" as Media
 Item {
     id: root
     
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var mprisPlayer: null
     property var theme: null
     property real islandMaxW: 0
@@ -45,7 +46,7 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.topMargin: (islandMaxH - height) / 2
     
-    opacity: root.islandState === 2 ? 1 : 0
+    opacity: root.islandState === State.IslandState.expanded ? 1 : 0
     visible: opacity > 0
     layer.enabled: true
     Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }

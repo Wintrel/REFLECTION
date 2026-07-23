@@ -14,7 +14,7 @@ Item {
     property int islandClipboardH
     
     visible: opacity > 0
-    opacity: islandState === 14 ? 1 : 0
+    opacity: islandState === State.IslandState.clipboard ? 1 : 0
     Behavior on opacity { NumberAnimation { duration: theme.animDuration; easing.type: Easing.OutExpo } }
     
     width: islandClipboardW

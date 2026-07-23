@@ -6,7 +6,7 @@ import "../../../components" as Components
 Item {
     id: root
     
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var mprisPlayer: null
     property var theme: null
     

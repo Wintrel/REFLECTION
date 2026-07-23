@@ -9,12 +9,12 @@ Item {
     id: root
     anchors.fill: parent
 
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var theme: null
     property real islandMaxW: 600
     property real islandMaxH: 200
 
-    property bool isActive: islandState === 6
+    property bool isActive: islandState === State.IslandState.prompt
     opacity: isActive ? 1 : 0
     visible: opacity > 0
     layer.enabled: true

@@ -11,13 +11,13 @@ import "../../../components" as Components
 Item {
     id: root
     anchors.fill: parent
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var theme: null
 
     // Only visible and active when in State 8 (Reflection)
     visible: opacity > 0
     layer.enabled: true
-    opacity: islandState === 8 ? 1 : 0
+    opacity: islandState === State.IslandState.reflectionGrid ? 1 : 0
     Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
 
     // Ambient Void Background
@@ -171,10 +171,10 @@ Item {
             Behavior on border.width { NumberAnimation { duration: 200 } }
             
             // Materialization transition
-            property bool isVisible: root.islandState === 8
-            opacity: (root.islandState === 8) ? 1 : 0
+            property bool isVisible: root.islandState === State.IslandState.reflectionGrid
+            opacity: (root.islandState === State.IslandState.reflectionGrid) ? 1 : 0
             transform: Translate {
-                y: (root.islandState === 8) ? 0 : 10
+                y: (root.islandState === State.IslandState.reflectionGrid) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -222,9 +222,9 @@ Item {
                     text: State.ReflectionState.searchQuery
                     onTextChanged: State.ReflectionState.searchQuery = text
 
-                    focus: islandState === 8
+                    focus: islandState === State.IslandState.reflectionGrid
                     onVisibleChanged: {
-                        if (visible && islandState === 8) {
+                        if (visible && islandState === State.IslandState.reflectionGrid) {
                             forceActiveFocus();
                         }
                     }
@@ -277,10 +277,10 @@ Item {
             visible: State.ReflectionState.searchQuery.length > 0
             
             // Materialization transition
-            property bool isVisible: root.islandState === 8 && State.ReflectionState.searchQuery.length > 0
-            opacity: (root.islandState === 8 && State.ReflectionState.searchQuery.length > 0) ? 1 : 0
+            property bool isVisible: root.islandState === State.IslandState.reflectionGrid && State.ReflectionState.searchQuery.length > 0
+            opacity: (root.islandState === State.IslandState.reflectionGrid && State.ReflectionState.searchQuery.length > 0) ? 1 : 0
             transform: Translate {
-                y: (root.islandState === 8 && State.ReflectionState.searchQuery.length > 0) ? 0 : 10
+                y: (root.islandState === State.IslandState.reflectionGrid && State.ReflectionState.searchQuery.length > 0) ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }

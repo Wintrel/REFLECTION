@@ -17,7 +17,7 @@ Item {
     property int islandState
     
     // Only show when in state 11
-    property bool isActive: islandState === 11
+    property bool isActive: islandState === State.IslandState.settingsHub
     property bool isSecretUnlocked: false
     
     onIsActiveChanged: {

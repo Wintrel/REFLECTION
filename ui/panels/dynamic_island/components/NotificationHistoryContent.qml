@@ -8,7 +8,7 @@ import "../../../components" as Components
 Item {
     id: root
     
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var theme: null
     property var mprisPlayer: null
     property real islandHistoryW: 400
@@ -31,7 +31,7 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.topMargin: 16
     
-    opacity: root.islandState === 4 ? 1 : 0
+    opacity: root.islandState === State.IslandState.notificationHistory ? 1 : 0
     visible: opacity > 0
     layer.enabled: true
     Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
@@ -52,10 +52,10 @@ Item {
         anchors.right: parent.right
         height: 50
         
-        property bool isVisible: root.islandState === 4
-        opacity: (root.islandState === 4) ? 1 : 0
+        property bool isVisible: root.islandState === State.IslandState.notificationHistory
+        opacity: (root.islandState === State.IslandState.notificationHistory) ? 1 : 0
         transform: Translate {
-            y: (root.islandState === 4) ? 0 : -5
+            y: (root.islandState === State.IslandState.notificationHistory) ? 0 : -5
             Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
         }
         Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -103,7 +103,7 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
                         if (typeof islandWidget !== "undefined") {
-                            islandWidget.islandState = 2; // Return to expanded music state
+                            islandWidget.islandState = State.IslandState.expanded; // Return to expanded music state
                         }
                     }
                 }
@@ -134,7 +134,7 @@ Item {
                     onClicked: {
                         State.GlobalStates.notificationHistory.clear();
                         if (typeof islandWidget !== "undefined") {
-                            islandWidget.islandState = 0;
+                            islandWidget.islandState = State.IslandState.idle;
                         }
                     }
                 }
@@ -154,10 +154,10 @@ Item {
         spacing: 12
         model: State.GlobalStates.notificationHistory
         
-        property bool isVisible: root.islandState === 4
-        opacity: (root.islandState === 4) ? 1 : 0
+        property bool isVisible: root.islandState === State.IslandState.notificationHistory
+        opacity: (root.islandState === State.IslandState.notificationHistory) ? 1 : 0
         transform: Translate {
-            y: (root.islandState === 4) ? 0 : 10
+            y: (root.islandState === State.IslandState.notificationHistory) ? 0 : 10
             Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
         }
         Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -201,10 +201,10 @@ Item {
             height: Math.max(iconRect.height, col.height) + 32
             
             // Simple staggered slide-up and fade-in transition
-            property bool isVisible: root.islandState === 4
-            opacity: (root.islandState === 4) ? 1 : 0
+            property bool isVisible: root.islandState === State.IslandState.notificationHistory
+            opacity: (root.islandState === State.IslandState.notificationHistory) ? 1 : 0
             transform: Translate {
-                y: (root.islandState === 4) ? 0 : 20
+                y: (root.islandState === State.IslandState.notificationHistory) ? 0 : 20
                 Behavior on y {
                     SequentialAnimation {
                         PauseAnimation { duration: delegateItem.isVisible ? index * 40 : 0 }

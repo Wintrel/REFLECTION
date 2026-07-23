@@ -11,8 +11,8 @@ Item {
     id: controller
     
     // States
-    property int islandState: 0
-    property int previousState: 0
+    property int islandState: State.IslandState.idle
+    property int previousState: State.IslandState.idle
     property bool isLocked: false
 
     // OSD
@@ -40,7 +40,8 @@ Item {
     onIslandStateChanged: {
         console.log("Island state changed to:", islandState);
         // Keep global state synced
-        if (islandState !== 14 && islandState !== 13 && islandState !== 12 && islandState !== 11 && islandState !== 10 && islandState !== 7 && islandState !== 6 && islandState !== 5 && islandState !== 3) {
+        var modalStates = [State.IslandState.clipboard, State.IslandState.ciderExpanded, State.IslandState.filePicker, State.IslandState.settingsHub, State.IslandState.polkitAuth, State.IslandState.actionProgress, State.IslandState.prompt, State.IslandState.osd, State.IslandState.notification];
+        if (modalStates.indexOf(islandState) === -1) {
             if (State.GlobalStates.settingsOpen) State.GlobalStates.settingsOpen = false;
             if (State.GlobalStates.filePickerOpen) State.GlobalStates.closeFilePicker();
             if (State.GlobalStates.clipboardOpen) State.GlobalStates.clipboardOpen = false;
@@ -48,15 +49,15 @@ Item {
     }
 
     function dismissNotification() {
-        if (islandState === 3) {
+        if (islandState === State.IslandState.notification) {
             notifTimer.stop();
-            var persistentStates = [2, 4, 6, 7, 8, 9, 10, 11, 12, 13];
+            var persistentStates = [State.IslandState.expanded, State.IslandState.notificationHistory, State.IslandState.prompt, State.IslandState.actionProgress, State.IslandState.reflectionGrid, State.IslandState.battery, State.IslandState.polkitAuth, State.IslandState.settingsHub, State.IslandState.filePicker, State.IslandState.ciderExpanded];
             if (persistentStates.indexOf(previousState) !== -1) {
                 islandState = previousState;
             } else {
-                islandState = isHovered ? 1 : 0;
+                islandState = isHovered ? State.IslandState.hover : State.IslandState.idle;
             }
-            previousState = 0;
+            previousState = State.IslandState.idle;
         }
     }
 
@@ -67,27 +68,27 @@ Item {
     }
     
     function stopTimers() {
-        if (islandState === 3) notifTimer.stop();
-        else if (islandState === 5) osdTimer.stop();
+        if (islandState === State.IslandState.notification) notifTimer.stop();
+        else if (islandState === State.IslandState.osd) osdTimer.stop();
     }
     
     function restartTimers() {
-        if (islandState === 3) notifTimer.restart();
-        else if (islandState === 5) osdTimer.restart();
+        if (islandState === State.IslandState.notification) notifTimer.restart();
+        else if (islandState === State.IslandState.osd) osdTimer.restart();
     }
 
     Timer {
         id: osdTimer
         interval: 2000 // 2 seconds
         onTriggered: {
-            if (islandState === 5) {
-                var persistentStates = [2, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+            if (islandState === State.IslandState.osd) {
+                var persistentStates = [State.IslandState.expanded, State.IslandState.notificationHistory, State.IslandState.prompt, State.IslandState.actionProgress, State.IslandState.reflectionGrid, State.IslandState.battery, State.IslandState.polkitAuth, State.IslandState.settingsHub, State.IslandState.filePicker, State.IslandState.ciderExpanded, State.IslandState.clipboard];
                 if (persistentStates.indexOf(previousState) !== -1) {
                     islandState = previousState;
                 } else {
-                    islandState = isHovered ? 1 : 0;
+                    islandState = isHovered ? State.IslandState.hover : State.IslandState.idle;
                 }
-                previousState = 0;
+                previousState = State.IslandState.idle;
             }
         }
     }
@@ -106,19 +107,19 @@ Item {
             if (priority === 3) duration = 8000;
             osdTimer.interval = duration;
             
-            if (controller.islandState !== 3 || priority >= 2) {
+            if (controller.islandState !== State.IslandState.notification || priority >= 2) {
                 if (priority === 1) {
-                    var modalStates = [6, 7, 8, 10, 11, 12, 13, 14];
+                    var modalStates = [State.IslandState.prompt, State.IslandState.actionProgress, State.IslandState.reflectionGrid, State.IslandState.polkitAuth, State.IslandState.settingsHub, State.IslandState.filePicker, State.IslandState.ciderExpanded, State.IslandState.clipboard];
                     if (modalStates.indexOf(controller.islandState) !== -1) {
                         return;
                     }
                 }
 
-                if (controller.islandState !== 5 && controller.islandState !== 3) {
+                if (controller.islandState !== State.IslandState.osd && controller.islandState !== State.IslandState.notification) {
                     controller.previousState = controller.islandState;
                 }
                 
-                controller.islandState = 5;
+                controller.islandState = State.IslandState.osd;
                 osdTimer.restart();
             }
         }
@@ -128,13 +129,13 @@ Item {
         target: State.ReflectionState
         function onIsOpenChanged() {
             if (State.ReflectionState.isOpen) {
-                if (controller.islandState !== 8 && controller.islandState !== 3) {
+                if (controller.islandState !== State.IslandState.reflectionGrid && controller.islandState !== State.IslandState.notification) {
                     controller.previousState = controller.islandState;
                 }
-                controller.islandState = 8;
+                controller.islandState = State.IslandState.reflectionGrid;
             } else {
-                if (controller.islandState === 8) {
-                    controller.islandState = controller.previousState || 0;
+                if (controller.islandState === State.IslandState.reflectionGrid) {
+                    controller.islandState = controller.previousState || State.IslandState.idle;
                 }
             }
         }
@@ -143,24 +144,24 @@ Item {
     Connections {
         target: PromptService
         function onPromptRequested() {
-            if (controller.islandState !== 6 && controller.islandState !== 3) {
+            if (controller.islandState !== State.IslandState.prompt && controller.islandState !== State.IslandState.notification) {
                 controller.previousState = controller.islandState;
             }
-            controller.islandState = 6;
+            controller.islandState = State.IslandState.prompt;
         }
         function onCanceled() {
-            if (controller.islandState === 6) {
-                controller.islandState = controller.previousState || 0;
-                if (controller.islandState === 11) {
-                    controller.previousState = 0;
+            if (controller.islandState === State.IslandState.prompt) {
+                controller.islandState = controller.previousState || State.IslandState.idle;
+                if (controller.islandState === State.IslandState.settingsHub) {
+                    controller.previousState = State.IslandState.idle;
                 }
             }
         }
         function onSubmitted(text) {
-            if (controller.islandState === 6) {
-                controller.islandState = controller.previousState || 0;
-                if (controller.islandState === 11) {
-                    controller.previousState = 0;
+            if (controller.islandState === State.IslandState.prompt) {
+                controller.islandState = controller.previousState || State.IslandState.idle;
+                if (controller.islandState === State.IslandState.settingsHub) {
+                    controller.previousState = State.IslandState.idle;
                 }
             }
         }
@@ -170,10 +171,10 @@ Item {
         target: ActionProgressService
         function onActionRequested() {
             actionSuccessTimer.stop();
-            if (controller.islandState !== 7 && controller.islandState !== 6 && controller.islandState !== 3) {
+            if (controller.islandState !== State.IslandState.actionProgress && controller.islandState !== State.IslandState.prompt && controller.islandState !== State.IslandState.notification) {
                 controller.previousState = controller.islandState;
             }
-            controller.islandState = 7;
+            controller.islandState = State.IslandState.actionProgress;
         }
         function onIsResolvingChanged() {
             if (ActionProgressService.isResolving) {
@@ -185,16 +186,16 @@ Item {
     Connections {
         target: PolkitAuthService
         function onPolkitRequestStarted() {
-            if (controller.islandState !== 10 && controller.islandState !== 3) {
+            if (controller.islandState !== State.IslandState.polkitAuth && controller.islandState !== State.IslandState.notification) {
                 controller.previousState = controller.islandState;
             }
-            controller.islandState = 10;
+            controller.islandState = State.IslandState.polkitAuth;
         }
         function onPolkitRequestFinished() {
-            if (controller.islandState === 10) {
-                controller.islandState = controller.previousState || 0;
-                if (controller.islandState === 11) {
-                    controller.previousState = 0;
+            if (controller.islandState === State.IslandState.polkitAuth) {
+                controller.islandState = controller.previousState || State.IslandState.idle;
+                if (controller.islandState === State.IslandState.settingsHub) {
+                    controller.previousState = State.IslandState.idle;
                 }
             }
         }
@@ -204,44 +205,44 @@ Item {
         target: State.GlobalStates
         function onSettingsOpenChanged() {
             if (State.GlobalStates.settingsOpen) {
-                if (controller.islandState !== 11 && controller.islandState !== 3) {
+                if (controller.islandState !== State.IslandState.settingsHub && controller.islandState !== State.IslandState.notification) {
                     controller.previousState = controller.islandState;
                 }
-                controller.islandState = 11;
+                controller.islandState = State.IslandState.settingsHub;
             } else {
-                if (controller.islandState === 11) {
+                if (controller.islandState === State.IslandState.settingsHub) {
                     var targetState = controller.previousState;
-                    if (targetState === 11) targetState = 0;
-                    controller.islandState = targetState || 0;
+                    if (targetState === State.IslandState.settingsHub) targetState = State.IslandState.idle;
+                    controller.islandState = targetState || State.IslandState.idle;
                 }
             }
         }
         function onFilePickerOpenChanged() {
             if (State.GlobalStates.filePickerOpen) {
-                if (controller.islandState !== 12 && controller.islandState !== 3) {
+                if (controller.islandState !== State.IslandState.filePicker && controller.islandState !== State.IslandState.notification) {
                     controller.previousState = controller.islandState;
                 }
-                controller.islandState = 12;
+                controller.islandState = State.IslandState.filePicker;
             } else {
-                if (controller.islandState === 12) {
+                if (controller.islandState === State.IslandState.filePicker) {
                     var targetState = controller.previousState;
-                    if (targetState === 12) targetState = 0;
-                    controller.islandState = targetState || 0;
+                    if (targetState === State.IslandState.filePicker) targetState = State.IslandState.idle;
+                    controller.islandState = targetState || State.IslandState.idle;
                 }
             }
         }
         function onClipboardOpenChanged() {
             console.log("Clipboard open changed:", State.GlobalStates.clipboardOpen);
             if (State.GlobalStates.clipboardOpen) {
-                if (controller.islandState !== 14 && controller.islandState !== 3) {
+                if (controller.islandState !== State.IslandState.clipboard && controller.islandState !== State.IslandState.notification) {
                     controller.previousState = controller.islandState;
                 }
-                controller.islandState = 14;
+                controller.islandState = State.IslandState.clipboard;
             } else {
-                if (controller.islandState === 14) {
+                if (controller.islandState === State.IslandState.clipboard) {
                     var targetState = controller.previousState;
-                    if (targetState === 14) targetState = 0;
-                    controller.islandState = targetState || 0;
+                    if (targetState === State.IslandState.clipboard) targetState = State.IslandState.idle;
+                    controller.islandState = targetState || State.IslandState.idle;
                 }
             }
         }
@@ -251,8 +252,8 @@ Item {
         id: actionSuccessTimer
         interval: 2000
         onTriggered: {
-            if (controller.islandState === 7) {
-                controller.islandState = 0;
+            if (controller.islandState === State.IslandState.actionProgress) {
+                controller.islandState = State.IslandState.idle;
             }
             ActionProgressService.reset();
         }
@@ -296,12 +297,12 @@ Item {
             
             controller.currentNotif = notifCopy;
             
-            var modalStates = [6, 7, 8, 10, 11, 12, 13];
+            var modalStates = [State.IslandState.prompt, State.IslandState.actionProgress, State.IslandState.reflectionGrid, State.IslandState.polkitAuth, State.IslandState.settingsHub, State.IslandState.filePicker, State.IslandState.ciderExpanded];
             if (modalStates.indexOf(controller.islandState) === -1) {
-                if (controller.islandState !== 3) {
+                if (controller.islandState !== State.IslandState.notification) {
                     controller.previousState = controller.islandState;
                 }
-                controller.islandState = 3;
+                controller.islandState = State.IslandState.notification;
                 notifTimer.restart();
             }
             

@@ -1,3 +1,4 @@
+import "core/state" as State
 import QtQuick
 import Qt5Compat.GraphicalEffects
 import "../../../../core" as Core
@@ -6,7 +7,7 @@ import "../../../../core/services/system" as System
 Item {
     id: root
     
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property int osdMode: 0
     property int osdPriority: 1
     property string osdIcon: ""
@@ -22,7 +23,7 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.topMargin: 8
     
-    opacity: root.islandState === 5 ? 1 : 0
+    opacity: root.islandState === State.IslandState.osd ? 1 : 0
     visible: opacity > 0
     layer.enabled: true
     Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
@@ -39,10 +40,10 @@ Item {
         Text {
             anchors.verticalCenter: parent.verticalCenter
             
-            property bool isVisible: root.islandState === 5
-            opacity: (root.islandState === 5) ? 1 : 0
+            property bool isVisible: root.islandState === State.IslandState.osd
+            opacity: (root.islandState === State.IslandState.osd) ? 1 : 0
             transform: Translate {
-                y: (root.islandState === 5) ? 0 : -5
+                y: (root.islandState === State.IslandState.osd) ? 0 : -5
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -71,10 +72,10 @@ Item {
             radius: 6
             color: root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.2) : "#30A6ADC8"
             
-            property bool isVisible: root.islandState === 5
-            opacity: (root.islandState === 5) ? 1 : 0
+            property bool isVisible: root.islandState === State.IslandState.osd
+            opacity: (root.islandState === State.IslandState.osd) ? 1 : 0
             transform: Translate {
-                x: (root.islandState === 5) ? 0 : -10
+                x: (root.islandState === State.IslandState.osd) ? 0 : -10
                 Behavior on x { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -102,10 +103,10 @@ Item {
             id: alertIcon
             anchors.verticalCenter: parent.verticalCenter
             
-            property bool isVisible: root.islandState === 5
-            opacity: (root.islandState === 5) ? 1 : 0
+            property bool isVisible: root.islandState === State.IslandState.osd
+            opacity: (root.islandState === State.IslandState.osd) ? 1 : 0
             transform: Translate {
-                y: (root.islandState === 5) ? 0 : -5
+                y: (root.islandState === State.IslandState.osd) ? 0 : -5
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -119,7 +120,7 @@ Item {
             
             SequentialAnimation on scale {
                 loops: Animation.Infinite
-                running: root.islandState === 5 && root.osdMode === 2 && root.osdPriority >= 2
+                running: root.islandState === State.IslandState.osd && root.osdMode === 2 && root.osdPriority >= 2
                 
                 NumberAnimation { from: 1.0; to: 1.25; duration: 300; easing.type: Easing.OutBack }
                 NumberAnimation { from: 1.25; to: 1.0; duration: 400; easing.type: Easing.InOutQuad }
@@ -130,10 +131,10 @@ Item {
         Text {
             anchors.verticalCenter: parent.verticalCenter
             
-            property bool isVisible: root.islandState === 5
-            opacity: (root.islandState === 5) ? 1 : 0
+            property bool isVisible: root.islandState === State.IslandState.osd
+            opacity: (root.islandState === State.IslandState.osd) ? 1 : 0
             transform: Translate {
-                x: (root.islandState === 5) ? 0 : -10
+                x: (root.islandState === State.IslandState.osd) ? 0 : -10
                 Behavior on x { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }

@@ -1,10 +1,11 @@
+import "core/state" as State
 import QtQuick
 import Qt5Compat.GraphicalEffects
 
 Item {
     id: root
 
-    property int islandState: 0
+    property int islandState: State.IslandState.idle
     property var mprisPlayer: null
     property var theme: null
 
@@ -20,12 +21,12 @@ Item {
         radius: 8
         color: "#313244"
         
-        property bool isVisible: root.islandState === 2
-        opacity: (root.islandState === 2) ? 1 : 0
+        property bool isVisible: root.islandState === State.IslandState.expanded
+        opacity: (root.islandState === State.IslandState.expanded) ? 1 : 0
         transform: Scale {
             origin.x: 30; origin.y: 30
-            xScale: (root.islandState === 2) ? 1 : 0.8
-            yScale: (root.islandState === 2) ? 1 : 0.8
+            xScale: (root.islandState === State.IslandState.expanded) ? 1 : 0.8
+            yScale: (root.islandState === State.IslandState.expanded) ? 1 : 0.8
             Behavior on xScale { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutBack } } }
             Behavior on yScale { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutBack } } }
         }
@@ -58,10 +59,10 @@ Item {
         anchors.leftMargin: 16
         anchors.verticalCenter: parent.verticalCenter
         
-        property bool isVisible: root.islandState === 2
-        opacity: (root.islandState === 2) ? 1 : 0
+        property bool isVisible: root.islandState === State.IslandState.expanded
+        opacity: (root.islandState === State.IslandState.expanded) ? 1 : 0
         transform: Translate {
-            y: (root.islandState === 2) ? 0 : 10
+            y: (root.islandState === State.IslandState.expanded) ? 0 : 10
             Behavior on y { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
         }
         Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 100 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
