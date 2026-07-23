@@ -101,7 +101,7 @@ Scope {
                             anchors.topMargin: theme.taskbarBorderWidth
                             anchors.bottomMargin: theme.taskbarRadius + theme.taskbarBorderWidth
 
-                            radius: parent.radius - 2
+                            radius: parent.radius - theme.taskbarBorderWidth
                             color: theme.bgInner
                             clip: true
                             

@@ -47,7 +47,7 @@ Item {
                 
                 Rectangle {
                     anchors.fill: parent
-                    radius: bg.radius - 2
+                    radius: bg.radius - theme.taskbarBorderWidth
                     color: theme.bgInner
                 }
                 

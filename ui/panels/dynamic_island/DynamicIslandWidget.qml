@@ -182,23 +182,44 @@ Item {
         }
         
         // The inner inset content area
-        Rectangle {
+        Item {
             id: innerShape
             anchors.fill: parent
-            anchors.leftMargin: 4
-            anchors.rightMargin: 4
-            anchors.bottomMargin: 4
+            anchors.leftMargin: theme.islandBorderWidth
+            anchors.rightMargin: theme.islandBorderWidth
+            anchors.bottomMargin: theme.islandBorderWidth
             anchors.topMargin: theme.radiusIsland + 4
-            
-            radius: parent.radius - 2
-            color: theme.bgInner
             clip: true
+            
+            Item {
+                id: innerMask
+                anchors.fill: parent
+                layer.enabled: true
+                z: -1
+                
+                Rectangle {
+                    anchors.fill: parent
+                    radius: islandShape.radius - theme.islandBorderWidth
+                    color: theme.bgInner
+                }
+                
+                // Square off top corners to seamlessly connect to the black bezel above
+                Rectangle {
+                    height: islandShape.radius
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    color: theme.bgInner
+                }
+            }
             
             ReflectionGradient {
                 theme: theme
                 startColor: theme.bgInner
                 endColor: theme.bgInnerGradientEnd
                 anchors.fill: parent
+                source: innerMask
+                z: -1
             }
             
             IslandComponents.MinimizedContent {

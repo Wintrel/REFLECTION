@@ -91,5 +91,6 @@ Item {
     property int taskbarHeight: 52
     property real taskbarWidthPercent: 0.97 // 85% width
     property int taskbarBottomMargin: 0
-    property int taskbarBorderWidth: 4
+    property int taskbarBorderWidth: 0
+    property int islandBorderWidth: 0
 }
