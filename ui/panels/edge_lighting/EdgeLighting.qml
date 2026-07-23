@@ -87,7 +87,6 @@ Scope {
                 }
             }
 
-            // ── Samsung Edge Lighting ──
             // Thin gradient lines that travel along the screen border.
             // No orbs, no RadialGradient blobs — just slim rectangles.
 
@@ -99,31 +98,31 @@ Scope {
                 target: edgeWindow
                 property: "travelProgress"
                 from: 0; to: 1
-                duration: 4200
+                duration: 5400
                 loops: Animation.Infinite
                 running: edgeWindow.isActive
             }
 
-            // Convert normalized perimeter position (0–1) to screen X,Y
-            function perimeterToXY(t) {
-                if (perimeter <= 0) return { x: 0, y: 0 };
-                var p = ((t % 1) + 1) % 1;
-                var d = p * perimeter;
-                var w = width, h = height;
-                if (d < w)     return { x: d,     y: 0 };
-                d -= w;
-                if (d < h)     return { x: w,     y: d };
-                d -= h;
-                if (d < w)     return { x: w - d, y: h };
-                d -= w;
-                return           { x: 0,     y: h - d };
+            // Two light streams, offset by half the perimeter
+            property real stream1P: (travelProgress * perimeter) % perimeter
+            property real stream2P: ((travelProgress + 0.5) * perimeter) % perimeter
+
+            // Map 1D stream position to local edge coordinate
+            function getLocalPos(streamP, startP, edgeLen, reverse) {
+                if (perimeter <= 0) return 0;
+                var local = (streamP - startP + perimeter) % perimeter;
+                var localBack = local - perimeter;
+                
+                var distLocal = local < 0 ? -local : (local > edgeLen ? local - edgeLen : 0);
+                var distBack = localBack < 0 ? -localBack : (localBack > edgeLen ? localBack - edgeLen : 0);
+                
+                if (distBack < distLocal) {
+                    local = localBack;
+                }
+                
+                return reverse ? (edgeLen - local) : local;
             }
 
-            // Two light streams, offset by half the perimeter
-            property var s1: perimeterToXY(travelProgress)
-            property var s2: perimeterToXY(travelProgress + 0.5)
-
-            // ── Light Trail Component ──
             // A slim traveling light: 2px bright line at the screen edge
             // + layered bloom fading inward (total ~10px visible depth).
             // Uses Rectangle with Gradient — no heavy effects.
@@ -209,32 +208,32 @@ Scope {
                 Item {
                     anchors { top: parent.top; left: parent.left; right: parent.right }
                     height: 12; clip: true
-                    LightTrail { anchors.fill: parent; horiz: true;  atStart: true;  headPos: edgeWindow.s1.x }
-                    LightTrail { anchors.fill: parent; horiz: true;  atStart: true;  headPos: edgeWindow.s2.x }
+                    LightTrail { anchors.fill: parent; horiz: true;  atStart: true;  headPos: edgeWindow.getLocalPos(edgeWindow.stream1P, 0, edgeWindow.width, false) }
+                    LightTrail { anchors.fill: parent; horiz: true;  atStart: true;  headPos: edgeWindow.getLocalPos(edgeWindow.stream2P, 0, edgeWindow.width, false) }
                 }
 
                 // ─ Bottom edge ─
                 Item {
                     anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
                     height: 12; clip: true
-                    LightTrail { anchors.fill: parent; horiz: true;  atStart: false; headPos: edgeWindow.s1.x }
-                    LightTrail { anchors.fill: parent; horiz: true;  atStart: false; headPos: edgeWindow.s2.x }
+                    LightTrail { anchors.fill: parent; horiz: true;  atStart: false; headPos: edgeWindow.getLocalPos(edgeWindow.stream1P, edgeWindow.width + edgeWindow.height, edgeWindow.width, true) }
+                    LightTrail { anchors.fill: parent; horiz: true;  atStart: false; headPos: edgeWindow.getLocalPos(edgeWindow.stream2P, edgeWindow.width + edgeWindow.height, edgeWindow.width, true) }
                 }
 
                 // ─ Left edge ─
                 Item {
                     anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
                     width: 12; clip: true
-                    LightTrail { anchors.fill: parent; horiz: false; atStart: true;  headPos: edgeWindow.s1.y }
-                    LightTrail { anchors.fill: parent; horiz: false; atStart: true;  headPos: edgeWindow.s2.y }
+                    LightTrail { anchors.fill: parent; horiz: false; atStart: true;  headPos: edgeWindow.getLocalPos(edgeWindow.stream1P, 2 * edgeWindow.width + edgeWindow.height, edgeWindow.height, true) }
+                    LightTrail { anchors.fill: parent; horiz: false; atStart: true;  headPos: edgeWindow.getLocalPos(edgeWindow.stream2P, 2 * edgeWindow.width + edgeWindow.height, edgeWindow.height, true) }
                 }
 
                 // ─ Right edge ─
                 Item {
                     anchors { right: parent.right; top: parent.top; bottom: parent.bottom }
                     width: 12; clip: true
-                    LightTrail { anchors.fill: parent; horiz: false; atStart: false; headPos: edgeWindow.s1.y }
-                    LightTrail { anchors.fill: parent; horiz: false; atStart: false; headPos: edgeWindow.s2.y }
+                    LightTrail { anchors.fill: parent; horiz: false; atStart: false; headPos: edgeWindow.getLocalPos(edgeWindow.stream1P, edgeWindow.width, edgeWindow.height, false) }
+                    LightTrail { anchors.fill: parent; horiz: false; atStart: false; headPos: edgeWindow.getLocalPos(edgeWindow.stream2P, edgeWindow.width, edgeWindow.height, false) }
                 }
             }
         }

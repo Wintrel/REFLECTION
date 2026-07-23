@@ -48,6 +48,10 @@ Item {
     property real ambientShimmerPos: -0.3
     property real ambientShimmerOpacity: 0
     
+    // Drag test properties
+    property alias dragHandlerActive: dragHandler.active
+    property real dragAmount: dragHandler.active ? dragHandler.translation.y : 0
+    
     function dismissNotification() {
         controller.dismissNotification();
     }
@@ -130,6 +134,12 @@ Item {
             }
         }
         
+        DragHandler {
+            id: dragHandler
+            target: null
+            yAxis.minimum: 0
+        }
+        
         // Center horizontally in the widget
         anchors.horizontalCenter: parent.horizontalCenter
         
@@ -189,7 +199,11 @@ Item {
         
         // Glass edge look (1px frosty border)
         border.width: theme.islandBorderWidth > 0 ? 1 : 0
-        border.color: Qt.rgba(theme.colorSystemShimmer.r, theme.colorSystemShimmer.g, theme.colorSystemShimmer.b, 0.4)
+        border.color: islandWidget.islandState !== State.IslandState.idle 
+                      ? Qt.rgba(theme.colorSystemShimmer.r, theme.colorSystemShimmer.g, theme.colorSystemShimmer.b, 0.4)
+                      : "transparent"
+        
+        Behavior on border.color { ColorAnimation { duration: theme.animDuration; easing.type: Easing.OutSine } }
         
         Behavior on width {
             NumberAnimation { duration: theme.animDuration; easing.type: Easing.OutExpo }
@@ -376,6 +390,12 @@ Item {
         islandShape: islandShape
         radiusIsland: theme.radiusIsland
         bgBezel: theme.bgBezel
+        
+        isActive: islandWidget.islandState !== State.IslandState.idle
+        glowColor: theme.accentPrimary
+        shimmerColor: Qt.rgba(theme.colorSystemShimmer.r, theme.colorSystemShimmer.g, theme.colorSystemShimmer.b, 0.4)
+        borderWidth: theme.islandBorderWidth
+        animDuration: theme.animDuration
     }
 
     // Global Wayland Shortcut Hook for Super key1
