@@ -34,7 +34,7 @@ Item {
     // Effects
     property real edgeLightingIntensity: 0.6
 
-    property string currentTheme: "Ghostly Stardust"
+    property string currentTheme: "Midnight Winter"
 
     property var themes: [
         {
@@ -101,25 +101,25 @@ Item {
             accentPrimaryGradientEnd: "#CC2244"
         },
         {
-            name: "Midnight Winter",
-            bgBezel: "#06090f",
-            bgInner: "#0b101a",
+            name: "Midnight Winter", //Reflections Main theme
+            bgBezel: "#08080C",
+            bgInner: "#08080C",
             textMain: "#E2E8F0",
             textSub: "#94A3B8",
-            accentNotification: "#1E293B",
-            accentMusic: "#334155",
-            accentWorkspace: "#1E293B",
-            accentPrimary: "#A5B4FC",
-            colorSystemShimmer: "#E0E7FF",
+            accentNotification: "#111827",
+            accentMusic: "#1F2937",
+            accentWorkspace: "#111827",
+            accentPrimary: '#5151ad',
+            colorSystemShimmer: "#A5F3FC",
             bgBase: "#000000",
-            surfaceCard: "#121825",
-            surfaceOverlay: "#1a2233",
+            surfaceCard: "#08080C",
+            surfaceOverlay: "#111827",
             textMuted: "#475569",
-            accentSecondary: '#2d347a',
+            accentSecondary: '#0830b2',
             useGradients: true,
-            bgInnerGradientEnd: "#000000",
-            surfaceCardGradientEnd: "#06090f",
-            accentPrimaryGradientEnd: '#3645ce'
+            bgInnerGradientEnd: "#08080C",
+            surfaceCardGradientEnd: "#08080C",
+            accentPrimaryGradientEnd: '#2563EB'
         },
         {
             name: "Midnight Winter - Aurora",
