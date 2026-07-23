@@ -21,11 +21,9 @@ Scope {
 
             WlrLayershell.keyboardFocus: (widget.islandState === State.IslandState.prompt || widget.islandState === State.IslandState.reflectionGrid || widget.islandState === State.IslandState.polkitAuth) ? WlrKeyboardFocus.Exclusive : ((widget.islandState === State.IslandState.settingsHub || widget.islandState === State.IslandState.filePicker || widget.islandState === State.IslandState.ciderExpanded) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None)
             
-            // Anchor to the top and full width of the screen
+            // Anchor only to the top, so it centers horizontally by default
             anchors {
                 top: true
-                left: true
-                right: true
             }
             
             // Make sure the window acts as an overlay and doesn't take up literal screen space
@@ -35,62 +33,21 @@ Scope {
             color: "transparent"
             
             // Lock the Wayland surface size to the maximum possible bounds to prevent resizing wobble
-            // Increased height to accommodate the drag down dashboard test
             implicitWidth: Math.max(theme.islandMaxW, theme.islandHistoryW || 0, theme.reflectionGridW || 800, theme.islandSettingsW || 800, theme.islandCiderW || 0, theme.islandFilePickerW || 1000) + (2 * theme.radiusIsland)
-            implicitHeight: Math.max(theme.islandMaxH, theme.islandHistoryH || 0, theme.reflectionGridH || 600, theme.islandSettingsH || 600, theme.islandCiderH || 0, theme.islandFilePickerH || 600) + theme.radiusIsland + 350
+            implicitHeight: Math.max(theme.islandMaxH, theme.islandHistoryH || 0, theme.reflectionGridH || 600, theme.islandSettingsH || 600, theme.islandCiderH || 0, theme.islandFilePickerH || 600) + theme.radiusIsland
             
             // Mask the input/visual region exactly to the opaque pixels of the container
             // This perfectly prevents the window from blocking clicks on the desktop!
             mask: Region {
-                item: contentContainer
+                item: widget
             }
             
-            Item {
-                id: contentContainer
-                anchors.fill: parent
+            DynamicIslandWidget {
+                id: widget
+                anchors.horizontalCenter: parent.horizontalCenter
                 
-                // Test Build: Drag Down Screen-Wide Box
-                Rectangle {
-                    id: testDashboard
-                    width: parent.width - 48
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    height: 250
-                    y: -height + Math.min(widget.dragAmount, 350)
-                    
-                    color: Qt.rgba(theme.bgBezel.r, theme.bgBezel.g, theme.bgBezel.b, 0.8)
-                    radius: theme.radiusIsland
-                    border.width: 1
-                    border.color: Qt.rgba(1, 1, 1, 0.15)
-                    
-                    Behavior on y {
-                        enabled: !widget.dragHandlerActive
-                        NumberAnimation { duration: 500; easing.type: Easing.OutBack; easing.overshoot: 0.5 }
-                    }
-                    
-                    Text {
-                        anchors.centerIn: parent
-                        text: "Drag Handle Test Build!"
-                        color: "white"
-                        font.pixelSize: 24
-                        font.bold: true
-                        opacity: widget.dragAmount > 100 ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 300 } }
-                    }
-                }
-                
-                DynamicIslandWidget {
-                    id: widget
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top: parent.top
-                    anchors.topMargin: 0
-                    
-                    transform: Translate {
-                        y: Math.min(widget.dragAmount, 350)
-                        Behavior on y {
-                            enabled: !widget.dragHandlerActive
-                            NumberAnimation { duration: 500; easing.type: Easing.OutBack; easing.overshoot: 0.5 }
-                        }
-                    }
+                anchors.top: parent.top
+                anchors.topMargin: 0
 
                 // Ambient hide: shimmer sweep → nod → slide away
                 SequentialAnimation {
@@ -160,3 +117,4 @@ Scope {
         }
     }
 }
+

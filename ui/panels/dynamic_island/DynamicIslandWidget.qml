@@ -48,10 +48,7 @@ Item {
     property real ambientShimmerPos: -0.3
     property real ambientShimmerOpacity: 0
     
-    // Drag test properties
-    property alias dragHandlerActive: dragHandler.active
-    property real dragAmount: dragHandler.active ? dragHandler.translation.y : 0
-    
+
     function dismissNotification() {
         controller.dismissNotification();
     }
@@ -134,12 +131,7 @@ Item {
             }
         }
         
-        DragHandler {
-            id: dragHandler
-            target: null
-            yAxis.minimum: 0
-        }
-        
+
         // Center horizontally in the widget
         anchors.horizontalCenter: parent.horizontalCenter
         
