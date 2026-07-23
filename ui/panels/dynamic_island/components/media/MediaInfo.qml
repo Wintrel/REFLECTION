@@ -20,6 +20,8 @@ Item {
         height: 60
         radius: root.theme ? root.theme.radiusIsland : 8
         color: root.theme ? root.theme.surfaceOverlay : "#313244"
+        border.width: root.theme ? root.theme.islandBorderWidth : 0
+        border.color: root.theme ? root.theme.accentPrimary : "transparent"
         
         property bool isVisible: root.islandState === State.IslandState.expanded
         opacity: (root.islandState === State.IslandState.expanded) ? 1 : 0

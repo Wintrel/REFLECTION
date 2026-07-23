@@ -73,7 +73,7 @@ Item {
     // Main Content
     Item {
         anchors.top: topSliver.bottom
-        anchors.topMargin: 20
+        anchors.topMargin: 10
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom

@@ -8,7 +8,6 @@ Row {
     property var mprisPlayer: null
     property var theme: null
     
-    // We emit signals for logic that ExpandedContent.qml handles
     signal previousClicked()
     signal playPauseClicked()
     signal nextClicked()

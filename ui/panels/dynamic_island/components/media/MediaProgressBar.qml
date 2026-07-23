@@ -31,7 +31,11 @@ Rectangle {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         radius: parent.radius
-        color: root.theme ? root.theme.accentMusic : "#5611f8"
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0.0; color: root.theme ? root.theme.accentMusic : "#5611f8" }
+            GradientStop { position: 1.0; color: root.theme ? root.theme.accentPrimary : "#00FFFF" }
+        }
         
         property real _smoothedPos: 0
         property real _rawPos: root.mprisPlayer ? root.mprisPlayer.position : 0
