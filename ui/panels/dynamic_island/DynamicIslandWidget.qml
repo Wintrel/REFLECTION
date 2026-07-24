@@ -44,7 +44,7 @@ Item {
     property alias mprisPlayer: controller.mprisPlayer
     property alias currentNotif: controller.currentNotif
 
-    // Ambient hide animation properties (driven by DynamicIsland.qml)
+    // Ambient hide animation properties (driven by DynamicIsland.qml).
     property real ambientShimmerPos: -0.3
     property real ambientShimmerOpacity: 0
     
@@ -403,6 +403,28 @@ Item {
         target: "searchToggle"
         function trigger() {
             State.ReflectionState.toggle()
+        }
+    }
+
+    GlobalShortcut {
+        name: "quickshell:mediaControlsToggle"
+        onPressed: {
+            if (islandWidget.islandState === State.IslandState.expanded || islandWidget.islandState === State.IslandState.ciderExpanded) {
+                islandWidget.islandState = State.IslandState.idle;
+            } else {
+                islandWidget.islandState = State.IslandState.expanded;
+            }
+        }
+    }
+
+    IpcHandler {
+        target: "media"
+        function toggle() {
+            if (islandWidget.islandState === State.IslandState.expanded || islandWidget.islandState === State.IslandState.ciderExpanded) {
+                islandWidget.islandState = State.IslandState.idle;
+            } else {
+                islandWidget.islandState = State.IslandState.expanded;
+            }
         }
     }
 }
