@@ -4,3 +4,4 @@ node_modules
 .current_wallpaper
 *.md
 .vscode
+.battery_state.json
