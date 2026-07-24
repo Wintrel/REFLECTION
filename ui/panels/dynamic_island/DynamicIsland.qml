@@ -19,14 +19,25 @@ Scope {
             required property var modelData
             screen: modelData
 
-            WlrLayershell.keyboardFocus: (widget.islandState === State.IslandState.prompt || widget.islandState === State.IslandState.reflectionGrid || widget.islandState === State.IslandState.polkitAuth) ? WlrKeyboardFocus.Exclusive : ((widget.islandState === State.IslandState.settingsHub || widget.islandState === State.IslandState.filePicker || widget.islandState === State.IslandState.ciderExpanded) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None)
+            WlrLayershell.keyboardFocus: {
+                var exclusive = [State.IslandState.prompt, State.IslandState.reflectionGrid, State.IslandState.polkitAuth];
+                var onDemand = [State.IslandState.settingsHub, State.IslandState.filePicker, State.IslandState.ciderExpanded, State.IslandState.clipboard, State.IslandState.expanded, State.IslandState.battery, State.IslandState.notificationHistory];
+                
+                if (exclusive.indexOf(widget.islandState) !== -1) return WlrKeyboardFocus.Exclusive;
+                if (onDemand.indexOf(widget.islandState) !== -1) return WlrKeyboardFocus.OnDemand;
+                return WlrKeyboardFocus.None;
+            }
+            
+
             
             // Render on top of fullscreen windows if enabled, otherwise use normal top layer
             WlrLayershell.layer: State.GlobalStates.islandInOverlay ? WlrLayer.Overlay : WlrLayer.Top
             
-            // Anchor only to the top, so it centers horizontally by default
             anchors {
                 top: true
+                bottom: true
+                left: true
+                right: true
             }
             
             // Make sure the window acts as an overlay and doesn't take up literal screen space
@@ -35,14 +46,48 @@ Scope {
             // Transparent background for the panel itself
             color: "transparent"
             
-            // Lock the Wayland surface size to the maximum possible bounds to prevent resizing wobble
-            implicitWidth: Math.max(theme.islandMaxW, theme.islandHistoryW || 0, theme.reflectionGridW || 800, theme.islandSettingsW || 800, theme.islandCiderW || 0, theme.islandFilePickerW || 1000) + (2 * theme.radiusIsland)
-            implicitHeight: Math.max(theme.islandMaxH, theme.islandHistoryH || 0, theme.reflectionGridH || 600, theme.islandSettingsH || 600, theme.islandCiderH || 0, theme.islandFilePickerH || 600) + theme.radiusIsland
+            Item {
+                id: clickawayMask
+                width: parent.width
+                
+                property bool isExpanded: widget.islandState === State.IslandState.ciderExpanded || 
+                                          widget.islandState === State.IslandState.expanded ||
+                                          widget.islandState === State.IslandState.battery ||
+                                          widget.islandState === State.IslandState.settingsHub ||
+                                          widget.islandState === State.IslandState.filePicker ||
+                                          widget.islandState === State.IslandState.clipboard ||
+                                          widget.islandState === State.IslandState.reflectionGrid ||
+                                          widget.islandState === State.IslandState.notificationHistory
+
+                height: isExpanded ? parent.height : 0
+                
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        if (widget.islandState === State.IslandState.clipboard) {
+                            State.GlobalStates.clipboardOpen = false;
+                        } else if (widget.islandState === State.IslandState.filePicker) {
+                            State.GlobalStates.closeFilePicker();
+                        } else if (widget.islandState === State.IslandState.settingsHub) {
+                            State.GlobalStates.settingsOpen = false;
+                        } else if (widget.islandState === State.IslandState.reflectionGrid) {
+                            State.ReflectionState.isOpen = false;
+                        } else {
+                            widget.islandState = State.IslandState.idle;
+                        }
+                    }
+                }
+            }
             
             // Mask the input/visual region exactly to the opaque pixels of the container
             // This perfectly prevents the window from blocking clicks on the desktop!
             mask: Region {
-                item: widget
+                Region {
+                    item: clickawayMask
+                }
+                Region {
+                    item: widget
+                }
             }
             
             DynamicIslandWidget {

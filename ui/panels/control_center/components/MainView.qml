@@ -23,7 +23,7 @@ Column {
     // 1. Frequent Controls (Sliders)
     Column {
         width: parent.width
-        spacing: 16
+        spacing: 16 
         
         property bool isVisible: ccRoot && ccRoot.viewState === "main" && ccRoot.isOpen
         opacity: isVisible ? 1 : 0
