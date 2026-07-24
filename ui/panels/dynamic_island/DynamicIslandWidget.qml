@@ -427,4 +427,15 @@ Item {
             }
         }
     }
+
+    IpcHandler {
+        target: "notifications"
+        function toggle() {
+            if (islandWidget.islandState === State.IslandState.notificationHistory) {
+                islandWidget.islandState = State.IslandState.idle;
+            } else {
+                islandWidget.islandState = State.IslandState.notificationHistory;
+            }
+        }
+    }
 }

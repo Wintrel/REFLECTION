@@ -212,4 +212,11 @@ Singleton {
             root.clipboardOpen = !root.clipboardOpen;
         }
     }
+    
+    IpcHandler {
+        target: "controlCenter"
+        function toggle() {
+            root.controlCenterOpen = !root.controlCenterOpen;
+        }
+    }
 }

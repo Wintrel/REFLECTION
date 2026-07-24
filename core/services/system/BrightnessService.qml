@@ -78,4 +78,14 @@ Item {
         onTriggered: brightProcess.running = true
         Component.onCompleted: brightProcess.running = true
     }
+
+    IpcHandler {
+        target: "brightness"
+        function increment() {
+            root.setBrightness((root.brightness * 100) + 5);
+        }
+        function decrement() {
+            root.setBrightness((root.brightness * 100) - 5);
+        }
+    }
 }
