@@ -296,19 +296,20 @@ Item {
             State.GlobalStates.notificationHistory.insert(0, notifData);
             
             controller.currentNotif = notifCopy;
-            
-            var modalStates = [State.IslandState.prompt, State.IslandState.actionProgress, State.IslandState.reflectionGrid, State.IslandState.polkitAuth, State.IslandState.settingsHub, State.IslandState.filePicker, State.IslandState.ciderExpanded];
-            if (modalStates.indexOf(controller.islandState) === -1) {
-                if (controller.islandState !== State.IslandState.notification) {
-                    controller.previousState = controller.islandState;
+            if (!State.GlobalStates.dndEnabled) {
+                var modalStates = [State.IslandState.prompt, State.IslandState.actionProgress, State.IslandState.reflectionGrid, State.IslandState.polkitAuth, State.IslandState.settingsHub, State.IslandState.filePicker, State.IslandState.ciderExpanded];
+                if (modalStates.indexOf(controller.islandState) === -1) {
+                    if (controller.islandState !== State.IslandState.notification) {
+                        controller.previousState = controller.islandState;
+                    }
+                    controller.islandState = State.IslandState.notification;
+                    notifTimer.restart();
                 }
-                controller.islandState = State.IslandState.notification;
-                notifTimer.restart();
+                
+                popSound.play();
+                
+                State.GlobalStates.notificationTriggered();
             }
-            
-            popSound.play();
-            
-            State.GlobalStates.notificationTriggered();
         }
     }
 }

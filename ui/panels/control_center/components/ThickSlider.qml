@@ -22,27 +22,39 @@ Item {
         border.color: root.theme ? Qt.rgba(255,255,255,0.05) : "#222"
         clip: true
         
-        // Fill
-        Rectangle {
+        // Fill Container
+        Item {
+            id: fillContainer
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             width: parent.width * (root.value / 100)
-            radius: parent.radius
-            
-            // Focus Color Philosophy: Orange when adjusting, neutral (white) when idle.
-            color: ma.pressed ? (root.theme ? root.theme.accentPrimary : "#ff9900") : (root.theme ? root.theme.textMain : "#FFF")
-            opacity: 0.9
 
-            Behavior on width { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-            // 250ms fade back to neutral after release
-            Behavior on color { ColorAnimation { duration: 250 } }
+            Behavior on width {
+                enabled: !ma.pressed
+                NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
+            }
+
+            Rectangle {
+                id: fillRect
+                anchors.fill: parent
+                radius: Math.min(bg.radius, width / 2)
+                
+                // Focus Color Philosophy: Orange when adjusting, neutral (white) when idle.
+                color: ma.pressed ? (root.theme ? root.theme.accentPrimary : "#ff9900") : (root.theme ? root.theme.textMain : "#FFF")
+                opacity: 0.9
+                visible: !refGrad.visible
+
+                Behavior on color { ColorAnimation { duration: 250 } }
+            }
 
             ReflectionGradient {
+                id: refGrad
                 theme: root.theme
-                startColor: parent.color
-                endColor: ma.pressed ? (root.theme ? root.theme.accentPrimaryGradientEnd : parent.color) : parent.color
+                startColor: fillRect.color
+                endColor: ma.pressed ? (root.theme ? root.theme.accentPrimaryGradientEnd : fillRect.color) : fillRect.color
                 anchors.fill: parent
+                source: fillRect
             }
         }
         

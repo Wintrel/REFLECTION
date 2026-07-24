@@ -147,11 +147,7 @@ Column {
             theme: mainView.theme
             onClicked: {
                 State.GlobalStates.settingsOpen = true;
-                var w = ccRoot;
-                while (w && !w.hasOwnProperty("closePanel")) {
-                    w = w.parent;
-                }
-                if (w) w.closePanel();
+                State.GlobalStates.controlCenterOpen = false;
             }
         }
         SystemAction {
@@ -159,6 +155,10 @@ Column {
             icon: "power_settings_new"
             label: "Power"
             theme: mainView.theme
+            onClicked: {
+                State.GlobalStates.sessionOpen = true;
+                State.GlobalStates.controlCenterOpen = false;
+            }
         }
     }
 }

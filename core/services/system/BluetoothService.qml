@@ -56,8 +56,13 @@ Item {
 
     property var _currentDevice: null
 
+    property string _currentScanMacsStr: ""
+
     function scanBluetooth() {
-        btScanProcess.running = true;
+        if (!btScanProcess.running) {
+            _currentScanMacsStr = "";
+            btScanProcess.running = true;
+        }
     }
     
     function _addOrUpdateDevice(dev) {
@@ -201,6 +206,7 @@ Item {
                         root._addOrUpdateDevice(root._currentDevice);
                     }
                     var mac = line.substring(4);
+                    root._currentScanMacsStr += mac + ",";
                     root._currentDevice = {
                         "mac": mac,
                         "name": mac,
@@ -235,6 +241,12 @@ Item {
                 root._addOrUpdateDevice(root._currentDevice);
             }
             root._currentDevice = null;
+            
+            for (var i = devicesModel.count - 1; i >= 0; i--) {
+                if (root._currentScanMacsStr.indexOf(devicesModel.get(i).mac) === -1) {
+                    devicesModel.remove(i);
+                }
+            }
         }
     }
     
@@ -292,7 +304,10 @@ Item {
         running: true
         repeat: true
         interval: 3000
-        onTriggered: btPoller.running = true
+        onTriggered: {
+            btPoller.running = true;
+            scanBluetooth();
+        }
         Component.onCompleted: {
             btPoller.running = true;
             scanBluetooth();
