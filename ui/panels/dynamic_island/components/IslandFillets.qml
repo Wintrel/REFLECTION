@@ -16,7 +16,7 @@ Item {
     property int drawnBorderWidth: borderWidth > 0 ? 1 : 0
     property int animDuration: 400
     
-    // Left Fillet (Concave swoop connecting to screen)
+    // Left Fillet (Concave swoop connecting to screen).
     Item {
         width: root.radiusIsland
         height: root.radiusIsland
