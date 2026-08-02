@@ -92,7 +92,7 @@ Item {
         // File manager / terminal
         { aliases: ["files", "file manager", "nautilus"],    name: "Open File Manager",  action: "nautilus",                    icon: "folder_open" },
         { aliases: ["terminal", "term", "console"],          name: "Open Terminal",      action: "kitty",                       icon: "terminal" },
-        { aliases: ["settings", "system settings"],          name: "System Settings",    action: "gnome-control-center",        icon: "settings" },
+        { aliases: ["settings", "system settings"],          name: "System Settings",    action: "quickshell ipc -c reflection call immersive toggle",        icon: "settings" },
 
         // Display
         { aliases: ["night light", "nightlight", "blue light"], name: "Toggle Night Light", action: "pkill wlsunset || wlsunset -T 4500 -t 3500", icon: "nightlight" },
