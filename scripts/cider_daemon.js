@@ -1,6 +1,6 @@
 const io = require("socket.io-client");
 
-const TOKEN = "fdbu2akop0ad66c7n9obcoet"; 
+const TOKEN = "fdbu2akop0ad66c7n9obcoet";
 const socket = io("http://127.0.0.1:10767", {
     extraHeaders: {
         "apptoken": TOKEN,
