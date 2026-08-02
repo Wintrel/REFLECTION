@@ -66,7 +66,7 @@ Scope {
                     focus: State.GlobalStates.immersiveOpen
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Escape) {
-                            State.GlobalStates.immersiveOpen = false;
+                            State.GlobalStates.closeImmersive();
                             event.accepted = true;
                         }
                     }

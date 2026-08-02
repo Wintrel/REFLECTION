@@ -21,6 +21,15 @@ Singleton {
     property bool searchOpen: false
     property bool settingsOpen: false
     property bool immersiveOpen: false
+
+    // Immersive transition lifecycle. `immersiveOpen` remains the actual
+    // layer-shell visibility switch, while the island owns the visual handoff.
+    readonly property int immersiveClosed: 0
+    readonly property int immersiveOpening: 1
+    readonly property int immersiveOpened: 2
+    readonly property int immersiveClosing: 3
+    property int immersivePhase: immersiveClosed
+    readonly property bool immersiveTransitioning: immersivePhase === immersiveOpening || immersivePhase === immersiveClosing
     property bool screenLocked: false
     property bool clipboardOpen: false
     property bool controlCenterOpen: false
@@ -38,6 +47,25 @@ Singleton {
     
     // Tracks the dynamic height of the island
     property real currentIslandHeight: 40
+
+    function openImmersive() {
+        if (root.immersivePhase !== root.immersiveClosed)
+            return;
+        root.immersivePhase = root.immersiveOpening;
+    }
+
+    function closeImmersive() {
+        if (root.immersivePhase !== root.immersiveOpened)
+            return;
+        root.immersivePhase = root.immersiveClosing;
+    }
+
+    function toggleImmersive() {
+        if (root.immersivePhase === root.immersiveClosed)
+            root.openImmersive();
+        else if (root.immersivePhase === root.immersiveOpened)
+            root.closeImmersive();
+    }
     
     property bool filePickerOpen: false
     property string filePickerTitle: "Select File"
@@ -191,7 +219,13 @@ Singleton {
     IpcHandler {
         target: "immersive"
         function toggle() {
-            root.immersiveOpen = !root.immersiveOpen;
+            root.toggleImmersive();
+        }
+        function open() {
+            root.openImmersive();
+        }
+        function close() {
+            root.closeImmersive();
         }
     }
 

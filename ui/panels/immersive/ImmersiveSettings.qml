@@ -206,7 +206,7 @@ Item {
                     enabled: !root.authenticationActive
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: State.GlobalStates.immersiveOpen = false
+                    onClicked: State.GlobalStates.closeImmersive()
                 }
             }
         }
