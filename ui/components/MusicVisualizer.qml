@@ -31,6 +31,49 @@ Item {
     
     property int barCount: Math.max(0, Math.floor((root.width + 6) / 14))
 
+    // Single sweep position for shimmer when paused (replaces 137 per-bar animations)
+    property real shimmerSweep: -0.1
+    SequentialAnimation on shimmerSweep {
+        loops: Animation.Infinite
+        running: !root.isPlaying && root.visible
+        NumberAnimation { from: -0.1; to: 1.1; duration: 5000; easing.type: Easing.InOutSine }
+        PauseAnimation { duration: 1500 }
+    }
+
+    // Single mock drift timer (replaces 137 per-bar Timers when no CAVA)
+    Timer {
+        running: root.isPlaying && root.visible && !root.hasCava
+        repeat: true
+        interval: 180
+        onTriggered: {
+            var count = root.barCount;
+            var h = root.height;
+            for (var i = 0; i < count; i++) {
+                var item = visualizerRepeater.itemAt(i);
+                if (item) {
+                    item.targetHeight = Math.max(5, Math.random() * h * 0.8);
+                }
+            }
+        }
+    }
+
+    // Single idle drift timer (replaces 137 per-bar Timers when paused)
+    Timer {
+        running: !root.isPlaying && root.visible
+        repeat: true
+        interval: 1800
+        onTriggered: {
+            var count = root.barCount;
+            var h = root.height;
+            for (var i = 0; i < count; i++) {
+                var item = visualizerRepeater.itemAt(i);
+                if (item) {
+                    item.targetHeight = 5 + Math.random() * (h * 0.12);
+                }
+            }
+        }
+    }
+
     // Centralized CAVA Listener (Fast Loop, avoids 137 * 60Hz signal handlers)
     Connections {
         target: CavaService
@@ -121,24 +164,18 @@ Item {
                     width: parent.width
                     height: barItem.animatingHeight
                     anchors.bottom: parent.bottom
-                    opacity: root.isPlaying ? 0 : _shimmerVal
-                    
-                    property real _shimmerVal: 0
+                    // Shimmer driven by single sweep position instead of per-bar animation
+                    property real _shimmerVal: {
+                        if (root.isPlaying) return 0;
+                        var dist = Math.abs(root.shimmerSweep - barItem.localRelativeX);
+                        if (dist < 0.12) return 1.0 - (dist / 0.12);
+                        return 0;
+                    }
+                    opacity: _shimmerVal
                     
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "transparent" } // top
                         GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0.4) } // bottom
-                    }
-
-                    SequentialAnimation on _shimmerVal {
-                        loops: Animation.Infinite
-                        running: !root.isPlaying && root.visible
-                        
-                        PropertyAction { value: 0 }
-                        PauseAnimation { duration: barItem.localRelativeX * 4000 }
-                        NumberAnimation { from: 0; to: 1.0; duration: 500; easing.type: Easing.InOutSine }
-                        NumberAnimation { from: 1.0; to: 0; duration: 500; easing.type: Easing.InOutSine }
-                        PauseAnimation { duration: 4000 - (barItem.localRelativeX * 4000) + 1500 }
                     }
                 }
                 
@@ -161,24 +198,7 @@ Item {
 
 
                 
-                // INDIVIDUAL TIMERS FOR MOCK DRIFT (Organic feel)
-                Timer {
-                    running: root.isPlaying && root.visible && !root.hasCava
-                    repeat: true
-                    interval: 150 + (index % 5) * 30
-                    onTriggered: {
-                        barItem.targetHeight = Math.max(5, Math.random() * root.height * 0.8)
-                    }
-                }
-                
-                Timer {
-                    running: !root.isPlaying && root.visible
-                    repeat: true
-                    interval: 1500 + (index % 4) * 400
-                    onTriggered: {
-                        barItem.targetHeight = 5 + Math.random() * (root.height * 0.12)
-                    }
-                }
+
             }
         }
     }

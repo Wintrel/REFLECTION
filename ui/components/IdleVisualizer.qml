@@ -8,8 +8,34 @@ Item {
     
     property int barCount: Math.max(0, Math.floor((root.width + 6) / 14))
 
+    // Single sweep position drives all bar shimmers (replaces 137 per-bar animations)
+    property real sweepPos: -0.1
+    SequentialAnimation on sweepPos {
+        loops: Animation.Infinite
+        running: root.visible
+        NumberAnimation { from: -0.1; to: 1.1; duration: 5000; easing.type: Easing.InOutSine }
+        PauseAnimation { duration: 1500 }
+    }
 
-    
+    // Single timer drives all bar height drift (replaces 137 per-bar Timers)
+    Timer {
+        running: root.visible
+        repeat: true
+        interval: 1800
+        onTriggered: {
+            var count = root.barCount;
+            for (var i = 0; i < count; i++) {
+                var item = visualizerRepeater.itemAt(i);
+                if (!item) continue;
+                if (Math.random() > 0.5) {
+                    item.targetHeight = Math.random() * 5;
+                } else {
+                    item.targetHeight = 10 + Math.random() * 25;
+                }
+            }
+        }
+    }
+
     Row {
         id: barRow
         anchors.fill: parent
@@ -55,24 +81,17 @@ Item {
                     width: parent.width
                     height: barItem.animatingHeight
                     anchors.bottom: parent.bottom
+                    // Shimmer driven by single sweep position instead of per-bar animation
+                    property real _shimmerVal: {
+                        var dist = Math.abs(root.sweepPos - barItem.localRelativeX);
+                        if (dist < 0.12) return 1.0 - (dist / 0.12);
+                        return 0;
+                    }
                     opacity: _shimmerVal
-                    
-                    property real _shimmerVal: 0
                     
                     gradient: Gradient {
                         GradientStop { position: 0.0; color: "transparent" } // top
                         GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0.8) } // bottom (Brighter shimmer to be visible)
-                    }
-
-                    SequentialAnimation on _shimmerVal {
-                        loops: Animation.Infinite
-                        running: root.visible
-                        
-                        PropertyAction { value: 0 }
-                        PauseAnimation { duration: (index / Math.max(1, root.barCount)) * 4000 }
-                        NumberAnimation { from: 0; to: 1.0; duration: 500; easing.type: Easing.InOutSine }
-                        NumberAnimation { from: 1.0; to: 0; duration: 500; easing.type: Easing.InOutSine }
-                        PauseAnimation { duration: 4000 - ((index / Math.max(1, root.barCount)) * 4000) + 1500 }
                     }
                 }
                 
@@ -99,22 +118,7 @@ Item {
                     opacity: (barItem.capHeight > 8 ? 1.0 : 0.0) * shimmerOverlay.opacity
                 }
 
-                // INDIVIDUAL TIMERS FOR MOCK DRIFT (Organic feel)
-                Timer {
-                    running: root.visible
-                    repeat: true
-                    // Randomize interval slightly so they drift naturally
-                    interval: 1500 + (index % 4) * 400
-                    onTriggered: {
-                        // 50% chance to drop to 0 (hiding the star cap to prevent burn-in)
-                        // 50% chance to spike up proportionally
-                        if (Math.random() > 0.5) {
-                            barItem.targetHeight = Math.random() * 5;
-                        } else {
-                            barItem.targetHeight = 10 + Math.random() * 25;
-                        }
-                    }
-                }
+
             }
         }
     }

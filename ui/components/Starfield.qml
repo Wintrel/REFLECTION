@@ -54,7 +54,7 @@ Item {
             // Fall Animation (GPU)
             SequentialAnimation on y {
                 loops: Animation.Infinite
-                running: true // Keep running in background
+                running: root.visible
 
                 // 1. Initial fall from random start position to bottom of the massive column
                 NumberAnimation {
@@ -75,7 +75,7 @@ Item {
             // Wind Sway Animation (GPU)
             SequentialAnimation on x {
                 loops: Animation.Infinite
-                running: true
+                running: root.visible
 
                 NumberAnimation {
                     from: starWrapper.initialX
