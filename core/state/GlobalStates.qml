@@ -20,6 +20,7 @@ Singleton {
     property bool regionSelectorOpen: false
     property bool searchOpen: false
     property bool settingsOpen: false
+    property bool immersiveOpen: false
     property bool screenLocked: false
     property bool clipboardOpen: false
     property bool controlCenterOpen: false
@@ -184,6 +185,13 @@ Singleton {
         target: "settings"
         function toggle() {
             root.settingsOpen = !root.settingsOpen;
+        }
+    }
+
+    IpcHandler {
+        target: "immersive"
+        function toggle() {
+            root.immersiveOpen = !root.immersiveOpen;
         }
     }
 

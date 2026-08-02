@@ -12,6 +12,7 @@ import "ui/panels/ambient_idle"
 import "ui/panels/edge_lighting"
 import "ui/panels/wallpaper_selector"
 import "ui/panels/overview"
+import "ui/panels/immersive"
 
 ShellRoot {
     id: root
@@ -24,6 +25,7 @@ ShellRoot {
     EdgeLighting {}
     WallpaperSelector {}
     Overview {}
+    Immersive {}
     
     Component.onCompleted: WallpaperService
 }

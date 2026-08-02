@@ -1,6 +1,6 @@
 const io = require("socket.io-client");
 
-const TOKEN = "t1a6dic8w4lrz2s6nloinvg4"; //enabled Playback, queue, Library, audio, config and lyrics
+const TOKEN = "fdbu2akop0ad66c7n9obcoet"; //enabled Playback, queue, Library, audio, config and lyrics
 const socket = io("http://127.0.0.1:10767", {
     extraHeaders: {
         "apptoken": TOKEN,
