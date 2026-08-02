@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import "../../../core/state" as State
 import "../../../core/services/system"
@@ -78,7 +79,7 @@ Item {
         }
     }
 
-    // ── Command lane / island clearance ──────────────────────────
+    // ── Command lane / island clearance 
     Rectangle {
         id: commandLane
         anchors.top: parent.top
@@ -211,7 +212,7 @@ Item {
         }
     }
 
-    // ── Main control-room layout ─────────────────────────────────
+    // ── Main control-room layout
     RowLayout {
         anchors.top: commandLane.bottom
         anchors.left: parent.left
@@ -355,13 +356,22 @@ Item {
                     Item {
                         anchors.fill: parent
                         anchors.margins: 2
-                        clip: true
+
                         Image {
+                            id: pfpImage
                             anchors.fill: parent
                             source: AccountService.profilePicture
                             fillMode: Image.PreserveAspectCrop
                             asynchronous: true
                             visible: source.toString() !== ""
+                            layer.enabled: true
+                            layer.effect: OpacityMask {
+                                maskSource: Rectangle {
+                                    width: pfpImage.width
+                                    height: pfpImage.height
+                                    radius: width / 2
+                                }
+                            }
                         }
                     }
                     Text {
