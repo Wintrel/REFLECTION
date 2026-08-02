@@ -5,9 +5,10 @@ import "../../../core/state" as State
 import "../../../core/services/system"
 import "./stages"
 
-// ImmersiveSettings — fullscreen settings with ambient category stages.
-// Layout: 240px persistent sidebar (profile + nav + close) | stage area.
-// Each category is a self-contained file in ./stages/.
+// ImmersiveSettings — Reflection's fullscreen control room.
+// The top lane deliberately remains clear for the Dynamic Island. The
+// navigation rail and workspace sit below it and become non-interactive while
+// a system authentication request owns focus.
 Item {
     id: root
     anchors.fill: parent
@@ -15,9 +16,11 @@ Item {
     property var theme
     property bool isActive: false
     property bool isSecretUnlocked: false
-
-    // Persists across open/close — remembers last visited category
     property int currentCategory: 0
+
+    readonly property bool compactNavigation: width < 1150
+    readonly property int navigationWidth: compactNavigation ? 84 : 216
+    readonly property bool authenticationActive: PolkitAuthService.isAuthenticating
 
     property var categories: isSecretUnlocked ?
         ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "ROG", "Updates", "About", "Wintrel"] :
@@ -36,6 +39,14 @@ Item {
         return "info";
     }
 
+    function groupForIndex(index) {
+        if (index === 0) return "PERSONAL";
+        if (index === 1) return "HARDWARE";
+        if (index === 3) return "EXPERIENCE";
+        if (index === 7) return "SYSTEM";
+        return "";
+    }
+
     onIsActiveChanged: {
         if (!isActive) isSecretUnlocked = false;
     }
@@ -44,31 +55,184 @@ Item {
     visible: opacity > 0
     Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.InOutQuad } }
 
-    // ──────────────────────────────────────────────────────────────
-    // Root layout
-    // ──────────────────────────────────────────────────────────────
-    RowLayout {
+    // Very soft atmospheric wallpaper. Category stages add their own identity
+    // above this layer without competing with the controls.
+    Image {
         anchors.fill: parent
-        spacing: 0
+        source: WallpaperService.currentWallpaper
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        opacity: 0.045
+    }
 
-        // ────────────────────────────────────────
-        // SIDEBAR — 240px, always visible
-        // ────────────────────────────────────────
+    Rectangle {
+        anchors.fill: parent
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.28) }
+            GradientStop { position: 0.48; color: "transparent" }
+            GradientStop {
+                position: 1.0
+                color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.025) : "transparent"
+            }
+        }
+    }
+
+    // ── Command lane / island clearance ──────────────────────────
+    Rectangle {
+        id: commandLane
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 72
+        color: root.theme ? Qt.rgba(root.theme.bgBase.r, root.theme.bgBase.g, root.theme.bgBase.b, 0.76) : Qt.rgba(0.03, 0.03, 0.045, 0.76)
+
         Rectangle {
-            id: sidebar
-            Layout.preferredWidth: 240
-            Layout.fillHeight: true
-            color: root.theme ? Qt.darker(root.theme.bgBase, 1.15) : "#06060A"
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 1
+            color: Qt.rgba(255, 255, 255, 0.055)
+        }
 
-            // Slide in from left on open
+        RowLayout {
+            anchors.left: parent.left
+            anchors.leftMargin: root.compactNavigation ? 20 : 28
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 12
+
+            Rectangle {
+                Layout.preferredWidth: 32
+                Layout.preferredHeight: 32
+                radius: 10
+                color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.14) : Qt.rgba(0.35, 0.35, 0.8, 0.14)
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "tune"
+                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                    font.pixelSize: 19
+                    color: root.theme ? root.theme.accentPrimary : "#8C8CFF"
+                }
+            }
+
+            ColumnLayout {
+                visible: !root.compactNavigation
+                spacing: 0
+                Text {
+                    text: "REFLECTION"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 10
+                    font.letterSpacing: 1.6
+                    font.weight: Font.Bold
+                    color: root.theme ? root.theme.accentPrimary : "#8C8CFF"
+                }
+                Text {
+                    text: "Control room"
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.DemiBold
+                    color: root.theme ? root.theme.textMain : "#FFF"
+                }
+            }
+        }
+
+        // Keep the middle of this lane empty: the real Dynamic Island is in a
+        // separate layer-shell surface and expands into this space.
+        RowLayout {
+            anchors.right: parent.right
+            anchors.rightMargin: 20
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 10
+
+            Rectangle {
+                visible: root.authenticationActive
+                Layout.preferredWidth: authStatusRow.implicitWidth + 24
+                Layout.preferredHeight: 34
+                radius: 17
+                color: Qt.rgba(1, 0.25, 0.25, 0.10)
+                border.width: 1
+                border.color: Qt.rgba(1, 0.3, 0.3, 0.20)
+
+                RowLayout {
+                    id: authStatusRow
+                    anchors.centerIn: parent
+                    spacing: 7
+                    Text {
+                        text: "shield_lock"
+                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                        font.pixelSize: 16
+                        color: "#ff5555"
+                    }
+                    Text {
+                        text: "Authentication required"
+                        font.family: root.theme ? root.theme.fontMain : "Inter"
+                        font.pixelSize: 11
+                        color: root.theme ? root.theme.textMain : "#FFF"
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.preferredWidth: root.compactNavigation ? 38 : 94
+                Layout.preferredHeight: 38
+                radius: 12
+                color: closeArea.containsMouse ? Qt.rgba(255, 255, 255, 0.075) : Qt.rgba(255, 255, 255, 0.035)
+                border.width: 1
+                border.color: Qt.rgba(255, 255, 255, 0.06)
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 7
+                    Text {
+                        text: "close"
+                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                        font.pixelSize: 18
+                        color: root.theme ? root.theme.textSub : "#AAA"
+                    }
+                    Text {
+                        visible: !root.compactNavigation
+                        text: "Close"
+                        font.family: root.theme ? root.theme.fontMain : "Inter"
+                        font.pixelSize: 12
+                        color: root.theme ? root.theme.textSub : "#AAA"
+                    }
+                }
+
+                MouseArea {
+                    id: closeArea
+                    anchors.fill: parent
+                    enabled: !root.authenticationActive
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: State.GlobalStates.immersiveOpen = false
+                }
+            }
+        }
+    }
+
+    // ── Main control-room layout ─────────────────────────────────
+    RowLayout {
+        anchors.top: commandLane.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        spacing: 0
+        enabled: !root.authenticationActive
+
+        Rectangle {
+            id: navigationRail
+            Layout.preferredWidth: root.navigationWidth
+            Layout.fillHeight: true
+            color: root.theme ? Qt.rgba(root.theme.bgBase.r, root.theme.bgBase.g, root.theme.bgBase.b, 0.62) : Qt.rgba(0.02, 0.02, 0.03, 0.62)
+
             opacity: root.isActive ? 1 : 0
             transform: Translate {
-                x: root.isActive ? 0 : -24
-                Behavior on x { NumberAnimation { duration: 450; easing.type: Easing.OutExpo } }
+                x: root.isActive ? 0 : -20
+                Behavior on x { NumberAnimation { duration: 420; easing.type: Easing.OutExpo } }
             }
-            Behavior on opacity { NumberAnimation { duration: 350; easing.type: Easing.OutQuad } }
+            Behavior on opacity { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
 
-            // Right-edge separator
             Rectangle {
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -77,302 +241,189 @@ Item {
                 color: Qt.rgba(255, 255, 255, 0.05)
             }
 
-            ColumnLayout {
+            Flickable {
                 anchors.fill: parent
-                anchors.topMargin: 40
-                anchors.bottomMargin: 24
-                spacing: 0
+                anchors.topMargin: 14
+                anchors.bottomMargin: 92
+                contentWidth: width
+                contentHeight: navigationColumn.implicitHeight
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
 
-                // ── Profile header ─────────────────────────────
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 20
-                    Layout.rightMargin: 20
-                    Layout.bottomMargin: 8
-                    spacing: 14
+                Column {
+                    id: navigationColumn
+                    width: parent.width
 
-                    // Avatar
-                    Rectangle {
-                        Layout.preferredWidth: 44
-                        Layout.preferredHeight: 44
-                        radius: 22
-                        color: root.theme ? root.theme.surfaceOverlay : "#222"
-                        border.width: 1.5
-                        border.color: root.theme ?
-                            Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.4) :
-                            Qt.rgba(0.5, 0.5, 1, 0.4)
+                    Repeater {
+                        model: root.categories
 
-                        Image {
-                            id: avatarImg
-                            anchors.fill: parent; anchors.margins: 1.5
-                            source: AccountService.profilePicture
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            visible: false
-                        }
-                        Rectangle {
-                            id: avatarMask
-                            anchors.fill: parent; anchors.margins: 1.5
-                            radius: 21; visible: false
-                        }
-                        // Clip avatar to circle via layer-based masking approach
-                        Item {
-                            anchors.fill: parent; anchors.margins: 1.5
-                            clip: true
+                        delegate: Item {
+                            id: navDelegate
+                            required property string modelData
+                            required property int index
+                            readonly property bool selected: root.currentCategory === index
+                            readonly property string groupLabel: root.groupForIndex(index)
+                            width: navigationColumn.width
+                            height: 46 + (groupLabel !== "" && !root.compactNavigation ? 30 : 8)
+
+                            Text {
+                                visible: navDelegate.groupLabel !== "" && !root.compactNavigation
+                                anchors.left: parent.left
+                                anchors.leftMargin: 22
+                                anchors.top: parent.top
+                                anchors.topMargin: 8
+                                text: navDelegate.groupLabel
+                                font.family: root.theme ? root.theme.fontMain : "Inter"
+                                font.pixelSize: 9
+                                font.letterSpacing: 1.3
+                                font.weight: Font.Bold
+                                color: root.theme ? root.theme.textMuted : "#666"
+                            }
+
                             Rectangle {
-                                anchors.fill: parent
-                                radius: 21
-                                color: "transparent"
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.leftMargin: root.compactNavigation ? 14 : 12
+                                anchors.rightMargin: root.compactNavigation ? 14 : 12
+                                anchors.bottom: parent.bottom
+                                height: 42
+                                radius: 12
+                                color: navDelegate.selected ?
+                                    (root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.13) : Qt.rgba(0.4, 0.4, 0.9, 0.13)) :
+                                    (navMouse.containsMouse ? Qt.rgba(255, 255, 255, 0.045) : "transparent")
+                                border.width: navDelegate.selected ? 1 : 0
+                                border.color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.16) : "transparent"
+                                Behavior on color { ColorAnimation { duration: 160 } }
 
-                                Image {
+                                RowLayout {
                                     anchors.fill: parent
-                                    source: AccountService.profilePicture
-                                    fillMode: Image.PreserveAspectCrop
-                                    asynchronous: true
-                                    visible: source.toString() !== ""
+                                    anchors.leftMargin: root.compactNavigation ? 0 : 13
+                                    anchors.rightMargin: 12
+                                    spacing: 11
+
+                                    Text {
+                                        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                        Layout.preferredWidth: root.compactNavigation ? parent.width : 22
+                                        horizontalAlignment: Text.AlignHCenter
+                                        text: root.getIconForCategory(navDelegate.modelData)
+                                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                        font.pixelSize: 19
+                                        color: navDelegate.selected ? (root.theme ? root.theme.accentPrimary : "#8C8CFF") : (root.theme ? root.theme.textSub : "#888")
+                                    }
+
+                                    Text {
+                                        visible: !root.compactNavigation
+                                        Layout.fillWidth: true
+                                        text: navDelegate.modelData
+                                        font.family: root.theme ? root.theme.fontMain : "Inter"
+                                        font.pixelSize: 13
+                                        font.weight: navDelegate.selected ? Font.DemiBold : Font.Normal
+                                        color: navDelegate.selected ? (root.theme ? root.theme.textMain : "#FFF") : (root.theme ? root.theme.textSub : "#888")
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: navMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.currentCategory = navDelegate.index
                                 }
                             }
                         }
-                        Text {
-                            anchors.centerIn: parent
-                            text: "person"
-                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                            font.pixelSize: 22
-                            color: root.theme ? root.theme.textSub : "#888"
-                            visible: AccountService.profilePicture.toString() === ""
-                        }
-                    }
-
-                    // Name / subtitle
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 1
-                        Text {
-                            Layout.fillWidth: true
-                            text: AccountService.realName || AccountService.username || Quickshell.env("USER")
-                            font.family: root.theme ? root.theme.fontMain : "Inter"
-                            font.pixelSize: 15
-                            font.weight: Font.DemiBold
-                            color: root.theme ? root.theme.textMain : "#FFF"
-                            elide: Text.ElideRight
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: "System Settings"
-                            font.family: root.theme ? root.theme.fontMain : "Inter"
-                            font.pixelSize: 11
-                            color: root.theme ? root.theme.textSub : "#888"
-                        }
                     }
                 }
+            }
 
-                // ── Divider ────────────────────────────────────
+            RowLayout {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.leftMargin: root.compactNavigation ? 20 : 18
+                anchors.rightMargin: root.compactNavigation ? 20 : 18
+                anchors.bottomMargin: 22
+                spacing: 11
+
                 Rectangle {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 20; Layout.rightMargin: 20
-                    Layout.topMargin: 4; Layout.bottomMargin: 12
-                    height: 1
-                    color: Qt.rgba(255, 255, 255, 0.05)
-                }
+                    Layout.preferredWidth: 40
+                    Layout.preferredHeight: 40
+                    radius: 20
+                    color: root.theme ? root.theme.surfaceOverlay : "#222"
+                    border.width: 1
+                    border.color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.30) : Qt.rgba(0.5, 0.5, 1, 0.3)
 
-                // ── Nav list ───────────────────────────────────
-                ListView {
-                    id: navList
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.leftMargin: 12; Layout.rightMargin: 12
-                    model: root.categories
-                    spacing: 2
-                    interactive: false
-                    clip: true
-
-                    delegate: Item {
-                        id: navDel
-                        width: navList.width
-                        height: 44
-                        required property string modelData
-                        required property int index
-
-                        property bool isSelected: root.currentCategory === navDel.index
-
-                        // Left accent bar
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.leftMargin: -12
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 3
-                            height: navDel.isSelected ? 28 : 0
-                            radius: 2
-                            color: root.theme ? root.theme.accentPrimary : "#5151AD"
-                            opacity: navDel.isSelected ? 1 : 0
-                            Behavior on height  { NumberAnimation { duration: 220; easing.type: Easing.OutQuad } }
-                            Behavior on opacity { NumberAnimation { duration: 180 } }
-                        }
-
-                        // Row background
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 10
-                            color: navDel.isSelected ?
-                                (root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.10) : Qt.rgba(0.3, 0.3, 0.7, 0.10)) :
-                                (navMa.containsMouse ? Qt.rgba(255, 255, 255, 0.04) : "transparent")
-                            Behavior on color { ColorAnimation { duration: 180 } }
-                        }
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 16; anchors.rightMargin: 14
-                            spacing: 12
-
-                            Text {
-                                text: root.getIconForCategory(navDel.modelData)
-                                font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                                font.pixelSize: 19
-                                color: navDel.isSelected ?
-                                    (root.theme ? root.theme.accentPrimary : "#7C7CFF") :
-                                    (root.theme ? root.theme.textSub : "#888")
-                                Behavior on color { ColorAnimation { duration: 180 } }
-                            }
-                            Text {
-                                Layout.fillWidth: true
-                                text: navDel.modelData
-                                font.family: root.theme ? root.theme.fontMain : "Inter"
-                                font.pixelSize: 14
-                                font.weight: navDel.isSelected ? Font.DemiBold : Font.Normal
-                                color: navDel.isSelected ?
-                                    (root.theme ? root.theme.textMain : "#FFF") :
-                                    (root.theme ? root.theme.textSub : "#888")
-                                Behavior on color { ColorAnimation { duration: 180 } }
-                            }
-                        }
-
-                        MouseArea {
-                            id: navMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.currentCategory = navDel.index
-                        }
-                    }
-                }
-
-                // ── Bottom divider ─────────────────────────────
-                Item { Layout.preferredHeight: 8 }
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 20; Layout.rightMargin: 20
-                    Layout.bottomMargin: 8
-                    height: 1
-                    color: Qt.rgba(255, 255, 255, 0.05)
-                }
-
-                // ── Close button ───────────────────────────────
-                Item {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 44
-                    Layout.leftMargin: 12; Layout.rightMargin: 12
-
-                    Rectangle {
+                    Item {
                         anchors.fill: parent
-                        radius: 10
-                        color: closeMa.containsMouse ? Qt.rgba(255, 255, 255, 0.05) : "transparent"
-                        Behavior on color { ColorAnimation { duration: 150 } }
-
-                        RowLayout {
+                        anchors.margins: 2
+                        clip: true
+                        Image {
                             anchors.fill: parent
-                            anchors.leftMargin: 16
-                            spacing: 12
-                            Text {
-                                text: "close"
-                                font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                                font.pixelSize: 19
-                                color: root.theme ? root.theme.textSub : "#888"
-                            }
-                            Text {
-                                Layout.fillWidth: true
-                                text: "Close Settings"
-                                font.family: root.theme ? root.theme.fontMain : "Inter"
-                                font.pixelSize: 13
-                                color: root.theme ? root.theme.textSub : "#888"
-                            }
+                            source: AccountService.profilePicture
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            visible: source.toString() !== ""
                         }
+                    }
+                    Text {
+                        anchors.centerIn: parent
+                        visible: AccountService.profilePicture.toString() === ""
+                        text: "person"
+                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                        font.pixelSize: 19
+                        color: root.theme ? root.theme.textSub : "#888"
+                    }
+                }
 
-                        MouseArea {
-                            id: closeMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: State.GlobalStates.immersiveOpen = false
-                        }
+                ColumnLayout {
+                    visible: !root.compactNavigation
+                    Layout.fillWidth: true
+                    spacing: 0
+                    Text {
+                        Layout.fillWidth: true
+                        text: AccountService.realName || AccountService.username || Quickshell.env("USER")
+                        elide: Text.ElideRight
+                        font.family: root.theme ? root.theme.fontMain : "Inter"
+                        font.pixelSize: 12
+                        font.weight: Font.DemiBold
+                        color: root.theme ? root.theme.textMain : "#FFF"
+                    }
+                    Text {
+                        text: "Local account"
+                        font.family: root.theme ? root.theme.fontMain : "Inter"
+                        font.pixelSize: 10
+                        color: root.theme ? root.theme.textMuted : "#666"
                     }
                 }
             }
         }
 
-        // ────────────────────────────────────────
-        // STAGE AREA — fills remaining width
-        // Each CategoryStage controls its own opacity for cross-dissolve.
-        // ────────────────────────────────────────
-        Item {
-            id: stageArea
+        Rectangle {
+            id: workspace
             Layout.fillWidth: true
             Layout.fillHeight: true
+            color: root.theme ? Qt.rgba(root.theme.bgBase.r, root.theme.bgBase.g, root.theme.bgBase.b, 0.18) : "transparent"
             clip: true
 
-            // Entrance: fade + slide from right
             opacity: root.isActive ? 1 : 0
             transform: Translate {
-                x: root.isActive ? 0 : 32
-                Behavior on x { NumberAnimation { duration: 500; easing.type: Easing.OutExpo } }
+                x: root.isActive ? 0 : 28
+                Behavior on x { NumberAnimation { duration: 480; easing.type: Easing.OutExpo } }
             }
             Behavior on opacity {
                 SequentialAnimation {
-                    PauseAnimation { duration: 80 }
-                    NumberAnimation { duration: 350; easing.type: Easing.OutQuad }
+                    PauseAnimation { duration: 60 }
+                    NumberAnimation { duration: 330; easing.type: Easing.OutQuad }
                 }
             }
 
-            // All stages coexist; each manages its own opacity cross-fade
-            AccountStage {
-                theme: root.theme
-                categoryIndex: 0
-                isCurrentPage: root.currentCategory === 0
-            }
-            AudioStage {
-                theme: root.theme
-                categoryIndex: 1
-                isCurrentPage: root.currentCategory === 1
-            }
-            DisplayStage {
-                theme: root.theme
-                categoryIndex: 2
-                isCurrentPage: root.currentCategory === 2
-            }
-            PersonalizationStage {
-                theme: root.theme
-                categoryIndex: 3
-                isCurrentPage: root.currentCategory === 3
-            }
-            BehaviorStage {
-                theme: root.theme
-                categoryIndex: 4
-                isCurrentPage: root.currentCategory === 4
-            }
-            ShellStage {
-                theme: root.theme
-                categoryIndex: 5
-                isCurrentPage: root.currentCategory === 5
-            }
-            RogStage {
-                theme: root.theme
-                categoryIndex: 6
-                isCurrentPage: root.currentCategory === 6
-            }
-            UpdatesStage {
-                theme: root.theme
-                categoryIndex: 7
-                isCurrentPage: root.currentCategory === 7
-            }
+            AccountStage { theme: root.theme; categoryIndex: 0; isCurrentPage: root.currentCategory === 0 }
+            AudioStage { theme: root.theme; categoryIndex: 1; isCurrentPage: root.currentCategory === 1 }
+            DisplayStage { theme: root.theme; categoryIndex: 2; isCurrentPage: root.currentCategory === 2 }
+            PersonalizationStage { theme: root.theme; categoryIndex: 3; isCurrentPage: root.currentCategory === 3 }
+            BehaviorStage { theme: root.theme; categoryIndex: 4; isCurrentPage: root.currentCategory === 4 }
+            ShellStage { theme: root.theme; categoryIndex: 5; isCurrentPage: root.currentCategory === 5 }
+            RogStage { theme: root.theme; categoryIndex: 6; isCurrentPage: root.currentCategory === 6 }
+            UpdatesStage { theme: root.theme; categoryIndex: 7; isCurrentPage: root.currentCategory === 7 }
             AboutStage {
                 theme: root.theme
                 categoryIndex: 8
@@ -386,5 +437,18 @@ Item {
                 visible: root.isSecretUnlocked
             }
         }
+    }
+
+    // A blocking system request belongs to the island, but immersive settings
+    // still acknowledge it by dimming and swallowing pointer input below.
+    Rectangle {
+        anchors.fill: parent
+        z: 100
+        visible: opacity > 0
+        opacity: root.authenticationActive ? 1 : 0
+        color: Qt.rgba(0, 0, 0, 0.58)
+        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutQuad } }
+
+        MouseArea { anchors.fill: parent }
     }
 }

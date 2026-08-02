@@ -15,6 +15,8 @@ Item {
     property string categoryTitle: ""
     property string categorySubtitle: ""
     property bool isCurrentPage: false
+    readonly property real workspaceWidth: Math.min(Math.max(0, width - 64), 1120)
+    readonly property real workspaceGutter: Math.max(32, (width - workspaceWidth) / 2)
 
     // These are set by each concrete stage as inline Item { ... } children.
     // They get reparented into ambientLayer / contentLayer on assignment.
@@ -54,7 +56,7 @@ Item {
         Rectangle {
             id: titleAccentBar
             anchors.left: parent.left
-            anchors.leftMargin: 48
+            anchors.leftMargin: stageRoot.workspaceGutter
             anchors.verticalCenter: titleCol.verticalCenter
             width: 3
             height: 32
@@ -91,8 +93,8 @@ Item {
             anchors.bottom: parent.bottom
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.leftMargin: 48
-            anchors.rightMargin: 48
+            anchors.leftMargin: stageRoot.workspaceGutter
+            anchors.rightMargin: stageRoot.workspaceGutter
             height: 1
             color: Qt.rgba(255, 255, 255, 0.05)
         }
@@ -105,8 +107,8 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.leftMargin: 48
-        anchors.rightMargin: 48
+        anchors.leftMargin: stageRoot.workspaceGutter
+        anchors.rightMargin: stageRoot.workspaceGutter
         anchors.bottomMargin: 32
         anchors.topMargin: 24
         z: 1

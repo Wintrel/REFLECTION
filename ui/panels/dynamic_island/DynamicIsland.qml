@@ -30,8 +30,12 @@ Scope {
             
 
             
-            // Render on top of fullscreen windows if enabled, otherwise use normal top layer
-            WlrLayershell.layer: State.GlobalStates.islandInOverlay ? WlrLayer.Overlay : WlrLayer.Top
+            // Immersive mode reserves a top lane for the island. Raise the
+            // island's surface so system-critical states such as Polkit can
+            // never be hidden behind the fullscreen settings surface.
+            WlrLayershell.layer: (State.GlobalStates.islandInOverlay || State.GlobalStates.immersiveOpen)
+                ? WlrLayer.Overlay
+                : WlrLayer.Top
             
             anchors {
                 top: true
@@ -165,4 +169,3 @@ Scope {
         }
     }
 }
-
