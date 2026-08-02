@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import "../../../../core/services/system"
+import "../../dynamic_island/components" as Components
 
 // Account category stage
 CategoryStage {
@@ -23,25 +24,12 @@ CategoryStage {
                 GradientStop { position: 0.6; color: "transparent" }
             }
         }
-
-        // Profile banner as subtle ambient wash
-        Image {
-            anchors.fill: parent
-            source: AccountService.bannerPicture
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            opacity: 0.12
-            visible: source.toString() !== ""
-        }
     }
 
     pageContent: Item {
-        Text {
-            anchors.centerIn: parent
-            text: "Account settings coming soon"
-            font.family: root.theme ? root.theme.fontMain : "Inter"
-            font.pixelSize: 14
-            color: root.theme ? root.theme.textSub : "#888"
+        Components.AccountSettings {
+            anchors.fill: parent
+            theme: root.theme
         }
     }
 }
