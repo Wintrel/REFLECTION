@@ -117,34 +117,42 @@ Scope {
                 readonly property real originX: width / 2
                 readonly property real originY: Math.max(20, widget.height / 2)
                 readonly property real maximumDiameter: Math.sqrt(width * width + (height * 2) * (height * 2)) * 1.12
-                readonly property real coreDiameter: maximumDiameter * progress
 
                 opacity: bloomOpacity
 
                 Rectangle {
-                    width: immersiveBloom.coreDiameter + 150
+                    // Keep geometry fixed and animate only the transform. This
+                    // avoids rebuilding a very large rounded rectangle every
+                    // frame as the bloom approaches fullscreen size.
+                    width: immersiveBloom.maximumDiameter + 150
                     height: width
                     x: immersiveBloom.originX - width / 2
                     y: immersiveBloom.originY - height / 2
                     radius: width / 2
+                    transformOrigin: Item.Center
+                    scale: (immersiveBloom.maximumDiameter * immersiveBloom.progress + 150) / width
                     color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.035) : Qt.rgba(0.35, 0.35, 0.8, 0.035)
                 }
 
                 Rectangle {
-                    width: immersiveBloom.coreDiameter + 72
+                    width: immersiveBloom.maximumDiameter + 72
                     height: width
                     x: immersiveBloom.originX - width / 2
                     y: immersiveBloom.originY - height / 2
                     radius: width / 2
+                    transformOrigin: Item.Center
+                    scale: (immersiveBloom.maximumDiameter * immersiveBloom.progress + 72) / width
                     color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.085) : Qt.rgba(0.35, 0.35, 0.8, 0.085)
                 }
 
                 Rectangle {
-                    width: immersiveBloom.coreDiameter
+                    width: immersiveBloom.maximumDiameter
                     height: width
                     x: immersiveBloom.originX - width / 2
                     y: immersiveBloom.originY - height / 2
                     radius: width / 2
+                    transformOrigin: Item.Center
+                    scale: immersiveBloom.progress
                     color: theme ? theme.bgBase : "#0A0A0C"
                     border.width: immersiveBloom.progress > 0.03 && immersiveBloom.progress < 0.97 ? 2 : 0
                     border.color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.58) : Qt.rgba(0.45, 0.45, 1, 0.58)
@@ -189,22 +197,19 @@ Scope {
                             target: immersiveBloom
                             property: "progress"
                             from: 0
-                            to: 0.72
-                            duration: 350
-                            easing.type: Easing.InQuad
+                            to: 1
+                            duration: 505
+                            easing.type: Easing.InOutCubic
                         }
                     }
                 }
+
+                // Do not map or render settings while the wave itself is
+                // moving. Once the opaque core covers the output, activate the
+                // fullscreen surface behind it and give the scene graph time
+                // to upload images, compile effects, and finish its entrance.
                 ScriptAction { script: State.GlobalStates.immersiveOpen = true }
-                NumberAnimation {
-                    target: immersiveBloom
-                    property: "progress"
-                    from: 0.72
-                    to: 1
-                    duration: 155
-                    easing.type: Easing.OutCubic
-                }
-                PauseAnimation { duration: 145 }
+                PauseAnimation { duration: 340 }
                 NumberAnimation {
                     target: immersiveBloom
                     property: "bloomOpacity"
