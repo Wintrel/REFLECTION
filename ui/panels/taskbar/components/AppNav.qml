@@ -41,8 +41,8 @@ Row {
         model: root.uniqueApps
         
         Item {
-            width: 32
-            height: 32
+            width: System.ShellService.taskbarIconSize + 4
+            height: System.ShellService.taskbarIconSize + 4
             
             scale: appMa.pressed ? 0.9 : (appMa.containsMouse ? 1.15 : 1)
             Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
@@ -62,10 +62,10 @@ Row {
             // Icon
             Image {
                 anchors.centerIn: parent
-                width: 28
-                height: 28
-                sourceSize.width: 28
-                sourceSize.height: 28
+                width: System.ShellService.taskbarIconSize
+                height: System.ShellService.taskbarIconSize
+                sourceSize.width: System.ShellService.taskbarIconSize
+                sourceSize.height: System.ShellService.taskbarIconSize
                 // Resolve icon using the python daemon caching
                 source: System.HyprlandService.iconCache[modelData.className] || ""
                 fillMode: Image.PreserveAspectFit

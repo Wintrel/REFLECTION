@@ -76,11 +76,11 @@ Item {
     RectangularGlow {
         anchors.fill: islandShape
         visible: BehaviorService.holdFeedbackEnabled && State.GlobalStates.settingsHoldProgress > 0
-        glowRadius: 8 + State.GlobalStates.settingsHoldProgress * 12
-        spread: 0.04 + State.GlobalStates.settingsHoldProgress * 0.08
+        glowRadius: 8 + State.GlobalStates.settingsHoldProgress * 12 * ShellService.holdIndicatorIntensity
+        spread: 0.04 + State.GlobalStates.settingsHoldProgress * 0.08 * ShellService.holdIndicatorIntensity
         color: theme.accentPrimary
         cornerRadius: islandShape.radius + glowRadius
-        opacity: State.GlobalStates.settingsHoldProgress * 0.38
+        opacity: State.GlobalStates.settingsHoldProgress * 0.38 * ShellService.holdIndicatorIntensity
     }
 
     // The actual island container (Outer Bezel)
@@ -171,8 +171,10 @@ Item {
             if (islandState === State.IslandState.expanded) return theme.islandMaxW;
             if (islandState === State.IslandState.hover) return theme.islandHoverW;
             
-            var hasM = islandWidget.mprisPlayer && islandWidget.mprisPlayer.isPlaying;
-            var hasN = State.GlobalStates.notificationHistory.count > 0;
+            var hasM = ShellService.islandMediaActivity && islandWidget.mprisPlayer && islandWidget.mprisPlayer.isPlaying;
+            var hasN = ShellService.islandNotificationPreviews && State.GlobalStates.notificationHistory.count > 0;
+            if (ShellService.islandIdleMode === 0) return 120;
+            if (ShellService.islandIdleMode === 2) return theme.islandMinW;
             return (hasM || hasN) ? theme.islandMinW : 120;
         }
         height: {
@@ -408,7 +410,7 @@ Item {
                     height: 2
                     radius: 1
                     color: theme.accentPrimary
-                    opacity: 0.45 + State.GlobalStates.settingsHoldProgress * 0.55
+                    opacity: (0.45 + State.GlobalStates.settingsHoldProgress * 0.55) * ShellService.holdIndicatorIntensity
                 }
             }
 
@@ -421,7 +423,7 @@ Item {
             border.width: 1.5
             border.color: theme.accentPrimary
             opacity: State.GlobalStates.settingsHoldProgress > 0
-                ? 0.12 + State.GlobalStates.settingsHoldProgress * 0.76
+                ? (0.12 + State.GlobalStates.settingsHoldProgress * 0.76) * ShellService.holdIndicatorIntensity
                 : 0
             z: 199
         }

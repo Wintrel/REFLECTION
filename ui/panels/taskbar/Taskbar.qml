@@ -22,6 +22,7 @@ Scope {
 
             required property var modelData
             screen: modelData
+            visible: ShellService.taskbarEnabled
 
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
@@ -73,7 +74,15 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
 
-                property bool isHidden: State.GlobalStates.anyAmbientActive || (!HyprlandService.isWorkspaceEmpty && !taskbarHover.hovered && !State.GlobalStates.controlCenterOpen)
+                property bool isHidden: {
+                    if (State.GlobalStates.anyAmbientActive)
+                        return true;
+                    if (ShellService.taskbarVisibilityMode === 1)
+                        return false;
+                    if (ShellService.taskbarVisibilityMode === 2)
+                        return !taskbarHover.hovered && !State.GlobalStates.controlCenterOpen;
+                    return !HyprlandService.isWorkspaceEmpty && !taskbarHover.hovered && !State.GlobalStates.controlCenterOpen;
+                }
 
                 anchors.bottomMargin: isHidden ? -(height - 2) : 0
                 Behavior on anchors.bottomMargin { NumberAnimation { duration: 700; easing.type: Easing.OutExpo } }
@@ -228,4 +237,3 @@ Scope {
             }
         }
     }
-

@@ -54,9 +54,9 @@ Row {
                     return false;
                 }
                 
-                width: isActive ? 24 : 8
-                height: 8
-                radius: 4
+                width: System.ShellService.workspaceNumbers ? 20 : (isActive ? 24 : 8)
+                height: System.ShellService.workspaceNumbers ? 20 : 8
+                radius: height / 2
                 
                 color: root.theme ? root.theme.accentWorkspace : '#ffffff'
                 opacity: isActive ? 1.0 : (isOccupied ? 0.4 : 0.1)
@@ -70,6 +70,16 @@ Row {
                     endColor: dot.isActive && root.theme ? root.theme.accentPrimaryGradientEnd : parent.color
                     anchors.fill: parent
                     visible: root.theme && root.theme.useGradients && dot.isActive
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    visible: System.ShellService.workspaceNumbers
+                    text: dot.wsId
+                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                    font.pixelSize: 10
+                    font.weight: Font.Bold
+                    color: root.theme ? root.theme.bgBase : "#000"
                 }
             }
             

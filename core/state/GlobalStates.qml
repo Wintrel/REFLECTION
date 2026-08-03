@@ -190,7 +190,8 @@ Singleton {
         description: "Toggles overview on press"
 
         onPressed: {
-            root.overviewOpen = !root.overviewOpen;
+            if (System.ShellService.overviewEnabled)
+                root.overviewOpen = !root.overviewOpen;
         }
     }
     
@@ -261,10 +262,12 @@ Singleton {
     IpcHandler {
         target: "ambientIdle"
         function activate() {
+            if (!System.ShellService.ambientEnabled) return;
             if (root.ambientActiveMode) return;
             root.ambientIdleActive = !root.ambientIdleActive;
         }
         function turnOn() {
+            if (!System.ShellService.ambientEnabled) return;
             if (root.ambientActiveMode) return;
             root.ambientIdleActive = true;
         }
@@ -276,10 +279,12 @@ Singleton {
     IpcHandler {
         target: "ambientActive"
         function activate() {
+            if (!System.ShellService.ambientEnabled) return;
             if (root.ambientIdleActive) root.ambientIdleActive = false;
             root.ambientActiveMode = !root.ambientActiveMode;
         }
         function turnOn() {
+            if (!System.ShellService.ambientEnabled) return;
             if (root.ambientIdleActive) root.ambientIdleActive = false;
             root.ambientActiveMode = true;
         }
@@ -291,7 +296,8 @@ Singleton {
     IpcHandler {
         target: "wallpaperSelector"
         function toggle() {
-            root.wallpaperSelectorOpen = !root.wallpaperSelectorOpen;
+            if (System.ShellService.wallpaperSelectorEnabled)
+                root.wallpaperSelectorOpen = !root.wallpaperSelectorOpen;
         }
     }
     
@@ -318,7 +324,8 @@ Singleton {
     IpcHandler {
         target: "overview"
         function toggle() {
-            root.overviewOpen = !root.overviewOpen;
+            if (System.ShellService.overviewEnabled)
+                root.overviewOpen = !root.overviewOpen;
         }
     }
 
@@ -337,14 +344,42 @@ Singleton {
     IpcHandler {
         target: "clipboard"
         function toggle() {
-            root.clipboardOpen = !root.clipboardOpen;
+            if (System.ShellService.clipboardEnabled)
+                root.clipboardOpen = !root.clipboardOpen;
+        }
+    }
+
+    Connections {
+        target: System.ShellService
+        function onTaskbarEnabledChanged() {
+            if (!System.ShellService.taskbarEnabled)
+                root.controlCenterOpen = false;
+        }
+        function onOverviewEnabledChanged() {
+            if (!System.ShellService.overviewEnabled)
+                root.overviewOpen = false;
+        }
+        function onClipboardEnabledChanged() {
+            if (!System.ShellService.clipboardEnabled)
+                root.clipboardOpen = false;
+        }
+        function onAmbientEnabledChanged() {
+            if (!System.ShellService.ambientEnabled) {
+                root.ambientIdleActive = false;
+                root.ambientActiveMode = false;
+            }
+        }
+        function onWallpaperSelectorEnabledChanged() {
+            if (!System.ShellService.wallpaperSelectorEnabled)
+                root.wallpaperSelectorOpen = false;
         }
     }
     
     IpcHandler {
         target: "controlCenter"
         function toggle() {
-            root.controlCenterOpen = !root.controlCenterOpen;
+            if (System.ShellService.taskbarEnabled)
+                root.controlCenterOpen = !root.controlCenterOpen;
         }
     }
 }

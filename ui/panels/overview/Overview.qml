@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 import "../../../core" as Core
 import "../../../core/monitors"
 import "../../../core/state" as State
+import "../../../core/services/system"
 
 Scope {
     id: overviewScope
@@ -19,7 +20,7 @@ Scope {
             required property var modelData
             screen: modelData
 
-            property bool wantsVisible: State.GlobalStates.overviewOpen
+            property bool wantsVisible: ShellService.overviewEnabled && State.GlobalStates.overviewOpen
             visible: wantsVisible || closeTimer.running
 
             Timer {

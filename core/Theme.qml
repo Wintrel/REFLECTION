@@ -88,7 +88,7 @@ Item {
     
     // Taskbar Sizing
     property int taskbarRadius: ThemeService.taskbarRadius
-    property int taskbarHeight: 52
+    property int taskbarHeight: ShellService.taskbarHeight
     property real taskbarWidthPercent: 0.97 // 85% width
     property int taskbarBottomMargin: 0
     property int taskbarBorderWidth: 1

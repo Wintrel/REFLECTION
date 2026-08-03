@@ -1,6 +1,7 @@
 import QtQuick
 import "../../../../core" as Core
 import "../../../../core/state" as State
+import "../../../../core/services/system"
 import "../../../components" as Components
 
 Item {
@@ -15,8 +16,8 @@ Item {
     layer.enabled: true
     Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
     
-    property bool isPlaying: root.mprisPlayer && root.mprisPlayer.isPlaying
-    property bool hasNotifs: State.GlobalStates.notificationHistory.count > 0
+    property bool isPlaying: ShellService.islandMediaActivity && root.mprisPlayer && root.mprisPlayer.isPlaying
+    property bool hasNotifs: ShellService.islandNotificationPreviews && State.GlobalStates.notificationHistory.count > 0
     
     // Ambient Void Background (Only visible when there's active ambient content)
     Components.Starfield {
