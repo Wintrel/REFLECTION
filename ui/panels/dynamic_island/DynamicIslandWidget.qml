@@ -71,6 +71,18 @@ Item {
         Behavior on color { ColorAnimation { duration: 300 } }
     }
 
+    // Super+I hold feedback. The edge charges continuously toward the
+    // immersive threshold and hands its energy to the Reflection bloom.
+    RectangularGlow {
+        anchors.fill: islandShape
+        visible: State.GlobalStates.settingsHoldProgress > 0
+        glowRadius: 8 + State.GlobalStates.settingsHoldProgress * 12
+        spread: 0.04 + State.GlobalStates.settingsHoldProgress * 0.08
+        color: theme.accentPrimary
+        cornerRadius: islandShape.radius + glowRadius
+        opacity: State.GlobalStates.settingsHoldProgress * 0.38
+    }
+
     // The actual island container (Outer Bezel)
     Rectangle {
         id: islandShape
@@ -375,6 +387,43 @@ Item {
                     }
                 }
             }
+
+            // A centre-out charging seam gives the short hold a readable
+            // direction without resizing the island or replacing its content.
+            Item {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.leftMargin: islandShape.radius
+                anchors.rightMargin: islandShape.radius
+                anchors.bottomMargin: 1
+                height: 3
+                z: 200
+                visible: State.GlobalStates.settingsHoldProgress > 0
+
+                Rectangle {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width * State.GlobalStates.settingsHoldProgress
+                    height: 2
+                    radius: 1
+                    color: theme.accentPrimary
+                    opacity: 0.45 + State.GlobalStates.settingsHoldProgress * 0.55
+                }
+            }
+
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            radius: parent.radius
+            color: "transparent"
+            border.width: 1.5
+            border.color: theme.accentPrimary
+            opacity: State.GlobalStates.settingsHoldProgress > 0
+                ? 0.12 + State.GlobalStates.settingsHoldProgress * 0.76
+                : 0
+            z: 199
         }
     }
     

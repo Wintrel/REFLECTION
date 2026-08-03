@@ -30,6 +30,13 @@ Singleton {
     readonly property int immersiveClosing: 3
     property int immersivePhase: immersiveClosed
     readonly property bool immersiveTransitioning: immersivePhase === immersiveOpening || immersivePhase === immersiveClosing
+
+    // Super+I dual action: release before the threshold for quick settings,
+    // or keep holding to enter the immersive settings surface.
+    property int settingsHoldDuration: 450
+    property bool settingsShortcutArmed: false
+    property bool settingsHoldConsumed: false
+    property real settingsHoldProgress: 0
     property bool screenLocked: false
     property bool clipboardOpen: false
     property bool controlCenterOpen: false
@@ -96,6 +103,84 @@ Singleton {
         }
         onReleased: {
             root.superDown = false
+        }
+    }
+
+    Timer {
+        id: settingsHoldTimer
+        interval: root.settingsHoldDuration
+        repeat: false
+
+        onTriggered: {
+            if (!settingsShortcut.pressed || !root.settingsShortcutArmed)
+                return;
+
+            root.settingsHoldProgress = 1;
+            root.settingsHoldConsumed = true;
+            root.settingsOpen = false;
+
+            if (root.immersivePhase === root.immersiveClosed)
+                root.openImmersive();
+        }
+    }
+
+    NumberAnimation {
+        id: settingsHoldChargeAnimation
+        target: root
+        property: "settingsHoldProgress"
+        from: 0
+        to: 1
+        duration: root.settingsHoldDuration
+        easing.type: Easing.InOutQuad
+    }
+
+    NumberAnimation {
+        id: settingsHoldReleaseAnimation
+        target: root
+        property: "settingsHoldProgress"
+        to: 0
+        duration: 110
+        easing.type: Easing.OutCubic
+    }
+
+    GlobalShortcut {
+        id: settingsShortcut
+        name: "settingsHold"
+        description: "Tap for quick settings, hold for immersive settings"
+
+        onPressed: {
+            settingsHoldTimer.stop();
+            settingsHoldChargeAnimation.stop();
+            settingsHoldReleaseAnimation.stop();
+            root.settingsHoldProgress = 0;
+            root.settingsShortcutArmed = !root.immersiveTransitioning;
+            root.settingsHoldConsumed = false;
+
+            if (root.settingsShortcutArmed) {
+                settingsHoldTimer.restart();
+                settingsHoldChargeAnimation.restart();
+            }
+        }
+
+        onReleased: {
+            if (!root.settingsShortcutArmed)
+                return;
+
+            root.settingsShortcutArmed = false;
+            settingsHoldTimer.stop();
+            settingsHoldChargeAnimation.stop();
+            settingsHoldReleaseAnimation.from = root.settingsHoldProgress;
+            settingsHoldReleaseAnimation.restart();
+
+            if (root.settingsHoldConsumed) {
+                root.settingsHoldConsumed = false;
+                return;
+            }
+
+            if (root.immersivePhase === root.immersiveOpened)
+                root.closeImmersive();
+            else
+                root.settingsOpen = !root.settingsOpen;
         }
     }
 
