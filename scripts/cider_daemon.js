@@ -470,13 +470,26 @@ rl.on('line', function(line){
     } else if (line.trim() === "toggleFavorite") {
         if (!state.trackId) return;
         const newRating = state.inFavorites ? 0 : 1;
-        fetch(apiUrl("/api/v1/playback/set-rating"), {
+        const ratingReq = fetch(apiUrl("/api/v1/playback/set-rating"), {
             method: "POST",
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ id: state.trackId, type: "songs", rating: newRating })
-        }).then(() => {
-            state.inFavorites = !state.inFavorites;
-            printState();
-        }).catch(() => {});
+        });
+        if (newRating === 1) {
+            // Also add to library so it shows up in the favorites list
+            ratingReq.then(() => fetch(apiUrl("/api/v1/playback/add-to-library"), {
+                method: "POST",
+                headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
+                body: JSON.stringify({ id: state.trackId, type: "songs" })
+            })).then(() => {
+                state.inFavorites = true;
+                printState();
+            }).catch(() => {});
+        } else {
+            ratingReq.then(() => {
+                state.inFavorites = false;
+                printState();
+            }).catch(() => {});
+        }
     }
 });
