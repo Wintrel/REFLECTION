@@ -297,7 +297,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 24
             
-            // Read-only Favorite Icon
+            // Favorite Icon
             Text {
                 id: iconFavorite
                 text: (root.mprisPlayer && root.mprisPlayer.inFavorites) ? "favorite" : "favorite_border"
@@ -307,10 +307,20 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 Behavior on color { ColorAnimation { duration: 200 } }
                 
-                // Simple hover effect, read-only
                 scale: favMa.containsMouse ? 1.1 : 1
                 Behavior on scale { NumberAnimation { duration: 150 } }
-                MouseArea { id: favMa; anchors.fill: parent; anchors.margins: -5; hoverEnabled: true }
+                MouseArea {
+                    id: favMa
+                    anchors.fill: parent
+                    anchors.margins: -5
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (root.mprisPlayer && typeof root.mprisPlayer.toggleFavorite === 'function') {
+                            root.mprisPlayer.toggleFavorite();
+                        }
+                    }
+                }
             }
             
             // Volume Control

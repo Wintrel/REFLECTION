@@ -7,6 +7,7 @@ DisplayStage DisplayStage.qml
 PersonalizationStage PersonalizationStage.qml
 BehaviorStage BehaviorStage.qml
 ShellStage ShellStage.qml
+CiderStudioStage CiderStudioStage.qml
 RogStage RogStage.qml
 UpdatesStage UpdatesStage.qml
 AboutStage AboutStage.qml

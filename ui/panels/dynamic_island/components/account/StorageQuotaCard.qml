@@ -25,67 +25,110 @@ import "../../../../../core/state" as State
 
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 80
-                    radius: 8
+                    implicitHeight: 128
+                    radius: 10
                     color: Qt.rgba(255, 255, 255, 0.02)
                     border.width: 1
                     border.color: Qt.rgba(255, 255, 255, 0.04)
 
-                    RowLayout {
+                    ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: 16
-                        spacing: 16
+                        spacing: 12
 
-                        Text {
-                            text: "storage"
-                            font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                            font.pixelSize: 28
-                            color: root.theme ? root.theme.accentPrimary : "#AAA"
-                        }
-
-                        ColumnLayout {
+                        RowLayout {
                             Layout.fillWidth: true
-                            spacing: 6
+                            spacing: 12
 
-                            RowLayout {
-                                Layout.fillWidth: true
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 40
+                                radius: 11
+                                color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.13) : Qt.rgba(0.4, 0.4, 1, 0.13)
                                 Text {
-                                    text: "Home Partition (" + AccountService.homeDir + ")"
-                                    font.family: "Inter"
+                                    anchors.centerIn: parent
+                                    text: "storage"
+                                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                                    font.pixelSize: 23
+                                    color: root.theme ? root.theme.accentPrimary : "#AAA"
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 2
+                                Text {
+                                    text: "Home Partition"
+                                    font.family: root.theme ? root.theme.fontMain : "Inter"
                                     font.pixelSize: 13
-                                    font.weight: Font.Medium
+                                    font.weight: Font.DemiBold
                                     color: root.theme ? root.theme.textMain : "#FFF"
                                 }
-                                Item { Layout.fillWidth: true }
                                 Text {
-                                    text: AccountService.storageUsage.used + " / " + AccountService.storageUsage.size + " (" + AccountService.storageUsage.percent + "% used)"
-                                    font.family: "Inter"
-                                    font.pixelSize: 12
+                                    text: AccountService.homeDir
+                                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                                    font.pixelSize: 10
                                     color: root.theme ? root.theme.textSub : "#888"
                                 }
                             }
 
-                            // Progress Bar Track
-                            Rectangle {
-                                Layout.fillWidth: true
-                                height: 6
-                                radius: 3
-                                color: Qt.rgba(255, 255, 255, 0.08)
-
-                                // Progress Fill
-                                Rectangle {
-                                    width: parent.width * (AccountService.storageUsage.percent / 100.0)
-                                    height: parent.height
-                                    radius: parent.radius
-                                    color: {
-                                        var pct = AccountService.storageUsage.percent;
-                                        if (pct > 85) return "#ff4444";
-                                        if (pct > 65) return "#ffbb33";
-                                        return root.theme ? root.theme.accentPrimary : "#C0C0D0";
-                                    }
-                                    Behavior on width { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
-                                    Behavior on color { ColorAnimation { duration: 150 } }
+                            ColumnLayout {
+                                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                spacing: 2
+                                Text {
+                                    Layout.alignment: Qt.AlignRight
+                                    text: AccountService.storageUsage.used + " / " + AccountService.storageUsage.size
+                                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                                    font.pixelSize: 12
+                                    font.weight: Font.DemiBold
+                                    color: root.theme ? root.theme.textMain : "#FFF"
                                 }
+                                Text {
+                                    Layout.alignment: Qt.AlignRight
+                                    text: AccountService.storageUsage.avail + " available"
+                                    font.family: root.theme ? root.theme.fontMain : "Inter"
+                                    font.pixelSize: 10
+                                    color: root.theme ? root.theme.textSub : "#888"
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Text {
+                                text: "Storage utilization"
+                                font.family: root.theme ? root.theme.fontMain : "Inter"
+                                font.pixelSize: 10
+                                color: root.theme ? root.theme.textMuted : "#666"
+                            }
+                            Item { Layout.fillWidth: true }
+                            Text {
+                                text: AccountService.storageUsage.percent + "% used"
+                                font.family: root.theme ? root.theme.fontMain : "Inter"
+                                font.pixelSize: 10
+                                font.weight: Font.DemiBold
+                                color: AccountService.storageUsage.percent > 85 ? "#ff6666" : (root.theme ? root.theme.textSub : "#888")
+                            }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 7
+                            radius: 4
+                            color: Qt.rgba(255, 255, 255, 0.08)
+
+                            Rectangle {
+                                width: parent.width * (AccountService.storageUsage.percent / 100.0)
+                                height: parent.height
+                                radius: parent.radius
+                                color: {
+                                    var pct = AccountService.storageUsage.percent;
+                                    if (pct > 85) return "#ff4444";
+                                    if (pct > 65) return "#ffbb33";
+                                    return root.theme ? root.theme.accentPrimary : "#C0C0D0";
+                                }
+                                Behavior on width { NumberAnimation { duration: 500; easing.type: Easing.OutCubic } }
+                                Behavior on color { ColorAnimation { duration: 150 } }
                             }
                         }
                     }

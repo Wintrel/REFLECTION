@@ -1,7 +1,52 @@
 const io = require("socket.io-client");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
 
-const TOKEN = "fdbu2akop0ad66c7n9obcoet";
-const socket = io("http://127.0.0.1:10767", {
+const CONFIG_PATH = path.join(os.homedir(), ".config/quickshell/reflection/.cider_settings.json");
+let integrationConfig = {};
+try {
+    integrationConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
+} catch (_) {}
+
+const API_BASE = String(integrationConfig.endpoint || "http://127.0.0.1:10767").replace(/\/$/, "");
+const TOKEN = String(integrationConfig.apiToken || "");
+const apiUrl = route => API_BASE + route;
+
+function printHealth(overrides = {}) {
+    console.log(JSON.stringify(Object.assign({
+        __type: "health",
+        socketConnected: socket.connected,
+        apiReachable: false,
+        authenticated: false,
+        endpoint: API_BASE,
+        tokenConfigured: TOKEN.length > 0,
+        latencyMs: -1,
+        error: ""
+    }, overrides)));
+}
+
+async function probeHealth() {
+    const started = Date.now();
+    try {
+        const response = await fetch(apiUrl("/api/v1/playback/now-playing"), {
+            headers: { "apptoken": TOKEN }
+        });
+        const authenticated = response.ok;
+        printHealth({
+            apiReachable: true,
+            authenticated,
+            latencyMs: Date.now() - started,
+            error: authenticated ? "" : ((response.status === 401 || response.status === 403)
+                ? "Cider rejected the API token"
+                : "Cider API returned HTTP " + response.status)
+        });
+    } catch (error) {
+        printHealth({ error: error && error.message ? error.message : "Cider API is unavailable" });
+    }
+}
+
+const socket = io(API_BASE, {
     extraHeaders: {
         "apptoken": TOKEN,
         "apitoken": TOKEN
@@ -27,7 +72,7 @@ let lastFetchedLyricsId = "";
 
 function fetchLyrics(id) {
     if (!id) return;
-    fetch(`http://127.0.0.1:10767/api/v2/lyrics/${id}`, {
+    fetch(apiUrl(`/api/v2/lyrics/${id}`), {
         headers: { "apptoken": TOKEN }
     })
     .then(res => res.json())
@@ -53,7 +98,7 @@ function printState() {
 }
 
 function updateVolume() {
-    fetch("http://127.0.0.1:10767/api/v1/playback/volume", {
+    fetch(apiUrl("/api/v1/playback/volume"), {
         headers: { "apptoken": TOKEN }
     }).then(res => res.json()).then(data => {
         if (data && data.volume !== undefined) {
@@ -64,7 +109,7 @@ function updateVolume() {
 }
 
 function updateNowPlaying() {
-    fetch("http://127.0.0.1:10767/api/v1/playback/now-playing", {
+    fetch(apiUrl("/api/v1/playback/now-playing"), {
         headers: { "apptoken": TOKEN }
     }).then(res => res.json()).then(data => {
         if (data && data.info) {
@@ -88,7 +133,7 @@ function updateNowPlaying() {
 }
 
 function fetchConfig() {
-    fetch("http://127.0.0.1:10767/api/v2/config", {
+    fetch(apiUrl("/api/v2/config"), {
         headers: { "apptoken": TOKEN }
     }).then(res => res.json()).then(data => {
         if (data && data.data && data.data.audio) {
@@ -103,7 +148,7 @@ function toggleAudioFeature(feature, state) {
         payload.binaural = state === 'true';
     }
     
-    fetch(`http://127.0.0.1:10767/api/v2/audio/${feature}`, {
+    fetch(apiUrl(`/api/v2/audio/${feature}`), {
         method: "PATCH",
         headers: {
             "apptoken": TOKEN,
@@ -114,11 +159,15 @@ function toggleAudioFeature(feature, state) {
 }
 
 socket.on("connect", () => {
+    probeHealth();
     updateNowPlaying();
     updateQueue();
     updateVolume();
     fetchConfig();
 });
+
+socket.on("disconnect", reason => printHealth({ error: "Socket disconnected: " + reason }));
+socket.on("connect_error", error => printHealth({ error: error && error.message ? error.message : "Socket connection failed" }));
 
 // Poll volume and config periodically since Cider does not emit socket events for them
 setInterval(() => {
@@ -129,7 +178,7 @@ setInterval(() => {
 }, 3000);
 
 function updateQueue() {
-    fetch("http://127.0.0.1:10767/api/v1/playback/queue", {
+    fetch(apiUrl("/api/v1/playback/queue"), {
         headers: { "apptoken": TOKEN }
     }).then(res => res.json()).then(data => {
         if (Array.isArray(data)) {
@@ -158,7 +207,7 @@ function updateQueue() {
 }
 
 function updatePlaylists() {
-    fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
+    fetch(apiUrl("/api/v1/amapi/run-v3"), {
         method: "POST",
         headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
         body: JSON.stringify({ "path": "/v1/me/library/playlists" })
@@ -184,7 +233,7 @@ function updatePlaylists() {
 }
 
 function updateForYou() {
-    fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
+    fetch(apiUrl("/api/v1/amapi/run-v3"), {
         method: "POST",
         headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
         body: JSON.stringify({ "path": "/v1/me/recommendations" })
@@ -251,27 +300,27 @@ const rl = readline.createInterface({
 
 rl.on('line', function(line){
     if (line.trim() === "playpause" || line.trim() === "togglePlaying") {
-        fetch("http://127.0.0.1:10767/api/v1/playback/playpause", { method: "POST", headers: { "apptoken": TOKEN }});
+        fetch(apiUrl("/api/v1/playback/playpause"), { method: "POST", headers: { "apptoken": TOKEN }});
     } else if (line.trim() === "next") {
-        fetch("http://127.0.0.1:10767/api/v1/playback/next", { method: "POST", headers: { "apptoken": TOKEN }});
+        fetch(apiUrl("/api/v1/playback/next"), { method: "POST", headers: { "apptoken": TOKEN }});
     } else if (line.trim() === "previous") {
-        fetch("http://127.0.0.1:10767/api/v1/playback/previous", { method: "POST", headers: { "apptoken": TOKEN }});
+        fetch(apiUrl("/api/v1/playback/previous"), { method: "POST", headers: { "apptoken": TOKEN }});
     } else if (line.trim() === "pause") {
-        fetch("http://127.0.0.1:10767/api/v1/playback/pause", { method: "POST", headers: { "apptoken": TOKEN }});
+        fetch(apiUrl("/api/v1/playback/pause"), { method: "POST", headers: { "apptoken": TOKEN }});
     } else if (line.trim() === "toggleShuffle") {
-        fetch("http://127.0.0.1:10767/api/v1/playback/toggle-shuffle", { method: "POST", headers: { "apptoken": TOKEN }}).then(() => updateNowPlaying());
+        fetch(apiUrl("/api/v1/playback/toggle-shuffle"), { method: "POST", headers: { "apptoken": TOKEN }}).then(() => updateNowPlaying());
     } else if (line.trim() === "toggleRepeat") {
-        fetch("http://127.0.0.1:10767/api/v1/playback/toggle-repeat", { method: "POST", headers: { "apptoken": TOKEN }}).then(() => updateNowPlaying());
+        fetch(apiUrl("/api/v1/playback/toggle-repeat"), { method: "POST", headers: { "apptoken": TOKEN }}).then(() => updateNowPlaying());
     } else if (line.startsWith("setVolume ")) {
         const val = parseFloat(line.split(" ")[1]);
-        fetch("http://127.0.0.1:10767/api/v1/playback/volume", { 
+        fetch(apiUrl("/api/v1/playback/volume"), {
             method: "POST", 
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "volume": val })
         }).then(() => { state.volume = val; printState(); });
     } else if (line.startsWith("seek ")) {
         const val = parseInt(line.split(" ")[1], 10);
-        fetch("http://127.0.0.1:10767/api/v1/playback/seek", { 
+        fetch(apiUrl("/api/v1/playback/seek"), {
             method: "POST", 
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "position": val / 1000000.0 })
@@ -302,7 +351,7 @@ rl.on('line', function(line){
             apiQuery = apiQuery.trim();
         }
         
-        fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
+        fetch(apiUrl("/api/v1/amapi/run-v3"), {
             method: "POST",
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "path": "/v1/catalog/us/search?term=" + encodeURIComponent(apiQuery) + "&types=songs&limit=25" })
@@ -336,7 +385,7 @@ rl.on('line', function(line){
         }).catch((e) => { console.error("Search error:", e); });
     } else if (line.startsWith("playTrack ")) {
         const id = line.split(" ")[1];
-        fetch("http://127.0.0.1:10767/api/v1/playback/play-item", {
+        fetch(apiUrl("/api/v1/playback/play-item"), {
             method: "POST",
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "type": "songs", "id": id })
@@ -348,6 +397,8 @@ rl.on('line', function(line){
         updateQueue();
     } else if (line.trim() === "fetchConfig") {
         fetchConfig();
+    } else if (line.trim() === "health") {
+        probeHealth();
     } else if (line.startsWith("toggleAudioFeature ")) {
         let parts = line.split(" ");
         if (parts.length === 3) {
@@ -361,11 +412,11 @@ rl.on('line', function(line){
         const parts = line.trim().split(" ");
         const type = parts.length >= 3 ? parts[1] : "library-playlists";
         const id = parts.length >= 3 ? parts[2] : parts[1];
-        fetch("http://127.0.0.1:10767/api/v1/playback/play-item", {
+        fetch(apiUrl("/api/v1/playback/play-item"), {
             method: "POST",
             headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
             body: JSON.stringify({ "type": type, "id": id })
-        }).then(() => fetch("http://127.0.0.1:10767/api/v1/playback/play", { method: "POST", headers: { "apptoken": TOKEN }}))
+        }).then(() => fetch(apiUrl("/api/v1/playback/play"), { method: "POST", headers: { "apptoken": TOKEN }}))
         .then(() => {
             updateNowPlaying();
             updateQueue();
@@ -375,7 +426,7 @@ rl.on('line', function(line){
         let allTracks = [];
         
         function fetchPage(path) {
-            fetch("http://127.0.0.1:10767/api/v1/amapi/run-v3", {
+            fetch(apiUrl("/api/v1/amapi/run-v3"), {
                 method: "POST",
                 headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
                 body: JSON.stringify({ "path": path })
@@ -416,5 +467,16 @@ rl.on('line', function(line){
         
         // Start fetching the first page with the max limit per request
         fetchPage(href + "/tracks?limit=100");
+    } else if (line.trim() === "toggleFavorite") {
+        if (!state.trackId) return;
+        const newRating = state.inFavorites ? 0 : 1;
+        fetch(apiUrl("/api/v1/playback/set-rating"), {
+            method: "POST",
+            headers: { "apptoken": TOKEN, "Content-Type": "application/json" },
+            body: JSON.stringify({ id: state.trackId, type: "songs", rating: newRating })
+        }).then(() => {
+            state.inFavorites = !state.inFavorites;
+            printState();
+        }).catch(() => {});
     }
 });

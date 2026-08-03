@@ -24,8 +24,8 @@ Item {
     readonly property bool authenticationActive: PolkitAuthService.isAuthenticating
 
     property var categories: isSecretUnlocked ?
-        ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "ROG", "Updates", "About", "Wintrel"] :
-        ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "ROG", "Updates", "About"]
+        ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "Cider Studio", "ROG", "Updates", "About", "Wintrel"] :
+        ["Account", "Audio", "Display", "Personalization", "Behavior", "Shell", "Cider Studio", "ROG", "Updates", "About"]
 
     function getIconForCategory(cat) {
         if (cat === "Account")         return "manage_accounts";
@@ -34,6 +34,7 @@ Item {
         if (cat === "Personalization") return "palette";
         if (cat === "Behavior")        return "psychology";
         if (cat === "Shell")           return "desktop_windows";
+        if (cat === "Cider Studio")    return "music_note";
         if (cat === "ROG")             return "sports_esports";
         if (cat === "Updates")         return "update";
         if (cat === "Wintrel")         return "terminal";
@@ -44,7 +45,9 @@ Item {
         if (index === 0) return "PERSONAL";
         if (index === 1) return "HARDWARE";
         if (index === 3) return "EXPERIENCE";
-        if (index === 7) return "SYSTEM";
+        if (index === 6) return "INTEGRATIONS";
+        if (index === 7) return "HARDWARE";
+        if (index === 8) return "SYSTEM";
         return "";
     }
 
@@ -432,18 +435,19 @@ Item {
             PersonalizationStage { theme: root.theme; categoryIndex: 3; isCurrentPage: root.currentCategory === 3 }
             BehaviorStage { theme: root.theme; categoryIndex: 4; isCurrentPage: root.currentCategory === 4 }
             ShellStage { theme: root.theme; categoryIndex: 5; isCurrentPage: root.currentCategory === 5 }
-            RogStage { theme: root.theme; categoryIndex: 6; isCurrentPage: root.currentCategory === 6 }
-            UpdatesStage { theme: root.theme; categoryIndex: 7; isCurrentPage: root.currentCategory === 7 }
+            CiderStudioStage { theme: root.theme; categoryIndex: 6; isCurrentPage: root.currentCategory === 6 }
+            RogStage { theme: root.theme; categoryIndex: 7; isCurrentPage: root.currentCategory === 7 }
+            UpdatesStage { theme: root.theme; categoryIndex: 8; isCurrentPage: root.currentCategory === 8 }
             AboutStage {
                 theme: root.theme
-                categoryIndex: 8
-                isCurrentPage: root.currentCategory === 8
+                categoryIndex: 9
+                isCurrentPage: root.currentCategory === 9
                 onSecretUnlocked: root.isSecretUnlocked = true
             }
             WintrelStage {
                 theme: root.theme
-                categoryIndex: 9
-                isCurrentPage: root.currentCategory === 9
+                categoryIndex: 10
+                isCurrentPage: root.currentCategory === 10
                 visible: root.isSecretUnlocked
             }
         }

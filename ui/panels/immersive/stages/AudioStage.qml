@@ -6,7 +6,7 @@ import "../../dynamic_island/components/audio" as Audio
 CategoryStage {
     id: root
     categoryTitle: "Audio"
-    categorySubtitle: "Volume, devices & Cider"
+    categorySubtitle: "Volume, devices & routing"
 
 
     pageContent: Item {

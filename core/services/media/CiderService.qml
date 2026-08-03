@@ -8,7 +8,18 @@ import "../../state" as State
 
 Singleton {
     id: root
-    
+
+    readonly property string configPath: Quickshell.env("HOME") + "/.config/quickshell/reflection/.cider_settings.json"
+    property string endpoint: "http://127.0.0.1:10767"
+    property string apiToken: ""
+    readonly property bool tokenConfigured: apiToken.length > 0
+    property bool configLoaded: false
+    property bool socketConnected: false
+    property bool apiReachable: false
+    property bool authenticated: false
+    property int latencyMs: -1
+    property string connectionError: "Waiting for Cider"
+
     property bool isPlaying: false
     property string trackTitle: ""
     property string trackArtist: ""
@@ -172,7 +183,6 @@ Singleton {
     Process {
         id: ciderDaemon
         command: ["node", Quickshell.env("HOME") + "/.config/quickshell/reflection/scripts/cider_daemon.js"]
-        running: true
         
         stdout: SplitParser {
             onRead: data => {
@@ -180,7 +190,13 @@ Singleton {
                 if (line.trim() === "") return;
                 try {
                     var parsed = JSON.parse(line);
-                    if (parsed.__type === "search") {
+                    if (parsed.__type === "health") {
+                        root.socketConnected = !!parsed.socketConnected;
+                        root.apiReachable = !!parsed.apiReachable;
+                        root.authenticated = !!parsed.authenticated;
+                        root.latencyMs = parsed.latencyMs !== undefined ? Number(parsed.latencyMs) : -1;
+                        root.connectionError = parsed.error || "";
+                    } else if (parsed.__type === "search") {
                         root.searchResults = [];
                         root.searchResults = parsed.results || [];
                     } else if (parsed.__type === "playlists") {
@@ -243,6 +259,42 @@ Singleton {
                 }
             }
         }
+        running: root.configLoaded
+    }
+
+    Timer {
+        id: daemonRestartTimer
+        interval: 180
+        onTriggered: ciderDaemon.running = true
+    }
+
+    Process {
+        id: settingsLoadProcess
+        command: ["python3", "-c",
+            "import pathlib,sys; p=pathlib.Path(sys.argv[1]); print(p.read_text() if p.exists() else '{}')",
+            root.configPath]
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    var config = JSON.parse(data.trim() || "{}");
+                    if (config.endpoint) root.endpoint = String(config.endpoint);
+                    if (config.apiToken) root.apiToken = String(config.apiToken);
+                } catch (error) {
+                    console.log("CiderService: could not load integration settings: " + error);
+                }
+                root.configLoaded = true;
+            }
+        }
+        onExited: root.configLoaded = true
+        running: true
+    }
+
+    Process {
+        id: settingsSaveProcess
+        command: ["python3", "-c",
+            "import os,pathlib,sys; p=pathlib.Path(sys.argv[1]); p.write_text(sys.stdin.readline()); os.chmod(p,0o600)",
+            root.configPath]
+        onExited: root.restartDaemon()
     }
     
     onPositionChanged: {
@@ -275,6 +327,10 @@ Singleton {
         ciderDaemon.write("toggleRepeat\n");
     }
     
+    function toggleFavorite() {
+        ciderDaemon.write("toggleFavorite\n");
+    }
+
     function skipToId(id) {
         if (id) ciderDaemon.write("skipToId " + id + "\n");
     }
@@ -293,6 +349,42 @@ Singleton {
     
     function fetchConfig() {
         ciderDaemon.write("fetchConfig\n");
+    }
+
+    function testConnection() {
+        if (ciderDaemon.running)
+            ciderDaemon.write("health\n");
+    }
+
+    function configureIntegration(newEndpoint, newToken) {
+        var normalized = String(newEndpoint || "http://127.0.0.1:10767").trim();
+        while (normalized.length > 0 && normalized[normalized.length - 1] === "/")
+            normalized = normalized.slice(0, -1);
+        endpoint = normalized || "http://127.0.0.1:10767";
+        if (String(newToken || "").length > 0)
+            apiToken = String(newToken).trim();
+        saveIntegrationSettings();
+    }
+
+    function clearCredential() {
+        apiToken = "";
+        saveIntegrationSettings();
+    }
+
+    function saveIntegrationSettings() {
+        var serialized = JSON.stringify({ endpoint: endpoint, apiToken: apiToken });
+        settingsSaveProcess.running = true;
+        settingsSaveProcess.write(serialized + "\n");
+    }
+
+    function restartDaemon() {
+        socketConnected = false;
+        apiReachable = false;
+        authenticated = false;
+        latencyMs = -1;
+        connectionError = "Reconnecting to Cider";
+        ciderDaemon.running = false;
+        daemonRestartTimer.restart();
     }
     
     function toggleAtmos(state) {
