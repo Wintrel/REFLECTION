@@ -106,7 +106,7 @@ Column {
             label: "DND"
             theme: mainView.theme
             isActive: State.GlobalStates.dndEnabled
-            onClicked: State.GlobalStates.dndEnabled = !State.GlobalStates.dndEnabled
+            onClicked: BehaviorService.setDndEnabled(!BehaviorService.dndEnabled)
         }
         QuickToggle {
             width: (parent.width - 16) / 2

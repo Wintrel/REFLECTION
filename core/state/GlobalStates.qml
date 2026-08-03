@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
+import "../services/system" as System
 pragma Singleton
 pragma ComponentBehavior: Bound
 
@@ -33,7 +34,7 @@ Singleton {
 
     // Super+I dual action: release before the threshold for quick settings,
     // or keep holding to enter the immersive settings surface.
-    property int settingsHoldDuration: 450
+    readonly property int settingsHoldDuration: System.BehaviorService.settingsHoldDuration
     property bool settingsShortcutArmed: false
     property bool settingsHoldConsumed: false
     property real settingsHoldProgress: 0
@@ -49,7 +50,7 @@ Singleton {
     property bool wallpaperSelectorOpen: false
     property bool workspaceShowNumbers: false
     property bool bottomPanelOpen: false
-    property bool dndEnabled: false
+    readonly property bool dndEnabled: System.BehaviorService.dndEnabled
     property bool islandInOverlay: false // Controls if island renders on WlrLayer.Overlay
     
     // Tracks the dynamic height of the island

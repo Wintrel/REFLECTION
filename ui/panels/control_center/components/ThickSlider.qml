@@ -8,6 +8,9 @@ Item {
     property var theme
     property string icon: ""
     property real value: 0 // 0 to 100
+    // Optional user-facing value. Leave empty to retain the percentage
+    // display used by volume, brightness, and the existing sliders.
+    property string valueText: ""
     signal valueChangedByUser(real newValue)
     signal rightClicked()
     
@@ -75,7 +78,7 @@ Item {
             anchors.right: parent.right
             anchors.rightMargin: 16
             anchors.verticalCenter: parent.verticalCenter
-            text: Math.round(root.value) + "%"
+            text: root.valueText !== "" ? root.valueText : Math.round(root.value) + "%"
             font.family: root.theme ? root.theme.fontMain : "Inter"
             font.pixelSize: 14
             font.bold: true

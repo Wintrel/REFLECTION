@@ -13,3 +13,4 @@ singleton PolkitAuthService PolkitAuthService.qml
 singleton AccountService AccountService.qml
 singleton ThemeService ThemeService.qml
 singleton ClipboardService ClipboardService.qml
+singleton BehaviorService BehaviorService.qml

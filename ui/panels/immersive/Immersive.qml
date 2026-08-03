@@ -62,7 +62,7 @@ Scope {
                 MouseArea {
                     anchors.fill: parent
                     // Do not close on click for settings by default, but we can capture clicks if needed
-                    // Actually, let's allow Esc to close it
+                    // Actually, let's allow Esc to close it.
                     focus: State.GlobalStates.immersiveOpen
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Escape) {

@@ -63,7 +63,7 @@ Item {
 
     Timer {
         id: notifTimer
-        interval: 5000 // 5 seconds
+        interval: BehaviorService.notificationTimeout
         onTriggered: dismissNotification()
     }
     
@@ -79,7 +79,7 @@ Item {
 
     Timer {
         id: osdTimer
-        interval: 2000 // 2 seconds
+        interval: BehaviorService.osdTimeout
         onTriggered: {
             if (islandState === State.IslandState.osd) {
                 var persistentStates = [State.IslandState.expanded, State.IslandState.notificationHistory, State.IslandState.prompt, State.IslandState.actionProgress, State.IslandState.reflectionGrid, State.IslandState.battery, State.IslandState.polkitAuth, State.IslandState.settingsHub, State.IslandState.filePicker, State.IslandState.ciderExpanded, State.IslandState.clipboard];
@@ -96,15 +96,20 @@ Item {
     Connections {
         target: OsdService
         function onOsdRequested(mode, priority, icon, text, color) {
+            // Critical and actionable system warnings remain visible even when
+            // routine volume/brightness feedback has been disabled.
+            if (!BehaviorService.routineOsdEnabled && priority <= 1)
+                return;
+
             controller.osdMode = mode;
             controller.osdPriority = priority;
             controller.osdIcon = icon;
             controller.osdText = text;
             controller.osdColor = color;
             
-            var duration = 2000;
-            if (priority === 2) duration = 4000;
-            if (priority === 3) duration = 8000;
+            var duration = BehaviorService.osdTimeout;
+            if (priority === 2) duration = Math.max(4000, BehaviorService.osdTimeout);
+            if (priority === 3) duration = Math.max(8000, BehaviorService.osdTimeout);
             osdTimer.interval = duration;
             
             if (controller.islandState !== State.IslandState.notification || priority >= 2) {
@@ -296,7 +301,7 @@ Item {
             State.GlobalStates.notificationHistory.insert(0, notifData);
             
             controller.currentNotif = notifCopy;
-            if (!State.GlobalStates.dndEnabled) {
+            if (!BehaviorService.dndEnabled) {
                 var modalStates = [State.IslandState.prompt, State.IslandState.actionProgress, State.IslandState.reflectionGrid, State.IslandState.polkitAuth, State.IslandState.settingsHub, State.IslandState.filePicker, State.IslandState.ciderExpanded];
                 if (modalStates.indexOf(controller.islandState) === -1) {
                     if (controller.islandState !== State.IslandState.notification) {
@@ -306,7 +311,8 @@ Item {
                     notifTimer.restart();
                 }
                 
-                popSound.play();
+                if (BehaviorService.notificationSoundEnabled)
+                    popSound.play();
                 
                 State.GlobalStates.notificationTriggered();
             }

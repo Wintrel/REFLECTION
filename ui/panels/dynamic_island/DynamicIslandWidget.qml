@@ -75,7 +75,7 @@ Item {
     // immersive threshold and hands its energy to the Reflection bloom.
     RectangularGlow {
         anchors.fill: islandShape
-        visible: State.GlobalStates.settingsHoldProgress > 0
+        visible: BehaviorService.holdFeedbackEnabled && State.GlobalStates.settingsHoldProgress > 0
         glowRadius: 8 + State.GlobalStates.settingsHoldProgress * 12
         spread: 0.04 + State.GlobalStates.settingsHoldProgress * 0.08
         color: theme.accentPrimary
