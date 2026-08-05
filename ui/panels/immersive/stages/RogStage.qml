@@ -34,7 +34,7 @@ CategoryStage {
 
         // Diagonal chevron lines — ASUS geometric motif
         Canvas {
-            anchors.fill: parent
+    anchors.fill: parent
             opacity: 0.06
             onPaint: {
                 var ctx = getContext("2d");

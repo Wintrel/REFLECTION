@@ -153,6 +153,7 @@ Item {
         // Smooth sizing based on state
         width: {
             if (islandState === State.IslandState.reflectionGrid) {
+                if (reflectionContent.currentIntent === 3) return theme.reflectionAssistantW; // Assistant
                 if (State.ReflectionState.searchQuery.length === 0) return theme.reflectionSearchW; // Search bar only
                 if (reflectionContent.currentIntent === 0) return theme.reflectionGridW; // App Grid
                 return theme.reflectionFocusW; // Math / Command Intents
@@ -180,7 +181,8 @@ Item {
         height: {
             var targetH = theme.islandMinH;
             if (islandState === State.IslandState.reflectionGrid) {
-                if (State.ReflectionState.searchQuery.length === 0) targetH = theme.reflectionSearchH; // Search bar only
+                if (reflectionContent.currentIntent === 3) targetH = theme.reflectionAssistantH; // Assistant
+                else if (State.ReflectionState.searchQuery.length === 0) targetH = theme.reflectionSearchH; // Search bar only
                 else if (reflectionContent.currentIntent === 0) targetH = theme.reflectionGridH; // App Grid
                 else targetH = theme.reflectionFocusH; // Math / Command Intents
             }

@@ -101,6 +101,27 @@ Item {
             accentPrimaryGradientEnd: "#CC2244"
         },
         {
+            name: "Warm Ember",
+            bgBezel: "#0C0806",
+            bgInner: "#14100C",
+            textMain: "#F5E6D3",
+            textSub: "#A08870",
+            accentNotification: "#2A1E16",
+            accentMusic: "#3D2A1A",
+            accentWorkspace: "#1E1510",
+            accentPrimary: "#E8A44A",
+            colorSystemShimmer: "#FFD699",
+            bgBase: "#080604",
+            surfaceCard: "#1C1510",
+            surfaceOverlay: "#261E16",
+            textMuted: "#6B5544",
+            accentSecondary: "#C26A3A",
+            useGradients: true,
+            bgInnerGradientEnd: "#0C0806",
+            surfaceCardGradientEnd: "#14100C",
+            accentPrimaryGradientEnd: "#D4763A"
+        },
+        {
             name: "Midnight Winter", //Reflections Main theme
             bgBezel: "#08080C",
             bgInner: "#08080C",
@@ -141,27 +162,6 @@ Item {
             bgInnerGradientEnd: "#050B14",
             surfaceCardGradientEnd: "#0D1B2A",
             accentPrimaryGradientEnd: "#818CF8"
-        },
-        {
-            name: "Pure Midnight - Obsidian Violet",
-            bgBezel: "#010204",
-            bgInner: "#06070C",
-            textMain: "#F8FAFC",
-            textSub: "#94A3B8",
-            accentNotification: "#0F111A",
-            accentMusic: "#181B26",
-            accentWorkspace: "#0F111A",
-            accentPrimary: "#818CF8",
-            colorSystemShimmer: "#E0E7FF",
-            bgBase: "#000000",
-            surfaceCard: "#0D0F18",
-            surfaceOverlay: "#151824",
-            textMuted: "#475569",
-            accentSecondary: "#3730A3",
-            useGradients: true,
-            bgInnerGradientEnd: "#121422",
-            surfaceCardGradientEnd: "#05060A",
-            accentPrimaryGradientEnd: "#C084FC"
         },
         {
             name: "Custom",

@@ -79,8 +79,11 @@ Item {
 
     property int reflectionGridW: 550
     property int reflectionGridH: 350
+
+    property int reflectionAssistantW: 700
+    property int reflectionAssistantH: 420
     
-    // Animation Durations
+    // Animation Durations.
     property int animDuration: ThemeService.animDuration
     
     // Effects

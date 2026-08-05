@@ -29,7 +29,8 @@ Item {
     }
 
     property string query: State.ReflectionState.searchQuery
-    property int currentIntent: 0 // 0 = App Search, 1 = Math Calculator, 2 = System Command
+    property int currentIntent: 0 // 0 = App Search, 1 = Math, 2 = System Command, 3 = Assistant
+    property bool assistantMode: State.ReflectionState.assistantMode
 
     // Math Parsing Logic
     function parseMath(input) {
@@ -136,7 +137,12 @@ Item {
     property string mathResult: ""
     property var commandResult: null
 
-    onQueryChanged: {
+    function resolveIntent() {
+        if (assistantMode) {
+            currentIntent = 3;
+            return;
+        }
+
         var m = parseMath(query);
         if (m !== null) {
             mathResult = m;
@@ -153,6 +159,9 @@ Item {
 
         currentIntent = 0;
     }
+
+    onQueryChanged: resolveIntent()
+    onAssistantModeChanged: resolveIntent()
 
     Column {
         anchors.fill: parent
@@ -187,6 +196,7 @@ Item {
 
                 // "Reflection" text label
                 Text {
+                    id: reflectionLabel
                     text: "Reflection"
                     anchors.verticalCenter: parent.verticalCenter
                     font.family: root.theme ? root.theme.fontMain : "Inter"
@@ -209,7 +219,7 @@ Item {
                 // Actual text input
                 TextInput {
                     id: searchInput
-                    width: parent.width - 100
+                    width: parent.width - reflectionLabel.width - assistantToggle.width - 53
                     anchors.verticalCenter: parent.verticalCenter
                     font.family: root.theme ? root.theme.fontMain : "Inter"
                     font.pixelSize: 15
@@ -239,6 +249,15 @@ Item {
                     Keys.onDownPressed: {
                         if (currentIntent === 0) appGrid.moveDown();
                     }
+                    Keys.onTabPressed: event => {
+                        if (event.modifiers & Qt.ShiftModifier) {
+                            State.ReflectionState.close();
+                            State.GlobalStates.openAssistantWorkspace();
+                        } else {
+                            State.ReflectionState.toggleAssistantMode();
+                        }
+                        event.accepted = true;
+                    }
                     Keys.onReturnPressed: {
                         if (currentIntent === 0) {
                             appGrid.launchSelected();
@@ -251,14 +270,106 @@ Item {
                                 runCommand(commandResult.action);
                                 State.ReflectionState.close();
                             }
+                        } else if (currentIntent === 3) {
+                            assistantContent.submitDraft();
                         }
+                    }
+                }
+
+                Rectangle {
+                    id: assistantToggle
+                    property bool holdConsumed: false
+                    property real holdProgress: 0
+                    width: 30
+                    height: 30
+                    radius: 15
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: root.assistantMode
+                        ? (root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.2) : "rgba(255,153,0,0.2)")
+                        : (assistantMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
+                    border.width: root.assistantMode ? 1 : 0
+                    border.color: root.theme ? Qt.rgba(root.theme.accentPrimary.r, root.theme.accentPrimary.g, root.theme.accentPrimary.b, 0.45) : "#73ff9900"
+
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: -3
+                        radius: width / 2
+                        color: "transparent"
+                        border.width: 2
+                        border.color: root.theme ? root.theme.accentPrimary : "#ff9900"
+                        opacity: assistantToggle.holdProgress * 0.8
+                        scale: 0.86 + assistantToggle.holdProgress * 0.14
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "auto_awesome"
+                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                        font.pixelSize: 17
+                        color: root.assistantMode
+                            ? (root.theme ? root.theme.accentPrimary : "#ff9900")
+                            : (root.theme ? root.theme.textSub : "#A6ADC8")
+                    }
+
+                    MouseArea {
+                        id: assistantMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onPressed: mouse => {
+                            if (mouse.button !== Qt.LeftButton)
+                                return;
+                            assistantToggle.holdConsumed = false;
+                            assistantToggle.holdProgress = 0;
+                            assistantHoldTimer.restart();
+                            assistantHoldAnimation.restart();
+                        }
+                        onReleased: {
+                            assistantHoldTimer.stop();
+                            assistantHoldAnimation.stop();
+                            assistantToggle.holdProgress = 0;
+
+                            if (assistantToggle.holdConsumed) {
+                                assistantToggle.holdConsumed = false;
+                                return;
+                            }
+
+                            State.ReflectionState.toggleAssistantMode();
+                            searchInput.forceActiveFocus();
+                        }
+                        onCanceled: {
+                            assistantHoldTimer.stop();
+                            assistantHoldAnimation.stop();
+                            assistantToggle.holdProgress = 0;
+                        }
+                    }
+
+                    Timer {
+                        id: assistantHoldTimer
+                        interval: BehaviorService.settingsHoldDuration
+                        repeat: false
+                        onTriggered: {
+                            assistantToggle.holdConsumed = true;
+                            State.ReflectionState.close();
+                            State.GlobalStates.openAssistantWorkspace();
+                        }
+                    }
+
+                    NumberAnimation {
+                        id: assistantHoldAnimation
+                        target: assistantToggle
+                        property: "holdProgress"
+                        from: 0
+                        to: 1
+                        duration: BehaviorService.settingsHoldDuration
+                        easing.type: Easing.InOutQuad
                     }
                 }
             }
             
             // Placeholder text
             Text {
-                text: "What would you like to do?"
+                text: root.assistantMode ? "Ask Reflection anything..." : "What would you like to do?"
                 anchors.left: parent.left
                 anchors.leftMargin: 100 // After "Reflection" label + dot + spacing
                 anchors.verticalCenter: parent.verticalCenter
@@ -274,13 +385,13 @@ Item {
             id: viewStack
             width: parent.width
             height: parent.height - searchContainer.height - 14
-            visible: State.ReflectionState.searchQuery.length > 0
+            visible: State.ReflectionState.searchQuery.length > 0 || root.assistantMode
             
             // Materialization transition
-            property bool isVisible: root.islandState === State.IslandState.reflectionGrid && State.ReflectionState.searchQuery.length > 0
-            opacity: (root.islandState === State.IslandState.reflectionGrid && State.ReflectionState.searchQuery.length > 0) ? 1 : 0
+            property bool isVisible: root.islandState === State.IslandState.reflectionGrid && (State.ReflectionState.searchQuery.length > 0 || root.assistantMode)
+            opacity: isVisible ? 1 : 0
             transform: Translate {
-                y: (root.islandState === State.IslandState.reflectionGrid && State.ReflectionState.searchQuery.length > 0) ? 0 : 10
+                y: viewStack.isVisible ? 0 : 10
                 Behavior on y { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
             }
             Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
@@ -292,6 +403,18 @@ Item {
                 theme: root.theme
                 query: root.query
                 visible: currentIntent === 0
+            }
+
+            AssistantContent {
+                id: assistantContent
+                anchors.fill: parent
+                theme: root.theme
+                query: root.query
+                visible: currentIntent === 3
+                onSuggestionRequested: suggestion => {
+                    State.ReflectionState.searchQuery = suggestion;
+                    searchInput.forceActiveFocus();
+                }
             }
 
             // INTENT 1: Math Calculator — Contained card

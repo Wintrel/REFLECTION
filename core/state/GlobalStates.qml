@@ -22,6 +22,7 @@ Singleton {
     property bool searchOpen: false
     property bool settingsOpen: false
     property bool immersiveOpen: false
+    property bool assistantWorkspaceOpen: false
 
     // Immersive transition lifecycle. `immersiveOpen` remains the actual
     // layer-shell visibility switch, while the island owns the visual handoff.
@@ -73,6 +74,20 @@ Singleton {
             root.openImmersive();
         else if (root.immersivePhase === root.immersiveOpened)
             root.closeImmersive();
+    }
+
+    function openAssistantWorkspace() {
+        if (root.screenLocked || root.assistantWorkspaceOpen)
+            return;
+        root.assistantWorkspaceOpen = true;
+    }
+
+    function closeAssistantWorkspace() {
+        root.assistantWorkspaceOpen = false;
+    }
+
+    function toggleAssistantWorkspace() {
+        root.assistantWorkspaceOpen = !root.assistantWorkspaceOpen;
     }
     
     property bool filePickerOpen: false
