@@ -1,12 +1,12 @@
 import QtQuick
 import QtQuick.Layouts
+import "../../../../core/services/ai"
 
 Item {
     id: conversationBody
 
     property var theme: null
     property bool compact: false
-    property string lastPrompt: ""
     property string activeMode: "Ask"
 
     signal intentSelected(string mode, string prompt)
@@ -25,28 +25,33 @@ Item {
     }
 
     // Active conversation: message list
-    Flickable {
+    ListView {
+        id: conversationList
         anchors.fill: parent
-        contentWidth: width
-        contentHeight: messageColumn.implicitHeight
         clip: true
         boundsBehavior: Flickable.StopAtBounds
-        visible: conversationBody.lastPrompt.length > 0
+        visible: ConversationService.hasMessages
+        model: ConversationService.messages
+        spacing: 20
+        topMargin: 18
+        bottomMargin: 18
+        leftMargin: conversationBody.compact ? 20 : 32
+        rightMargin: conversationBody.compact ? 20 : 32
 
-        Column {
-            id: messageColumn
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: conversationBody.compact ? 20 : 32
-            anchors.rightMargin: conversationBody.compact ? 20 : 32
-            spacing: 22
+        delegate: Item {
+            id: messageDelegate
+            required property string role
+            required property string text
+            required property string status
 
-            Item { width: 1; height: 14 }
+            width: conversationList.width - conversationList.leftMargin - conversationList.rightMargin
+            height: role === "user" ? userBubble.height : assistantMessage.height
 
-            // User message
             Rectangle {
+                id: userBubble
+                visible: messageDelegate.role === "user"
                 anchors.right: parent.right
-                width: Math.min(userPromptText.implicitWidth + 36, parent.width * 0.6)
+                width: Math.min(userPromptText.implicitWidth + 36, parent.width * 0.68)
                 height: userPromptText.implicitHeight + 28
                 radius: 18
                 color: Qt.rgba(conversationBody.accent.r, conversationBody.accent.g, conversationBody.accent.b, 0.16)
@@ -55,7 +60,7 @@ Item {
                     id: userPromptText
                     anchors.fill: parent
                     anchors.margins: 14
-                    text: conversationBody.lastPrompt
+                    text: messageDelegate.text
                     wrapMode: Text.WordWrap
                     font.family: conversationBody.theme ? conversationBody.theme.fontMain : "Inter"
                     font.pixelSize: 15
@@ -64,9 +69,11 @@ Item {
                 }
             }
 
-            // Assistant response
             Row {
+                id: assistantMessage
+                visible: messageDelegate.role === "assistant"
                 width: parent.width
+                height: Math.max(36, assistantContent.implicitHeight)
                 spacing: 12
 
                 Rectangle {
@@ -85,6 +92,7 @@ Item {
                 }
 
                 Column {
+                    id: assistantContent
                     width: Math.min(parent.width - 48, 720)
                     spacing: 7
 
@@ -98,16 +106,34 @@ Item {
 
                     Text {
                         width: parent.width
-                        text: "The conversation layout is ready. Once a provider is connected, responses will stream into this calm reading surface without changing the workspace around you."
+                        text: messageDelegate.text.length > 0
+                            ? messageDelegate.text
+                            : (messageDelegate.status === "streaming" ? "Thinking..." : "")
+                        textFormat: Text.MarkdownText
                         wrapMode: Text.WordWrap
+                        linkColor: conversationBody.accent
                         font.family: conversationBody.theme ? conversationBody.theme.fontMain : "Inter"
                         font.pixelSize: 15
                         lineHeight: 1.35
                         color: conversationBody.subText
+                        onLinkActivated: link => {
+                            var url = link.toString();
+                            if (url.startsWith("https://") || url.startsWith("http://"))
+                                Qt.openUrlExternally(url);
+                        }
                     }
                 }
             }
         }
+
+        Connections {
+            target: ConversationService
+            function onRevisionChanged() {
+                Qt.callLater(function() { conversationList.positionViewAtEnd(); });
+            }
+        }
+
+        Component.onCompleted: positionViewAtEnd()
     }
 
     // Empty state: greeting + intent cards
@@ -116,7 +142,7 @@ Item {
         anchors.verticalCenterOffset: -20
         width: parent.width - (conversationBody.compact ? 40 : 64)
         spacing: 18
-        visible: conversationBody.lastPrompt.length === 0
+        visible: !ConversationService.hasMessages
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter

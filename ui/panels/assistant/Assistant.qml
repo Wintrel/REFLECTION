@@ -9,8 +9,6 @@ import "../../../core/state" as State
 import "../../../core/services/system"
 import "../../components" as Components
 
-// Assistant — a standalone immersive workspace. This intentionally does not
-// belong to the settings/control-room navigation.
 Scope {
     id: assistantScope
 

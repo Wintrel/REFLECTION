@@ -2,10 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "components"
-
-// Reflection's calm, conversation-first assistant canvas. Provider,
-// persistence, and tool state arrive later; this component owns the visual
-// hierarchy and keeps every context source explicit.
+import "../../../core/services/ai"
 Item {
     id: root
 
@@ -15,7 +12,6 @@ Item {
     property bool screenContext: false
     property bool historyOpen: false
     property string activeMode: "Ask"
-    property string lastPrompt: ""
 
     readonly property color accent: theme ? theme.accentPrimary : "#8c8cff"
     readonly property color mainText: theme ? theme.textMain : "#ffffff"
@@ -28,18 +24,19 @@ Item {
                                               + (screenContext ? 1 : 0)
     readonly property bool compact: width < 860
 
-    // ── Main two-column layout ──────────────────────────────────────────
+    // ── Main two-column layout
     RowLayout {
         anchors.fill: parent
         spacing: 0
 
-        // ── Navigation Rail (slide in/out) ──────────────────────────
+        // ── Navigation Rail (slide in/out)
         AssistantNavigationRail {
             theme: root.theme
             historyOpen: root.historyOpen
             compact: root.compact
             activeContextCount: root.activeContextCount
-            lastPrompt: root.lastPrompt
+            lastPrompt: ConversationService.lastUserMessage
+            hasMessages: ConversationService.hasMessages
             activeMode: root.activeMode
 
             clipboardContext: root.clipboardContext
@@ -49,9 +46,13 @@ Item {
             onToggleClipboard: root.clipboardContext = !root.clipboardContext
             onToggleSelection: root.selectionContext = !root.selectionContext
             onToggleScreen: root.screenContext = !root.screenContext
+            onNewConversation: {
+                if (ConversationService.newConversation())
+                    root.activeMode = "Ask";
+            }
         }
 
-        // ── Conversation Workspace ──────────────────────────────────
+        // ── Conversation Workspace
         Item {
             id: conversationWorkspace
             Layout.fillWidth: true
@@ -73,7 +74,7 @@ Item {
                 onClicked: root.historyOpen = !root.historyOpen
             }
 
-            // ── Conversation body ───────────────────────────────────
+            // ── Conversation body
             AssistantConversationBody {
                 id: conversationBody
                 anchors.top: parent.top
@@ -84,7 +85,6 @@ Item {
 
                 theme: root.theme
                 compact: root.compact
-                lastPrompt: root.lastPrompt
                 activeMode: root.activeMode
 
                 onIntentSelected: (mode, prompt) => {
@@ -93,7 +93,7 @@ Item {
                 }
             }
 
-            // ── Composer — full-width soft bar ──────────────────────
+            // ── Composer — full-width soft bar
             AssistantComposer {
                 id: composer
                 anchors.left: parent.left
@@ -117,9 +117,10 @@ Item {
                 onRemoveScreen: root.screenContext = false
 
                 onPromptSubmitted: prompt => {
-                    root.lastPrompt = prompt;
+                    ConversationService.sendMessage(prompt);
                 }
             }
         }
     }
+
 }

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../../../../core/services/ai"
 
 Rectangle {
     id: composer
@@ -33,7 +34,7 @@ Rectangle {
 
     function submitPrompt() {
         var prompt = composerInput.text.trim();
-        if (prompt.length === 0)
+        if (prompt.length === 0 || ConversationService.isGenerating)
             return;
         composer.promptSubmitted(prompt);
         composerInput.text = "";
@@ -110,7 +111,7 @@ Rectangle {
         selectByMouse: true
 
         Keys.onReturnPressed: event => {
-            if (!(event.modifiers & Qt.ShiftModifier)) {
+            if (!(event.modifiers & Qt.ShiftModifier) && !ConversationService.isGenerating) {
                 composer.submitPrompt();
                 event.accepted = true;
             }
@@ -154,6 +155,7 @@ Rectangle {
             Layout.preferredHeight: 40
             radius: 13
             color: composerInput.text.trim().length > 0
+                    && !ConversationService.isGenerating
                 ? composer.accent
                 : Qt.rgba(composer.subText.r, composer.subText.g, composer.subText.b, 0.10)
 
@@ -165,13 +167,14 @@ Rectangle {
                 font.family: composer.theme ? composer.theme.fontIcon : "Material Symbols Rounded"
                 font.pixelSize: 20
                 color: composerInput.text.trim().length > 0
+                        && !ConversationService.isGenerating
                     ? (composer.theme ? composer.theme.bgBase : "#101014")
                     : composer.mutedText
             }
 
             MouseArea {
                 anchors.fill: parent
-                enabled: composerInput.text.trim().length > 0
+                enabled: composerInput.text.trim().length > 0 && !ConversationService.isGenerating
                 cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                 onClicked: composer.submitPrompt()
             }

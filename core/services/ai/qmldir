@@ -1,0 +1,2 @@
+singleton AiDaemonService AiDaemonService.qml
+singleton ConversationService ConversationService.qml
