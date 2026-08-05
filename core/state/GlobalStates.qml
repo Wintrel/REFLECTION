@@ -22,6 +22,7 @@ Singleton {
     property bool searchOpen: false
     property bool settingsOpen: false
     property bool immersiveOpen: false
+    property string immersiveRequestedCategory: ""
     property bool assistantWorkspaceOpen: false
 
     // Immersive transition lifecycle. `immersiveOpen` remains the actual
@@ -74,6 +75,13 @@ Singleton {
             root.openImmersive();
         else if (root.immersivePhase === root.immersiveOpened)
             root.closeImmersive();
+    }
+
+    function openImmersiveCategory(category) {
+        root.immersiveRequestedCategory = String(category || "");
+        root.closeAssistantWorkspace();
+        if (root.immersivePhase === root.immersiveClosed)
+            root.openImmersive();
     }
 
     function openAssistantWorkspace() {

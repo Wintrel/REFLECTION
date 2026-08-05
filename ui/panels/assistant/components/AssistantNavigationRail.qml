@@ -28,6 +28,7 @@ Rectangle {
     signal toggleSelection()
     signal toggleScreen()
     signal newConversation()
+    signal providerSettingsRequested()
 
     readonly property color accent: theme ? theme.accentPrimary : "#8c8cff"
     readonly property color mainText: theme ? theme.textMain : "#ffffff"
@@ -142,6 +143,7 @@ Rectangle {
             Behavior on color { ColorAnimation { duration: 150 } }
 
             RowLayout {
+                z: 2
                 anchors.fill: parent
                 anchors.leftMargin: 12
                 anchors.rightMargin: 10
@@ -165,6 +167,21 @@ Rectangle {
                 }
 
                 Text {
+                    text: "settings"
+                    font.family: navigationRail.theme ? navigationRail.theme.fontIcon : "Material Symbols Rounded"
+                    font.pixelSize: 17
+                    color: navigationRail.mutedText
+
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.margins: -6
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: navigationRail.providerSettingsRequested()
+                    }
+                }
+
+                Text {
                     text: navigationRail.providerMenuOpen ? "expand_less" : "expand_more"
                     font.family: navigationRail.theme ? navigationRail.theme.fontIcon : "Material Symbols Rounded"
                     font.pixelSize: 18
@@ -174,6 +191,7 @@ Rectangle {
 
             MouseArea {
                 id: providerRailMouse
+                z: 1
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor

@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import "components"
 import "../../../core/services/ai"
+import "../../../core/state" as State
 Item {
     id: root
 
@@ -50,6 +51,7 @@ Item {
                 if (ConversationService.newConversation())
                     root.activeMode = "Ask";
             }
+            onProviderSettingsRequested: State.GlobalStates.openImmersiveCategory("Assistant")
         }
 
         // ── Conversation Workspace
@@ -120,6 +122,7 @@ Item {
                     ConversationService.sendMessage(prompt);
                 }
             }
+
         }
     }
 

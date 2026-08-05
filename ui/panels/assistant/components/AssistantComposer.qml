@@ -154,30 +154,43 @@ Rectangle {
             Layout.preferredWidth: 40
             Layout.preferredHeight: 40
             radius: 13
-            color: composerInput.text.trim().length > 0
-                    && !ConversationService.isGenerating
+            color: ConversationService.isGenerating
+                ? Qt.rgba(composer.accent.r, composer.accent.g, composer.accent.b, 0.16)
+                : (composerInput.text.trim().length > 0
                 ? composer.accent
-                : Qt.rgba(composer.subText.r, composer.subText.g, composer.subText.b, 0.10)
+                : Qt.rgba(composer.subText.r, composer.subText.g, composer.subText.b, 0.10))
 
             Behavior on color { ColorAnimation { duration: 150 } }
 
             Text {
                 anchors.centerIn: parent
-                text: "arrow_upward"
+                text: ConversationService.isGenerating ? "stop" : "arrow_upward"
                 font.family: composer.theme ? composer.theme.fontIcon : "Material Symbols Rounded"
                 font.pixelSize: 20
-                color: composerInput.text.trim().length > 0
-                        && !ConversationService.isGenerating
+                color: ConversationService.isGenerating
+                    ? composer.accent
+                    : (composerInput.text.trim().length > 0
                     ? (composer.theme ? composer.theme.bgBase : "#101014")
-                    : composer.mutedText
+                    : composer.mutedText)
             }
 
             MouseArea {
+                id: submitMouse
                 anchors.fill: parent
-                enabled: composerInput.text.trim().length > 0 && !ConversationService.isGenerating
+                hoverEnabled: true
+                enabled: ConversationService.isGenerating || composerInput.text.trim().length > 0
                 cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                onClicked: composer.submitPrompt()
+                onClicked: {
+                    if (ConversationService.isGenerating)
+                        ConversationService.stopGeneration();
+                    else
+                        composer.submitPrompt();
+                }
             }
+
+            ToolTip.visible: submitMouse.containsMouse && ConversationService.isGenerating
+            ToolTip.text: "Stop generating"
+            ToolTip.delay: 350
         }
     }
 }

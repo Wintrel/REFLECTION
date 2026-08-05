@@ -40,9 +40,14 @@ Item {
 
         delegate: Item {
             id: messageDelegate
+            required property int index
             required property string role
             required property string text
             required property string status
+
+            property bool copied: false
+            readonly property bool canRegenerate: ConversationService.revision >= 0
+                && ConversationService.canRegenerateResponse(messageDelegate.index)
 
             width: conversationList.width - conversationList.leftMargin - conversationList.rightMargin
             height: role === "user" ? userBubble.height : assistantMessage.height
@@ -122,7 +127,61 @@ Item {
                                 Qt.openUrlExternally(url);
                         }
                     }
+
+                    Row {
+                        spacing: 2
+                        visible: messageDelegate.text.length > 0
+                            || messageDelegate.status === "streaming"
+                        height: visible ? 30 : 0
+                        opacity: 0.76
+
+                        AssistantIconButton {
+                            width: 30
+                            height: 30
+                            radius: 9
+                            theme: conversationBody.theme
+                            icon: messageDelegate.copied ? "check" : "content_copy"
+                            toolTip: messageDelegate.copied ? "Copied" : "Copy response"
+                            visible: messageDelegate.text.length > 0
+                            onClicked: {
+                                if (ConversationService.copyMessage(messageDelegate.index)) {
+                                    messageDelegate.copied = true;
+                                    copiedReset.restart();
+                                }
+                            }
+                        }
+
+                        AssistantIconButton {
+                            width: 30
+                            height: 30
+                            radius: 9
+                            theme: conversationBody.theme
+                            icon: "refresh"
+                            toolTip: "Regenerate response"
+                            visible: messageDelegate.canRegenerate
+                            onClicked: ConversationService.regenerateResponse(messageDelegate.index)
+                        }
+
+                        AssistantIconButton {
+                            width: 30
+                            height: 30
+                            radius: 9
+                            theme: conversationBody.theme
+                            icon: "stop_circle"
+                            toolTip: "Stop generating"
+                            highlighted: true
+                            visible: messageDelegate.status === "streaming"
+                                && ConversationService.isGenerating
+                            onClicked: ConversationService.stopGeneration()
+                        }
+                    }
                 }
+            }
+
+            Timer {
+                id: copiedReset
+                interval: 1600
+                onTriggered: messageDelegate.copied = false
             }
         }
 

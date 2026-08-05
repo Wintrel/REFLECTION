@@ -33,6 +33,7 @@ Item {
     readonly property bool daemonHealthy: AiDaemonService.healthy
     readonly property string daemonStatus: AiDaemonService.daemonStatus
     readonly property string daemonError: AiDaemonService.lastError
+    property string settingsError: ""
 
     property int activeResponseIndex: -1
     property int revision: 0
@@ -70,6 +71,57 @@ Item {
             console.warn("ConversationService: could not save provider selection: " + error);
             return false;
         }
+    }
+
+    function saveProviderSettings(provider, nextModel, replacementKey) {
+        if ((provider !== "groq" && provider !== "gemini") || root.isGenerating)
+            return false;
+
+        var model = String(nextModel).trim();
+        if (model.length === 0) {
+            root.settingsError = "The model name cannot be empty.";
+            return false;
+        }
+
+        try {
+            var cfg = JSON.parse(settingsFile.text() || "{}");
+            var modelProperty = provider === "groq" ? "groqModel" : "geminiModel";
+            var keyProperty = provider === "groq" ? "groqApiKey" : "geminiApiKey";
+            cfg[modelProperty] = model;
+            if (typeof replacementKey === "string" && replacementKey.trim().length > 0)
+                cfg[keyProperty] = replacementKey.trim();
+            settingsFile.setText(JSON.stringify(cfg, null, 2));
+            root.settingsError = "";
+            return true;
+        } catch (error) {
+            root.settingsError = "Could not save AI settings: " + error;
+            console.warn("ConversationService: " + root.settingsError);
+            return false;
+        }
+    }
+
+    function removeProviderKey(provider) {
+        if ((provider !== "groq" && provider !== "gemini") || root.isGenerating)
+            return false;
+
+        try {
+            var cfg = JSON.parse(settingsFile.text() || "{}");
+            cfg[provider === "groq" ? "groqApiKey" : "geminiApiKey"] = "";
+            settingsFile.setText(JSON.stringify(cfg, null, 2));
+            root.settingsError = "";
+            return true;
+        } catch (error) {
+            root.settingsError = "Could not remove the API key: " + error;
+            console.warn("ConversationService: " + root.settingsError);
+            return false;
+        }
+    }
+
+    function restartDaemon() {
+        if (root.isGenerating)
+            return false;
+        AiDaemonService.restartDaemon();
+        return true;
     }
 
     function newConversationId() {
@@ -352,6 +404,53 @@ Item {
 
     function stopGeneration() {
         return AiDaemonService.stopGeneration();
+    }
+
+    function canRegenerateResponse(messageIndex) {
+        if (root.isGenerating || messageIndex !== messageModel.count - 1 || messageIndex < 1)
+            return false;
+        var response = messageModel.get(messageIndex);
+        var prompt = messageModel.get(messageIndex - 1);
+        return response.role === "assistant" && response.status !== "streaming"
+            && prompt.role === "user" && prompt.text.length > 0;
+    }
+
+    function regenerateResponse(messageIndex) {
+        if (!canRegenerateResponse(messageIndex))
+            return false;
+
+        messageModel.remove(messageIndex);
+        messageModel.append({ role: "assistant", text: "", status: "streaming" });
+        root.activeResponseIndex = messageModel.count - 1;
+
+        var conversation = conversationIndex(root.activeConversationId);
+        if (conversation >= 0) {
+            conversationModel.setProperty(conversation, "updatedAt", new Date().toISOString());
+            conversationModel.setProperty(conversation, "provider", root.providerId);
+        }
+        persistActiveConversation();
+        persistIndex();
+        root.revision++;
+        root.conversationsRevision++;
+
+        return AiDaemonService.generate(root.providerId, root.providerModel, providerMessages()).length > 0;
+    }
+
+    function copyMessage(messageIndex) {
+        if (messageIndex < 0 || messageIndex >= messageModel.count)
+            return false;
+        var text = messageModel.get(messageIndex).text;
+        if (typeof text !== "string" || text.length === 0)
+            return false;
+
+        var process = Qt.createQmlObject('import Quickshell.Io; Process { }', root);
+        process.command = ["wl-copy"];
+        process.stdinEnabled = true;
+        process.exited.connect(function() { process.destroy(); });
+        process.running = true;
+        process.write(text);
+        process.stdinEnabled = false;
+        return true;
     }
 
     function appendAssistantChunk(text) {
