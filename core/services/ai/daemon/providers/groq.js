@@ -6,7 +6,8 @@ async function generate(options) {
     const messages = options.messages
         .filter(message => typeof message.text === "string")
         .map(message => ({
-            role: message.role === "assistant" ? "assistant" : "user",
+            role: message.role === "system" ? "system"
+                : (message.role === "assistant" ? "assistant" : "user"),
             content: message.text
         }));
 

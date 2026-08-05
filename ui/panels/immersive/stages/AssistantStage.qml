@@ -191,10 +191,35 @@ CategoryStage {
                         spacing: 8
 
                         Text {
-                            text: "Active provider"
+                            text: "Context " + Math.round(ConversationService.contextCharacterCount / 1000)
+                                + "k / " + Math.round(ConversationService.contextCharacterBudget / 1000) + "k chars"
                             font.family: root.theme ? root.theme.fontMain : "Inter"
                             font.pixelSize: 11
-                            color: root.subText
+                            color: ConversationService.contextNearLimit ? "#e6b566" : root.subText
+                        }
+
+                        Text {
+                            visible: ConversationService.hasContextSummary
+                            text: "summarized"
+                            font.family: root.theme ? root.theme.fontMain : "Inter"
+                            font.pixelSize: 10
+                            color: root.accent
+                        }
+
+                        Text {
+                            visible: ConversationService.hasContextSummary && !ConversationService.isGenerating
+                            text: "Reset"
+                            font.family: root.theme ? root.theme.fontMain : "Inter"
+                            font.pixelSize: 10
+                            color: root.mutedText
+
+                            MouseArea {
+                                anchors.fill: parent
+                                anchors.margins: -5
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: ConversationService.clearContextSummary()
+                            }
                         }
 
                         Item { Layout.fillWidth: true }

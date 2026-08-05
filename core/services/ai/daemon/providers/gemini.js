@@ -3,8 +3,11 @@
 const { streamSse, requestError } = require("./sse");
 
 async function generate(options) {
+    const systemParts = options.messages
+        .filter(message => message.role === "system" && typeof message.text === "string")
+        .map(message => ({ text: message.text }));
     const contents = options.messages
-        .filter(message => typeof message.text === "string")
+        .filter(message => message.role !== "system" && typeof message.text === "string")
         .map(message => ({
             role: message.role === "assistant" ? "model" : "user",
             parts: [{ text: message.text }]
@@ -18,7 +21,9 @@ async function generate(options) {
             "Content-Type": "application/json",
             "x-goog-api-key": options.apiKey
         },
-        body: JSON.stringify({ contents }),
+        body: JSON.stringify(systemParts.length > 0
+            ? { systemInstruction: { parts: systemParts }, contents }
+            : { contents }),
         signal: options.signal
     });
 

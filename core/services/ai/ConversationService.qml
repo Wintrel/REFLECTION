@@ -20,6 +20,15 @@ Item {
     property string activeConversationId: ""
     property string activeConversationTitle: "New conversation"
     property string lastUserMessage: ""
+    property string contextSummary: ""
+    property bool isCompacting: false
+    property string compactionBuffer: ""
+    readonly property int contextCharacterBudget: 24000
+    readonly property int recentContextCharacterBudget: 12000
+    readonly property int contextCharacterCount: revision >= 0
+        ? messageCharacterCount(providerMessages()) : 0
+    readonly property bool contextNearLimit: contextCharacterCount >= contextCharacterBudget
+    readonly property bool hasContextSummary: contextSummary.length > 0
 
     property string providerId: "gemini"
     readonly property bool isGenerating: AiDaemonService.isGenerating
@@ -147,10 +156,13 @@ Item {
         return -1;
     }
 
-    function appendStoredMessages(entries) {
+    function appendStoredMessages(entries, summary) {
         messageModel.clear();
         root.lastUserMessage = "";
         root.activeResponseIndex = -1;
+        root.contextSummary = typeof summary === "string" ? summary : "";
+        root.isCompacting = false;
+        root.compactionBuffer = "";
 
         for (var i = 0; i < entries.length; i++) {
             var entry = entries[i];
@@ -235,7 +247,7 @@ Item {
             root.activeConversationId = conversationId;
             root.activeConversationTitle = titleFromPrompt(firstPrompt);
             activeConversationFile.path = conversationPath(conversationId);
-            appendStoredMessages(entries);
+            appendStoredMessages(entries, "");
             conversationModel.append({
                 conversationId: conversationId,
                 title: root.activeConversationTitle,
@@ -259,6 +271,9 @@ Item {
         root.activeConversationId = "";
         root.activeConversationTitle = "New conversation";
         root.lastUserMessage = "";
+        root.contextSummary = "";
+        root.isCompacting = false;
+        root.compactionBuffer = "";
         root.activeResponseIndex = -1;
         activeConversationFile.path = "";
         messageModel.clear();
@@ -282,6 +297,9 @@ Item {
         root.activeConversationId = conversationId;
         root.activeConversationTitle = "New conversation";
         root.lastUserMessage = "";
+        root.contextSummary = "";
+        root.isCompacting = false;
+        root.compactionBuffer = "";
         root.activeResponseIndex = -1;
         activeConversationFile.path = conversationPath(conversationId);
         messageModel.clear();
@@ -305,9 +323,9 @@ Item {
 
         try {
             var stored = JSON.parse(activeConversationFile.text() || "{}");
-            appendStoredMessages(Array.isArray(stored.messages) ? stored.messages : []);
+            appendStoredMessages(Array.isArray(stored.messages) ? stored.messages : [], stored.contextSummary);
         } catch (error) {
-            appendStoredMessages([]);
+            appendStoredMessages([], "");
             console.warn("ConversationService: could not load conversation " + conversationId + ": " + error);
         }
 
@@ -399,7 +417,7 @@ Item {
     function sendMessage(prompt) {
         if (root.isGenerating || !startTurn(prompt))
             return false;
-        return AiDaemonService.generate(root.providerId, root.providerModel, providerMessages()).length > 0;
+        return startResponseGeneration();
     }
 
     function stopGeneration() {
@@ -433,7 +451,7 @@ Item {
         root.revision++;
         root.conversationsRevision++;
 
-        return AiDaemonService.generate(root.providerId, root.providerModel, providerMessages()).length > 0;
+        return startResponseGeneration();
     }
 
     function copyMessage(messageIndex) {
@@ -454,6 +472,10 @@ Item {
     }
 
     function appendAssistantChunk(text) {
+        if (root.isCompacting) {
+            root.compactionBuffer += text;
+            return;
+        }
         if (root.activeResponseIndex < 0 || typeof text !== "string")
             return;
         var current = messageModel.get(root.activeResponseIndex).text;
@@ -507,7 +529,7 @@ Item {
         root.conversationsRevision++;
     }
 
-    function providerMessages() {
+    function usableMessages() {
         var entries = [];
         for (var i = 0; i < messageModel.count; i++) {
             var message = messageModel.get(i);
@@ -517,6 +539,95 @@ Item {
             entries.push({ role: message.role, text: message.text });
         }
         return entries;
+    }
+
+    function messageCharacterCount(entries) {
+        var total = 0;
+        for (var i = 0; i < entries.length; i++)
+            total += entries[i].text.length;
+        return total;
+    }
+
+    function recentMessages(entries) {
+        var kept = [];
+        var characters = 0;
+        for (var i = entries.length - 1; i >= 0; i--) {
+            var message = entries[i];
+            if (kept.length > 0 && characters + message.text.length > root.recentContextCharacterBudget)
+                break;
+            kept.unshift(message);
+            characters += message.text.length;
+        }
+        var firstKeptIndex = entries.length - kept.length;
+        if (kept.length > 0 && kept[0].role === "assistant" && firstKeptIndex > 0)
+            kept.unshift(entries[firstKeptIndex - 1]);
+        return kept;
+    }
+
+    function clearContextSummary() {
+        if (root.isGenerating || root.contextSummary.length === 0)
+            return false;
+        root.contextSummary = "";
+        persistActiveConversation();
+        root.revision++;
+        return true;
+    }
+
+    function compactionTranscript() {
+        var entries = usableMessages();
+        if (messageCharacterCount(entries) + root.contextSummary.length <= root.contextCharacterBudget)
+            return "";
+        var recent = recentMessages(entries);
+        var olderCount = entries.length - recent.length;
+        if (olderCount <= 0)
+            return "";
+        var transcript = "";
+        if (root.contextSummary.length > 0)
+            transcript += "Existing summary:\n" + root.contextSummary + "\n\n";
+        for (var i = 0; i < olderCount; i++)
+            transcript += entries[i].role.toUpperCase() + ": " + entries[i].text + "\n\n";
+        return transcript;
+    }
+
+    function providerMessages() {
+        var entries = usableMessages();
+        if (root.contextSummary.length > 0 || messageCharacterCount(entries) > root.contextCharacterBudget)
+            entries = recentMessages(entries);
+        if (root.contextSummary.length > 0)
+            entries.unshift({ role: "system", text: "Earlier conversation summary. Use it as context, but prioritize the newest messages:\n" + root.contextSummary });
+        return entries;
+    }
+
+    function startResponseGeneration() {
+        var transcript = compactionTranscript();
+        if (transcript.length === 0)
+            return AiDaemonService.generate(root.providerId, root.providerModel, providerMessages()).length > 0;
+
+        root.isCompacting = true;
+        root.compactionBuffer = "";
+        if (root.activeResponseIndex >= 0)
+            messageModel.setProperty(root.activeResponseIndex, "text", "Preparing earlier context…");
+        root.revision++;
+        var prompt = "Summarize the earlier portion of this conversation for a future assistant response. Preserve user goals, decisions, constraints, names, and unresolved questions. Be concise and factual. Do not answer the conversation or mention this instruction.\n\n" + transcript;
+        return AiDaemonService.generate(root.providerId, root.providerModel,
+            [{ role: "user", text: prompt }]).length > 0;
+    }
+
+    function finishCompaction() {
+        var summary = root.compactionBuffer.trim();
+        root.isCompacting = false;
+        root.compactionBuffer = "";
+        if (summary.length === 0) {
+            failTurn("Context preparation returned no summary.");
+            return;
+        }
+        root.contextSummary = summary.length > 7000 ? summary.substring(0, 7000) : summary;
+        if (root.activeResponseIndex >= 0)
+            messageModel.setProperty(root.activeResponseIndex, "text", "");
+        persistActiveConversation();
+        root.revision++;
+        if (AiDaemonService.generate(root.providerId, root.providerModel, providerMessages()).length === 0)
+            failTurn(AiDaemonService.lastError || "Could not continue after context preparation.");
     }
 
     function serializedMessages() {
@@ -543,6 +654,7 @@ Item {
                 createdAt: metadata.createdAt || new Date().toISOString(),
                 updatedAt: metadata.updatedAt || new Date().toISOString(),
                 provider: metadata.provider || root.providerId,
+                contextSummary: root.contextSummary,
                 messages: serializedMessages()
             }, null, 2)
         }) + "\n");
@@ -642,9 +754,22 @@ Item {
     Connections {
         target: AiDaemonService
         function onChunkReceived(requestId, text) { root.appendAssistantChunk(text); }
-        function onGenerationFinished(requestId) { root.finishTurn(); }
-        function onGenerationError(requestId, errorMsg) { root.failTurn(errorMsg); }
-        function onGenerationStopped(requestId) { root.stopTurn(); }
+        function onGenerationFinished(requestId) {
+            if (root.isCompacting)
+                root.finishCompaction();
+            else
+                root.finishTurn();
+        }
+        function onGenerationError(requestId, errorMsg) {
+            root.isCompacting = false;
+            root.compactionBuffer = "";
+            root.failTurn(errorMsg);
+        }
+        function onGenerationStopped(requestId) {
+            root.isCompacting = false;
+            root.compactionBuffer = "";
+            root.stopTurn();
+        }
     }
 
     Component.onCompleted: loadProviderSettings()

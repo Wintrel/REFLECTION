@@ -112,7 +112,8 @@ Item {
                     Text {
                         width: parent.width
                         text: messageDelegate.text.length > 0
-                            ? messageDelegate.text
+                            ? (ConversationService.isCompacting && messageDelegate.status === "streaming"
+                                ? "Preparing earlier context…" : messageDelegate.text)
                             : (messageDelegate.status === "streaming" ? "Thinking..." : "")
                         textFormat: Text.MarkdownText
                         wrapMode: Text.WordWrap
@@ -142,7 +143,7 @@ Item {
                             theme: conversationBody.theme
                             icon: messageDelegate.copied ? "check" : "content_copy"
                             toolTip: messageDelegate.copied ? "Copied" : "Copy response"
-                            visible: messageDelegate.text.length > 0
+                            visible: messageDelegate.text.length > 0 && !ConversationService.isCompacting
                             onClicked: {
                                 if (ConversationService.copyMessage(messageDelegate.index)) {
                                     messageDelegate.copied = true;
