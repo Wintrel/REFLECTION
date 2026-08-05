@@ -19,6 +19,7 @@ Item {
     readonly property bool hasActiveConversation: activeConversationId.length > 0
     property string activeConversationId: ""
     property string activeConversationTitle: "New conversation"
+    property var availableOllamaModels: []
     property string lastUserMessage: ""
     property string contextSummary: ""
     property bool isCompacting: false
@@ -34,12 +35,18 @@ Item {
     property string providerId: "gemini"
     readonly property bool isGenerating: AiDaemonService.isGenerating
     readonly property bool providerConfigured: AiDaemonService.configuredFor(providerId)
-    readonly property string providerName: providerId === "groq" ? "Groq" : "Gemini"
+    readonly property string providerName: providerId === "ollama" ? "Ollama" : (providerId === "groq" ? "Groq" : "Gemini")
     readonly property string providerModel: AiDaemonService.modelFor(providerId)
     readonly property bool groqConfigured: AiDaemonService.groqConfigured
     readonly property bool geminiConfigured: AiDaemonService.geminiConfigured
+    readonly property bool ollamaConfigured: AiDaemonService.ollamaConfigured
     readonly property string groqModel: AiDaemonService.groqModel
     readonly property string geminiModel: AiDaemonService.geminiModel
+    readonly property string ollamaModel: AiDaemonService.ollamaModel
+    readonly property string ollamaUrl: AiDaemonService.ollamaUrl
+    readonly property real ollamaTemperature: AiDaemonService.ollamaTemperature
+    readonly property int ollamaNumCtx: AiDaemonService.ollamaNumCtx
+    readonly property string ollamaSystemPrompt: AiDaemonService.ollamaSystemPrompt
     readonly property bool daemonHealthy: AiDaemonService.healthy
     readonly property string daemonStatus: AiDaemonService.daemonStatus
     readonly property string daemonError: AiDaemonService.lastError
@@ -54,7 +61,7 @@ Item {
     function loadProviderSettings() {
         try {
             var cfg = JSON.parse(settingsFile.text() || "{}");
-            if (cfg.aiProvider === "groq" || cfg.aiProvider === "gemini") {
+            if (cfg.aiProvider === "groq" || cfg.aiProvider === "gemini" || cfg.aiProvider === "ollama") {
                 root.providerId = cfg.aiProvider;
             } else {
                 root.providerId = typeof cfg.groqApiKey === "string" && cfg.groqApiKey.trim().length > 0
@@ -68,7 +75,7 @@ Item {
     }
 
     function setProvider(nextProviderId) {
-        if ((nextProviderId !== "groq" && nextProviderId !== "gemini") || root.isGenerating)
+        if ((nextProviderId !== "groq" && nextProviderId !== "gemini" && nextProviderId !== "ollama") || root.isGenerating)
             return false;
 
         try {
@@ -83,8 +90,8 @@ Item {
         }
     }
 
-    function saveProviderSettings(provider, nextModel, replacementKey) {
-        if ((provider !== "groq" && provider !== "gemini") || root.isGenerating)
+    function saveProviderSettings(provider, nextModel, replacementKey, extraSettings) {
+        if ((provider !== "groq" && provider !== "gemini" && provider !== "ollama") || root.isGenerating)
             return false;
 
         var model = String(nextModel).trim();
@@ -95,11 +102,18 @@ Item {
 
         try {
             var cfg = JSON.parse(settingsFile.text() || "{}");
-            var modelProperty = provider === "groq" ? "groqModel" : "geminiModel";
-            var keyProperty = provider === "groq" ? "groqApiKey" : "geminiApiKey";
+            var modelProperty = provider === "ollama" ? "ollamaModel" : (provider === "groq" ? "groqModel" : "geminiModel");
+            var keyProperty = provider === "ollama" ? "ollamaUrl" : (provider === "groq" ? "groqApiKey" : "geminiApiKey");
             cfg[modelProperty] = model;
             if (typeof replacementKey === "string" && replacementKey.trim().length > 0)
                 cfg[keyProperty] = replacementKey.trim();
+            
+            if (provider === "ollama" && extraSettings) {
+                if (typeof extraSettings.temperature === "number") cfg.ollamaTemperature = extraSettings.temperature;
+                if (typeof extraSettings.numCtx === "number") cfg.ollamaNumCtx = extraSettings.numCtx;
+                if (typeof extraSettings.systemPrompt === "string") cfg.ollamaSystemPrompt = extraSettings.systemPrompt;
+            }
+
             settingsFile.setText(JSON.stringify(cfg, null, 2));
             root.settingsError = "";
             return true;
@@ -111,12 +125,13 @@ Item {
     }
 
     function removeProviderKey(provider) {
-        if ((provider !== "groq" && provider !== "gemini") || root.isGenerating)
+        if ((provider !== "groq" && provider !== "gemini" && provider !== "ollama") || root.isGenerating)
             return false;
 
         try {
             var cfg = JSON.parse(settingsFile.text() || "{}");
-            cfg[provider === "groq" ? "groqApiKey" : "geminiApiKey"] = "";
+            var keyProperty = provider === "ollama" ? "ollamaUrl" : (provider === "groq" ? "groqApiKey" : "geminiApiKey");
+            cfg[keyProperty] = "";
             settingsFile.setText(JSON.stringify(cfg, null, 2));
             root.settingsError = "";
             return true;
@@ -796,5 +811,12 @@ Item {
         }
     }
 
-    Component.onCompleted: loadProviderSettings()
+    Component.onCompleted: {
+        root.loadProviderSettings();
+        AiDaemonService.ollamaModelsReceived.connect(models => {
+            root.availableOllamaModels = models;
+        });
+        if (root.providerId === "ollama")
+            AiDaemonService.fetchOllamaModels();
+    }
 }

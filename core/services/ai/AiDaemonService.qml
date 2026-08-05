@@ -11,8 +11,14 @@ Item {
 
     property string geminiModel: "gemini-3.6-flash"
     property string groqModel: "llama-3.1-8b-instant"
+    property string ollamaModel: "qwen3.5:9b"
+    property string ollamaUrl: "http://127.0.0.1:11434"
+    property real ollamaTemperature: 0.8
+    property int ollamaNumCtx: 2048
+    property string ollamaSystemPrompt: ""
     property bool geminiConfigured: false
     property bool groqConfigured: false
+    property bool ollamaConfigured: true
 
     readonly property bool running: daemonProcess.running
     property bool healthy: false
@@ -30,6 +36,7 @@ Item {
     signal generationStopped(string requestId)
     signal titleGenerated(string conversationId, string title)
     signal titleError(string conversationId, string errorMsg)
+    signal ollamaModelsReceived(var models)
 
     property var _titleBuffers: ({})
 
@@ -44,6 +51,13 @@ Item {
                 ? cfg.geminiModel.trim() : "gemini-3.6-flash";
             root.groqModel = typeof cfg.groqModel === "string" && cfg.groqModel.trim().length > 0
                 ? cfg.groqModel.trim() : "llama-3.1-8b-instant";
+            root.ollamaModel = typeof cfg.ollamaModel === "string" && cfg.ollamaModel.trim().length > 0
+                ? cfg.ollamaModel.trim() : "qwen3.5:9b";
+            root.ollamaUrl = typeof cfg.ollamaUrl === "string" && cfg.ollamaUrl.trim().length > 0
+                ? cfg.ollamaUrl.trim() : "http://127.0.0.1:11434";
+            root.ollamaTemperature = typeof cfg.ollamaTemperature === "number" ? cfg.ollamaTemperature : 0.8;
+            root.ollamaNumCtx = typeof cfg.ollamaNumCtx === "number" ? cfg.ollamaNumCtx : 2048;
+            root.ollamaSystemPrompt = typeof cfg.ollamaSystemPrompt === "string" ? cfg.ollamaSystemPrompt : "";
         } catch (error) {
             root.geminiConfigured = false;
             root.groqConfigured = false;
@@ -52,11 +66,11 @@ Item {
     }
 
     function configuredFor(providerId) {
-        return providerId === "groq" ? root.groqConfigured : root.geminiConfigured;
+        return providerId === "ollama" ? root.ollamaConfigured : (providerId === "groq" ? root.groqConfigured : root.geminiConfigured);
     }
 
     function modelFor(providerId) {
-        return providerId === "groq" ? root.groqModel : root.geminiModel;
+        return providerId === "ollama" ? root.ollamaModel : (providerId === "groq" ? root.groqModel : root.geminiModel);
     }
 
     function send(command) {
@@ -78,7 +92,7 @@ Item {
             return "";
         }
         if (!root.configuredFor(providerId)) {
-            root.lastError = (providerId === "groq" ? "Groq" : "Gemini") + " API key is not set.";
+            root.lastError = (providerId === "groq" ? "Groq" : (providerId === "ollama" ? "Ollama" : "Gemini")) + " API key is not set.";
             root.generationError("", root.lastError);
             return "";
         }
@@ -114,6 +128,11 @@ Item {
             model: model,
             messages: messages
         });
+    }
+
+    function fetchOllamaModels() {
+        if (!root.healthy) return;
+        send({ action: "fetchOllamaModels" });
     }
 
     function stopGeneration() {
@@ -177,6 +196,8 @@ Item {
             root.lastError = "";
             root.healthy = true;
             stableTimer.restart();
+        } else if (event.type === "ollamaModels") {
+            root.ollamaModelsReceived(event.models || []);
         } else if (event.type === "chunk") {
             if (event.requestId.startsWith("title-")) {
                 var cid = event.requestId.substring(6);

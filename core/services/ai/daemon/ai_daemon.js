@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const readline = require("node:readline");
 const gemini = require("./providers/gemini");
 const groq = require("./providers/groq");
+const ollama = require("./providers/ollama");
 
 const settingsPath = process.argv[2];
 const activeRequests = new Map();
@@ -40,6 +41,19 @@ function providerOptions(provider, settings) {
                 ? settings.geminiModel.trim() : "gemini-3.6-flash"
         };
     }
+    if (provider === "ollama") {
+        return {
+            adapter: ollama,
+            apiKey: "not-needed",
+            url: typeof settings.ollamaUrl === "string" && settings.ollamaUrl.trim()
+                ? settings.ollamaUrl.trim() : "http://127.0.0.1:11434",
+            model: typeof settings.ollamaModel === "string" && settings.ollamaModel.trim()
+                ? settings.ollamaModel.trim() : "qwen3.5:9b",
+            temperature: typeof settings.ollamaTemperature === "number" ? settings.ollamaTemperature : 0.8,
+            numCtx: typeof settings.ollamaNumCtx === "number" ? settings.ollamaNumCtx : 2048,
+            systemPrompt: typeof settings.ollamaSystemPrompt === "string" ? settings.ollamaSystemPrompt.trim() : ""
+        };
+    }
     throw new Error("Unsupported AI provider: " + provider);
 }
 
@@ -55,7 +69,7 @@ async function generate(command) {
     const settings = loadSettings();
     const options = providerOptions(command.provider, settings);
     if (!options.apiKey)
-        throw new Error((command.provider === "groq" ? "Groq" : "Gemini") + " API key is not set.");
+        throw new Error((command.provider === "groq" ? "Groq" : (command.provider === "ollama" ? "Ollama" : "Gemini")) + " API key is not set.");
 
     for (const msg of command.messages) {
         if (msg.imagePaths && msg.imagePaths.length > 0) {
@@ -86,8 +100,12 @@ async function generate(command) {
     try {
         await options.adapter.generate({
             apiKey: options.apiKey,
+            url: options.url,
             model: typeof command.model === "string" && command.model.trim()
                 ? command.model.trim() : options.model,
+            temperature: options.temperature,
+            numCtx: options.numCtx,
+            systemPrompt: options.systemPrompt,
             messages: command.messages,
             signal: controller.signal,
             onChunk: text => emit({ type: "chunk", requestId, text })
@@ -100,6 +118,27 @@ async function generate(command) {
             emit({ type: "error", requestId, message: errorMessage(error) });
     } finally {
         activeRequests.delete(requestId);
+    }
+}
+
+async function fetchOllamaModels() {
+    const settings = loadSettings();
+    let baseUrl = typeof settings.ollamaUrl === "string" && settings.ollamaUrl.trim()
+        ? settings.ollamaUrl.trim() : "http://127.0.0.1:11434";
+    if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+    const url = baseUrl + "/api/tags";
+
+    try {
+        const response = await fetch(url, { method: "GET" });
+        if (!response.ok) {
+            emit({ type: "ollamaModels", models: [] });
+            return;
+        }
+        const data = await response.json();
+        const models = (data.models || []).map(m => m.name);
+        emit({ type: "ollamaModels", models });
+    } catch (error) {
+        emit({ type: "ollamaModels", models: [] });
     }
 }
 
@@ -122,6 +161,8 @@ input.on("line", line => {
             }));
         } else if (command.action === "cancel") {
             cancel(command.requestId);
+        } else if (command.action === "fetchOllamaModels") {
+            fetchOllamaModels();
         } else if (command.action === "ping") {
             emit({ type: "pong" });
         } else {

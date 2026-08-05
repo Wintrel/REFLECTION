@@ -201,7 +201,7 @@ Rectangle {
 
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: navigationRail.providerMenuOpen ? 116 : 0
+            Layout.preferredHeight: navigationRail.providerMenuOpen ? 174 : 0
             radius: 15
             clip: true
             opacity: navigationRail.providerMenuOpen ? 1 : 0
@@ -221,6 +221,7 @@ Rectangle {
 
                 Repeater {
                     model: [
+                        { providerId: "ollama", name: "Ollama", modelName: ConversationService.ollamaModel, configured: ConversationService.ollamaConfigured },
                         { providerId: "groq", name: "Groq", modelName: ConversationService.groqModel, configured: ConversationService.groqConfigured },
                         { providerId: "gemini", name: "Gemini", modelName: ConversationService.geminiModel, configured: ConversationService.geminiConfigured }
                     ]
@@ -483,11 +484,11 @@ Rectangle {
 
                         Text {
                             anchors.centerIn: parent
-                            text: conversationCard.provider === "groq" ? "G" : "auto_awesome"
-                            font.family: conversationCard.provider === "groq"
+                            text: conversationCard.provider === "ollama" ? "O" : (conversationCard.provider === "groq" ? "G" : "auto_awesome")
+                            font.family: conversationCard.provider === "groq" || conversationCard.provider === "ollama"
                                 ? (navigationRail.theme ? navigationRail.theme.fontMain : "Inter")
                                 : (navigationRail.theme ? navigationRail.theme.fontIcon : "Material Symbols Rounded")
-                            font.pixelSize: conversationCard.provider === "groq" ? 13 : 17
+                            font.pixelSize: conversationCard.provider === "groq" || conversationCard.provider === "ollama" ? 13 : 17
                             font.weight: Font.Bold
                             color: navigationRail.accent
                         }
