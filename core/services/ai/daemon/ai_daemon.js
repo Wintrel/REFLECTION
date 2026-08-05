@@ -57,6 +57,28 @@ async function generate(command) {
     if (!options.apiKey)
         throw new Error((command.provider === "groq" ? "Groq" : "Gemini") + " API key is not set.");
 
+    for (const msg of command.messages) {
+        if (msg.imagePaths && msg.imagePaths.length > 0) {
+            msg.images = [];
+            for (const path of msg.imagePaths) {
+                try {
+                    const data = fs.readFileSync(path);
+                    const lowerPath = path.toLowerCase();
+                    let mime = "image/png";
+                    if (lowerPath.endsWith(".jpg") || lowerPath.endsWith(".jpeg")) mime = "image/jpeg";
+                    else if (lowerPath.endsWith(".webp")) mime = "image/webp";
+                    
+                    msg.images.push({
+                        data: data.toString("base64"),
+                        mimeType: mime
+                    });
+                } catch (err) {
+                    // Ignore missing image files silently
+                }
+            }
+        }
+    }
+
     const controller = new AbortController();
     activeRequests.set(requestId, controller);
     emit({ type: "started", requestId });

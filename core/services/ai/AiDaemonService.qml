@@ -28,6 +28,10 @@ Item {
     signal generationFinished(string requestId)
     signal generationError(string requestId, string errorMsg)
     signal generationStopped(string requestId)
+    signal titleGenerated(string conversationId, string title)
+    signal titleError(string conversationId, string errorMsg)
+
+    property var _titleBuffers: ({})
 
     function loadSettings() {
         try {
@@ -99,6 +103,19 @@ Item {
         return requestId;
     }
 
+    function generateTitle(providerId, model, prompt, conversationId) {
+        if (!root.healthy || !root.configuredFor(providerId)) return;
+        var requestId = "title-" + conversationId;
+        var messages = [{ role: "user", text: "Summarize this prompt in a short, 3-5 word title. Respond ONLY with the title. Do not use quotes. Prompt: " + prompt }];
+        send({
+            action: "generate",
+            requestId: requestId,
+            provider: providerId,
+            model: model,
+            messages: messages
+        });
+    }
+
     function stopGeneration() {
         if (!root.isGenerating || root.activeRequestId.length === 0)
             return false;
@@ -161,30 +178,57 @@ Item {
             root.healthy = true;
             stableTimer.restart();
         } else if (event.type === "chunk") {
-            if (event.requestId === root.activeRequestId)
+            if (event.requestId.startsWith("title-")) {
+                var cid = event.requestId.substring(6);
+                var bufs = root._titleBuffers;
+                bufs[cid] = (bufs[cid] || "") + (event.text || "");
+                root._titleBuffers = bufs;
+            } else if (event.requestId === root.activeRequestId) {
                 root.chunkReceived(event.requestId, event.text || "");
+            }
         } else if (event.type === "finished") {
-            if (event.requestId === root.activeRequestId) {
+            if (event.requestId.startsWith("title-")) {
+                var cidFinished = event.requestId.substring(6);
+                var titleText = (root._titleBuffers[cidFinished] || "").trim();
+                if (titleText.length > 0)
+                    root.titleGenerated(cidFinished, titleText);
+                var newBufs = root._titleBuffers;
+                delete newBufs[cidFinished];
+                root._titleBuffers = newBufs;
+            } else if (event.requestId === root.activeRequestId) {
                 root.isGenerating = false;
                 root.activeRequestId = "";
                 root.daemonStatus = "ready";
                 root.generationFinished(event.requestId);
             }
         } else if (event.type === "stopped") {
-            if (event.requestId === root.activeRequestId) {
+            if (event.requestId.startsWith("title-")) {
+                var cidStopped = event.requestId.substring(6);
+                var sBufs = root._titleBuffers;
+                delete sBufs[cidStopped];
+                root._titleBuffers = sBufs;
+            } else if (event.requestId === root.activeRequestId) {
                 root.isGenerating = false;
                 root.activeRequestId = "";
                 root.daemonStatus = "ready";
                 root.generationStopped(event.requestId);
             }
         } else if (event.type === "error") {
-            root.lastError = event.message || "Unknown AI daemon error.";
-            if (!event.requestId || event.requestId === root.activeRequestId) {
-                var failedRequestId = root.activeRequestId || event.requestId || "";
-                root.isGenerating = false;
-                root.activeRequestId = "";
-                root.daemonStatus = root.healthy ? "ready" : "failed";
-                root.generationError(failedRequestId, root.lastError);
+            if (event.requestId.startsWith("title-")) {
+                var cidError = event.requestId.substring(6);
+                var eBufs = root._titleBuffers;
+                delete eBufs[cidError];
+                root._titleBuffers = eBufs;
+                root.titleError(cidError, event.message || "Failed to generate title");
+            } else {
+                root.lastError = event.message || "Unknown AI daemon error.";
+                if (!event.requestId || event.requestId === root.activeRequestId) {
+                    var failedRequestId = root.activeRequestId || event.requestId || "";
+                    root.isGenerating = false;
+                    root.activeRequestId = "";
+                    root.daemonStatus = root.healthy ? "ready" : "failed";
+                    root.generationError(failedRequestId, root.lastError);
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import "../../../../core/services/ai"
+import "../../../../core/services/system" as Sys
 
 Item {
     id: conversationBody
@@ -22,6 +23,33 @@ Item {
         if (hour < 12) return "Good morning";
         if (hour < 18) return "Good afternoon";
         return "Good evening";
+    }
+
+    function parseMarkdown(text) {
+        var parts = text.split("```");
+        var result = [];
+        for (var i = 0; i < parts.length; i++) {
+            var isCode = i % 2 !== 0; // Odd indices are inside code blocks
+            var blockContent = parts[i];
+            
+            if (isCode) {
+                var firstNewline = blockContent.indexOf("\n");
+                var lang = "";
+                if (firstNewline !== -1 && firstNewline < 20) {
+                    lang = blockContent.substring(0, firstNewline).trim();
+                    blockContent = blockContent.substring(firstNewline + 1);
+                }
+                if (blockContent.endsWith("\n")) {
+                    blockContent = blockContent.substring(0, blockContent.length - 1);
+                }
+                result.push({ isCode: true, language: lang, content: blockContent });
+            } else {
+                if (blockContent.length > 0 || parts.length === 1) {
+                    result.push({ isCode: false, language: "", content: blockContent });
+                }
+            }
+        }
+        return result;
     }
 
     // Active conversation: message list
@@ -109,23 +137,132 @@ Item {
                         color: conversationBody.mainText
                     }
 
-                    Text {
+                    Column {
                         width: parent.width
-                        text: messageDelegate.text.length > 0
-                            ? (ConversationService.isCompacting && messageDelegate.status === "streaming"
-                                ? "Preparing earlier context…" : messageDelegate.text)
-                            : (messageDelegate.status === "streaming" ? "Thinking..." : "")
-                        textFormat: Text.MarkdownText
-                        wrapMode: Text.WordWrap
-                        linkColor: conversationBody.accent
-                        font.family: conversationBody.theme ? conversationBody.theme.fontMain : "Inter"
-                        font.pixelSize: 15
-                        lineHeight: 1.35
-                        color: conversationBody.subText
-                        onLinkActivated: link => {
-                            var url = link.toString();
-                            if (url.startsWith("https://") || url.startsWith("http://"))
-                                Qt.openUrlExternally(url);
+                        spacing: 8
+                        
+                        Repeater {
+                            model: conversationBody.parseMarkdown(messageDelegate.text)
+                            
+                            delegate: Column {
+                                width: parent.width
+                                spacing: 0
+                                
+                                // Standard Text Block.
+                                Text {
+                                    visible: !modelData.isCode
+                                    height: visible ? implicitHeight : 0
+                                    width: parent.width
+                                    text: modelData.content
+                                    textFormat: Text.MarkdownText
+                                    wrapMode: Text.WordWrap
+                                    linkColor: conversationBody.accent
+                                    font.family: conversationBody.theme ? conversationBody.theme.fontMain : "Inter"
+                                    font.pixelSize: 15
+                                    lineHeight: 1.35
+                                    color: conversationBody.subText
+                                    onLinkActivated: link => {
+                                        var url = link.toString();
+                                        if (url.startsWith("https://") || url.startsWith("http://"))
+                                            Qt.openUrlExternally(url);
+                                    }
+                                }
+                                
+                                // Code Block
+                                Rectangle {
+                                    visible: modelData.isCode
+                                    height: visible ? (codeColumn.implicitHeight + 16) : 0
+                                    width: parent.width
+                                    radius: 12
+                                    color: conversationBody.theme ? conversationBody.theme.surfaceCard : "#111115"
+                                    border.width: 1
+                                    border.color: Qt.rgba(conversationBody.mainText.r, conversationBody.mainText.g, conversationBody.mainText.b, 0.05)
+                                    clip: true
+
+                                    property bool codeCopied: false
+
+                                    ColumnLayout {
+                                        id: codeColumn
+                                        anchors.fill: parent
+                                        anchors.margins: 8
+                                        spacing: 4
+                                        visible: parent.visible
+
+                                        // Header
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            Layout.leftMargin: 4
+                                            Layout.rightMargin: 4
+                                            
+                                            Text {
+                                                text: (modelData.language && modelData.language.length > 0) ? modelData.language : "Code"
+                                                font.family: conversationBody.theme ? conversationBody.theme.fontMain : "Inter"
+                                                font.pixelSize: 11
+                                                font.weight: Font.Medium
+                                                color: conversationBody.mutedText
+                                                Layout.fillWidth: true
+                                            }
+
+                                            // Copy Button
+                                            Rectangle {
+                                                width: 26
+                                                height: 26
+                                                radius: 6
+                                                color: copyMa.containsMouse ? Qt.rgba(conversationBody.mainText.r, conversationBody.mainText.g, conversationBody.mainText.b, 0.1) : "transparent"
+
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: parent.parent.parent.codeCopied ? "check" : "content_copy"
+                                                    font.family: conversationBody.theme ? conversationBody.theme.fontIcon : "Material Symbols Rounded"
+                                                    font.pixelSize: 14
+                                                    color: parent.parent.parent.codeCopied ? conversationBody.accent : conversationBody.subText
+                                                }
+
+                                                MouseArea {
+                                                    id: copyMa
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        if (modelData.content) {
+                                                            Sys.ClipboardService.setText(modelData.content);
+                                                            parent.parent.parent.codeCopied = true;
+                                                            copyTimer.restart();
+                                                        }
+                                                    }
+                                                }
+                                                
+                                                Timer {
+                                                    id: copyTimer
+                                                    interval: 2000
+                                                    onTriggered: parent.parent.parent.parent.codeCopied = false
+                                                }
+                                            }
+                                        }
+
+                                        Rectangle {
+                                            Layout.fillWidth: true
+                                            height: 1
+                                            color: Qt.rgba(conversationBody.mainText.r, conversationBody.mainText.g, conversationBody.mainText.b, 0.05)
+                                        }
+
+                                        // Code Content
+                                        Text {
+                                            Layout.fillWidth: true
+                                            Layout.topMargin: 4
+                                            Layout.leftMargin: 4
+                                            Layout.rightMargin: 4
+                                            Layout.bottomMargin: 4
+                                            text: modelData.content
+                                            wrapMode: Text.WrapAnywhere
+                                            font.family: "Monospace"
+                                            font.pixelSize: 13
+                                            lineHeight: 1.4
+                                            color: conversationBody.subText
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 

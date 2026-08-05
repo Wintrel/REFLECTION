@@ -23,6 +23,7 @@ Item {
     property string contextSummary: ""
     property bool isCompacting: false
     property string compactionBuffer: ""
+    property string pendingContext: ""
     readonly property int contextCharacterBudget: 24000
     readonly property int recentContextCharacterBudget: 12000
     readonly property int contextCharacterCount: revision >= 0
@@ -178,7 +179,7 @@ Item {
                     entry.text = "Response interrupted before completion.";
             }
 
-            messageModel.append({ role: entry.role, text: entry.text, status: status });
+            messageModel.append({ role: entry.role, text: entry.text, status: status, contextSources: entry.contextSources || "", imagePaths: JSON.stringify(entry.imagePaths || []) });
             if (entry.role === "user")
                 root.lastUserMessage = entry.text;
         }
@@ -385,22 +386,22 @@ Item {
         return true;
     }
 
-    function startTurn(prompt) {
+    function startTurn(prompt, contextSources, imagePaths) {
         prompt = prompt.trim();
         if (prompt.length === 0 || root.activeResponseIndex !== -1)
             return false;
         if (!root.hasActiveConversation && !newConversation())
             return false;
 
-        messageModel.append({ role: "user", text: prompt, status: "complete" });
-        messageModel.append({ role: "assistant", text: "", status: "streaming" });
+        messageModel.append({ role: "user", text: prompt, status: "complete", contextSources: contextSources || "", imagePaths: JSON.stringify(imagePaths || []) });
+        messageModel.append({ role: "assistant", text: "", status: "streaming", contextSources: "", imagePaths: "[]" });
         root.activeResponseIndex = messageModel.count - 1;
         root.lastUserMessage = prompt;
 
         var index = conversationIndex(root.activeConversationId);
         if (index >= 0) {
             if (conversationModel.get(index).title === "New conversation") {
-                root.activeConversationTitle = titleFromPrompt(prompt);
+                root.activeConversationTitle = root.titleFromPrompt(prompt);
                 conversationModel.setProperty(index, "title", root.activeConversationTitle);
             }
             conversationModel.setProperty(index, "preview", prompt);
@@ -414,9 +415,10 @@ Item {
         return true;
     }
 
-    function sendMessage(prompt) {
-        if (root.isGenerating || !startTurn(prompt))
+    function sendMessage(prompt, contextPayload, contextSources, imagePaths) {
+        if (root.isGenerating || !startTurn(prompt, contextSources, imagePaths))
             return false;
+        root.pendingContext = typeof contextPayload === "string" ? contextPayload : "";
         return startResponseGeneration();
     }
 
@@ -438,7 +440,7 @@ Item {
             return false;
 
         messageModel.remove(messageIndex);
-        messageModel.append({ role: "assistant", text: "", status: "streaming" });
+        messageModel.append({ role: "assistant", text: "", status: "streaming", contextSources: "", imagePaths: "[]" });
         root.activeResponseIndex = messageModel.count - 1;
 
         var conversation = conversationIndex(root.activeConversationId);
@@ -488,6 +490,8 @@ Item {
             return;
         messageModel.setProperty(root.activeResponseIndex, "status", "complete");
         root.activeResponseIndex = -1;
+        root.pendingContext = "";
+
         updateActiveMetadata();
         persistActiveConversation();
         persistIndex();
@@ -500,6 +504,7 @@ Item {
         messageModel.setProperty(root.activeResponseIndex, "text", "Error: " + errorMessage);
         messageModel.setProperty(root.activeResponseIndex, "status", "error");
         root.activeResponseIndex = -1;
+        root.pendingContext = "";
         updateActiveMetadata();
         persistActiveConversation();
         persistIndex();
@@ -513,6 +518,7 @@ Item {
             messageModel.setProperty(root.activeResponseIndex, "text", "Response stopped.");
         messageModel.setProperty(root.activeResponseIndex, "status", "stopped");
         root.activeResponseIndex = -1;
+        root.pendingContext = "";
         updateActiveMetadata();
         persistActiveConversation();
         persistIndex();
@@ -536,7 +542,7 @@ Item {
             if (message.status === "streaming" || message.status === "error"
                     || message.status === "stopped" || message.text.length === 0)
                 continue;
-            entries.push({ role: message.role, text: message.text });
+            entries.push({ role: message.role, text: message.text, contextSources: message.contextSources || "", imagePaths: JSON.parse(message.imagePaths || "[]") });
         }
         return entries;
     }
@@ -595,6 +601,21 @@ Item {
             entries = recentMessages(entries);
         if (root.contextSummary.length > 0)
             entries.unshift({ role: "system", text: "Earlier conversation summary. Use it as context, but prioritize the newest messages:\n" + root.contextSummary });
+
+        if (root.pendingContext.length > 0) {
+            for (var i = entries.length - 1; i >= 0; i--) {
+                if (entries[i].role === "user") {
+                    entries[i] = {
+                        role: "user",
+                        text: "Please use the following context to answer my prompt if relevant:\n\n" + root.pendingContext + entries[i].text,
+                        contextSources: entries[i].contextSources || "",
+                        imagePaths: entries[i].imagePaths || []
+                    };
+                    break;
+                }
+            }
+        }
+
         return entries;
     }
 
@@ -634,7 +655,10 @@ Item {
         var entries = [];
         for (var i = 0; i < messageModel.count; i++) {
             var message = messageModel.get(i);
-            entries.push({ role: message.role, text: message.text, status: message.status });
+            var entry = { role: message.role, text: message.text, status: message.status, contextSources: message.contextSources || "", imagePaths: JSON.parse(message.imagePaths || "[]") };
+            if (message.contextSources && message.contextSources.length > 0)
+                entry.contextSources = message.contextSources;
+            entries.push(entry);
         }
         return entries;
     }

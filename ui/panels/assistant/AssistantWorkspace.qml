@@ -13,6 +13,7 @@ Item {
     property bool screenContext: false
     property bool historyOpen: false
     property string activeMode: "Ask"
+    property var attachedFiles: []
 
     readonly property color accent: theme ? theme.accentPrimary : "#8c8cff"
     readonly property color mainText: theme ? theme.textMain : "#ffffff"
@@ -23,6 +24,7 @@ Item {
     readonly property int activeContextCount: (clipboardContext ? 1 : 0)
                                               + (selectionContext ? 1 : 0)
                                               + (screenContext ? 1 : 0)
+                                              + attachedFiles.length
     readonly property bool compact: width < 860
 
     // ── Main two-column layout
@@ -113,13 +115,31 @@ Item {
                 clipboardContext: root.clipboardContext
                 selectionContext: root.selectionContext
                 screenContext: root.screenContext
+                attachedFiles: root.attachedFiles
 
                 onRemoveClipboard: root.clipboardContext = false
                 onRemoveSelection: root.selectionContext = false
                 onRemoveScreen: root.screenContext = false
+                onRemoveAttachedFile: path => {
+                    var arr = root.attachedFiles.slice();
+                    var idx = arr.indexOf(path);
+                    if (idx !== -1) {
+                        arr.splice(idx, 1);
+                        root.attachedFiles = arr;
+                    }
+                }
+                
+                onFileAttached: path => {
+                    var arr = root.attachedFiles.slice();
+                    if (arr.indexOf(path) === -1) {
+                        arr.push(path);
+                        root.attachedFiles = arr;
+                    }
+                }
 
-                onPromptSubmitted: prompt => {
-                    ConversationService.sendMessage(prompt);
+                onPromptSubmitted: (prompt, contextPayload, contextSources, imagePaths) => {
+                    ConversationService.sendMessage(prompt, contextPayload, contextSources, imagePaths);
+                    root.attachedFiles = [];
                 }
             }
 

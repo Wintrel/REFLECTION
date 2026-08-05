@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
-import "../../../../core/services/system" // Import AccountService
+import "../../../../core/services/system" // Import AccountService.
 import "../../../../core/state" as State
 
 Item {
@@ -331,6 +331,12 @@ Item {
                                 anchors.fill: parent
                                 anchors.margins: 8
                                 spacing: 8
+                                
+                                readonly property bool isImg: {
+                                    if (model.isDir) return false;
+                                    var p = model.path.toLowerCase();
+                                    return p.endsWith(".png") || p.endsWith(".jpg") || p.endsWith(".jpeg") || p.endsWith(".webp") || p.endsWith(".gif");
+                                }
 
                                 // Thumbnail or Folder icon
                                 Item {
@@ -349,7 +355,7 @@ Item {
 
                                     // File Icon (if not an image)
                                     Text {
-                                        visible: !model.isDir && root.filterMode !== "images"
+                                        visible: !model.isDir && (!parent.parent.isImg || root.filterMode === "folders")
                                         anchors.centerIn: parent
                                         text: "insert_drive_file"
                                         font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
@@ -359,9 +365,9 @@ Item {
 
                                     // Image thumbnail
                                     Image {
-                                        visible: !model.isDir && root.filterMode === "images"
+                                        visible: parent.parent.isImg && root.filterMode !== "folders"
                                         anchors.fill: parent
-                                        source: (!model.isDir && root.filterMode === "images") ? "file://" + model.path : ""
+                                        source: visible ? "file://" + model.path : ""
                                         fillMode: Image.PreserveAspectCrop
                                         asynchronous: true
                                         cache: true

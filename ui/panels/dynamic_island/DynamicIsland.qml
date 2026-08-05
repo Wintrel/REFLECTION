@@ -33,7 +33,7 @@ Scope {
             // Immersive mode reserves a top lane for the island. Raise the
             // island's surface so system-critical states such as Polkit can
             // never be hidden behind the fullscreen settings surface.
-            WlrLayershell.layer: (State.GlobalStates.islandInOverlay || State.GlobalStates.immersivePhase !== State.GlobalStates.immersiveClosed)
+            WlrLayershell.layer: (State.GlobalStates.islandInOverlay || State.GlobalStates.immersivePhase !== State.GlobalStates.immersiveClosed || State.GlobalStates.assistantWorkspaceOpen)
                 ? WlrLayer.Overlay
                 : WlrLayer.Top
             

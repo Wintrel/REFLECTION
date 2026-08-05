@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../../../../core/services/ai"
+import "../../../../core/monitors"
+import "../../../../core/state" as State
 
 Rectangle {
     id: composer
@@ -14,12 +16,17 @@ Rectangle {
     property bool clipboardContext: false
     property bool selectionContext: false
     property bool screenContext: false
+    property var attachedFiles: []
 
     signal removeClipboard()
     signal removeSelection()
     signal removeScreen()
+    signal removeAttachedFile(string path)
+    signal fileAttached(string path)
 
-    signal promptSubmitted(string prompt)
+    signal promptSubmitted(string prompt, string contextPayload, string contextSources, var imagePaths)
+
+    property bool gatheringContext: false
 
     readonly property color accent: theme ? theme.accentPrimary : "#8c8cff"
     readonly property color mainText: theme ? theme.textMain : "#ffffff"
@@ -33,11 +40,123 @@ Rectangle {
     }
 
     function submitPrompt() {
-        var prompt = composerInput.text.trim();
-        if (prompt.length === 0 || ConversationService.isGenerating)
+        var userPrompt = composerInput.text.trim();
+        if (userPrompt.length === 0 || ConversationService.isGenerating || composer.gatheringContext)
             return;
-        composer.promptSubmitted(prompt);
+        
+        composer.gatheringContext = true;
         composerInput.text = "";
+        
+        var contextText = "";
+        var imagePaths = [];
+        var stepIndex = 0;
+        
+        var steps = [
+            function() {
+                if (composer.clipboardContext) {
+                    var clipOut = "";
+                    var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["wl-paste"] }', composer);
+                    var parser = Qt.createQmlObject('import Quickshell.Io; SplitParser { }', p);
+                    parser.read.connect(function(data) { clipOut += data + "\n"; });
+                    p.stdout = parser;
+                    p.exited.connect(function() {
+                        if (clipOut.trim().length > 0)
+                            contextText += "<context source=\"clipboard\">\n" + clipOut.trim() + "\n</context>\n\n";
+                        p.destroy();
+                        nextStep();
+                    });
+                    p.running = true;
+                } else { nextStep(); }
+            },
+            function() {
+                if (composer.selectionContext) {
+                    var selOut = "";
+                    var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["wl-paste", "-p"] }', composer);
+                    var parser = Qt.createQmlObject('import Quickshell.Io; SplitParser { }', p);
+                    parser.read.connect(function(data) { selOut += data + "\n"; });
+                    p.stdout = parser;
+                    p.exited.connect(function() {
+                        if (selOut.trim().length > 0)
+                            contextText += "<context source=\"selected_text\">\n" + selOut.trim() + "\n</context>\n\n";
+                        p.destroy();
+                        nextStep();
+                    });
+                    p.running = true;
+                } else { nextStep(); }
+            },
+            function() {
+                if (composer.screenContext) {
+                    var path = "/tmp/reflection_screen_" + Date.now() + ".png";
+                    imagePaths.push(path);
+                    var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["grim", "-o", "' + MonitorService.targetScreenName + '", "' + path + '"] }', composer);
+                    p.exited.connect(function() {
+                        p.destroy();
+                        nextStep();
+                    });
+                    p.running = true;
+                } else { nextStep(); }
+            },
+            function() {
+                if (composer.attachedFiles && composer.attachedFiles.length > 0) {
+                    var fileIndex = 0;
+                    function processNextFile() {
+                        if (fileIndex >= composer.attachedFiles.length) {
+                            nextStep();
+                            return;
+                        }
+                        var filePath = composer.attachedFiles[fileIndex];
+                        var lowerPath = filePath.toLowerCase();
+                        fileIndex++;
+                        
+                        if (lowerPath.endsWith(".png") || lowerPath.endsWith(".jpg") || lowerPath.endsWith(".jpeg") || lowerPath.endsWith(".webp")) {
+                            imagePaths.push(filePath);
+                            processNextFile();
+                        } else {
+                            var fileOut = "";
+                            var p = Qt.createQmlObject('import Quickshell.Io; Process { command: ["cat", "' + filePath + '"] }', composer);
+                            var parser = Qt.createQmlObject('import Quickshell.Io; SplitParser { }', p);
+                            parser.read.connect(function(data) { fileOut += data + "\n"; });
+                            p.stdout = parser;
+                            p.exited.connect(function() {
+                                if (fileOut.trim().length > 0) {
+                                    var basename = filePath.substring(filePath.lastIndexOf("/") + 1);
+                                    contextText += "<context source=\"file\" filename=\"" + basename + "\">\n" + fileOut.trim() + "\n</context>\n\n";
+                                }
+                                p.destroy();
+                                processNextFile();
+                            });
+                            p.running = true;
+                        }
+                    }
+                    processNextFile();
+                } else {
+                    nextStep();
+                }
+            },
+            function() {
+                composer.gatheringContext = false;
+                var sources = [];
+                if (composer.clipboardContext) sources.push("clipboard");
+                if (composer.selectionContext) sources.push("selection");
+                if (composer.screenContext) sources.push("screen");
+                if (composer.attachedFiles && composer.attachedFiles.length > 0) sources.push("files");
+                
+                composer.removeClipboard();
+                composer.removeSelection();
+                composer.removeScreen();
+                
+                composer.promptSubmitted(userPrompt, contextText, sources.join(","), imagePaths);
+            }
+        ];
+
+        function nextStep() {
+            if (stepIndex < steps.length) {
+                var step = steps[stepIndex];
+                stepIndex++;
+                step();
+            }
+        }
+        nextStep();
     }
 
     height: activeContextCount > 0 ? 140 : 110
@@ -87,6 +206,20 @@ Rectangle {
             label: "Current screen"
             onRemoved: composer.removeScreen()
         }
+
+        Repeater {
+            model: composer.attachedFiles
+            AssistantContextChip {
+                theme: composer.theme
+                icon: {
+                    var p = modelData.toLowerCase();
+                    if (p.endsWith(".png") || p.endsWith(".jpg") || p.endsWith(".jpeg") || p.endsWith(".webp")) return "image";
+                    return "description";
+                }
+                label: modelData.substring(modelData.lastIndexOf("/") + 1)
+                onRemoved: composer.removeAttachedFile(modelData)
+            }
+        }
     }
 
     TextArea {
@@ -133,6 +266,13 @@ Rectangle {
             theme: composer.theme
             icon: "add"
             toolTip: "Attach a file"
+            onClicked: {
+                State.GlobalStates.openFilePicker("Attach a File", "all", function(path) {
+                    if (path && path.trim().length > 0) {
+                        composer.fileAttached(path);
+                    }
+                });
+            }
         }
 
         Text {
@@ -175,11 +315,8 @@ Rectangle {
             }
 
             MouseArea {
-                id: submitMouse
                 anchors.fill: parent
-                hoverEnabled: true
-                enabled: ConversationService.isGenerating || composerInput.text.trim().length > 0
-                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     if (ConversationService.isGenerating)
                         ConversationService.stopGeneration();
@@ -187,10 +324,6 @@ Rectangle {
                         composer.submitPrompt();
                 }
             }
-
-            ToolTip.visible: submitMouse.containsMouse && ConversationService.isGenerating
-            ToolTip.text: "Stop generating"
-            ToolTip.delay: 350
         }
     }
 }
