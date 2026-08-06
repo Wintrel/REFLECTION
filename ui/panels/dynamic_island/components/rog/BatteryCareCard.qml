@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import "../../../../../core/services/system"
 
 ColumnLayout {
     id: root
@@ -46,7 +47,7 @@ ColumnLayout {
                     Layout.preferredHeight: 72
                     radius: 10
 
-                    property bool isCurrent: index === 1 // Placeholder
+                    property bool isCurrent: index === RogService.batteryLimit
 
                     color: isCurrent
                         ? Qt.rgba(
@@ -110,7 +111,7 @@ ColumnLayout {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: {}
+                        onClicked: RogService.setBatteryLimit(index)
                     }
                 }
             }

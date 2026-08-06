@@ -24,6 +24,7 @@ Singleton {
     property bool immersiveOpen: false
     property string immersiveRequestedCategory: ""
     property bool assistantWorkspaceOpen: false
+    property bool ciderStudioWorkspaceOpen: false
 
     // Immersive transition lifecycle. `immersiveOpen` remains the actual
     // layer-shell visibility switch, while the island owns the visual handoff.
@@ -96,6 +97,20 @@ Singleton {
 
     function toggleAssistantWorkspace() {
         root.assistantWorkspaceOpen = !root.assistantWorkspaceOpen;
+    }
+
+    function openCiderStudioWorkspace() {
+        if (root.screenLocked || root.ciderStudioWorkspaceOpen)
+            return;
+        root.ciderStudioWorkspaceOpen = true;
+    }
+
+    function closeCiderStudioWorkspace() {
+        root.ciderStudioWorkspaceOpen = false;
+    }
+
+    function toggleCiderStudioWorkspace() {
+        root.ciderStudioWorkspaceOpen = !root.ciderStudioWorkspaceOpen;
     }
     
     property bool filePickerOpen: false
@@ -341,6 +356,19 @@ Singleton {
         }
         function close() {
             root.closeImmersive();
+        }
+    }
+
+    IpcHandler {
+        target: "ciderStudio"
+        function toggle() {
+            root.toggleCiderStudioWorkspace();
+        }
+        function open() {
+            root.openCiderStudioWorkspace();
+        }
+        function close() {
+            root.closeCiderStudioWorkspace();
         }
     }
 

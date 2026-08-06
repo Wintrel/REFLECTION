@@ -14,6 +14,7 @@ import "ui/panels/wallpaper_selector"
 import "ui/panels/overview"
 import "ui/panels/immersive"
 import "ui/panels/assistant"
+import "ui/panels/cider_studio"
 
 ShellRoot {
     id: root
@@ -28,6 +29,7 @@ ShellRoot {
     Overview {}
     Immersive {}
     Assistant {}
+    CiderStudio {}
     
     Component.onCompleted: WallpaperService
 }

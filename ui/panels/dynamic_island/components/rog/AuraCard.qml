@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
+import "../../../control_center/components" as CC
+import "../../../../../core/services/system"
 
 ColumnLayout {
     id: root
@@ -18,101 +20,25 @@ ColumnLayout {
         wrapMode: Text.Wrap
     }
 
-    // ── Brightness Card ──────────────────────────────────────────────────────
-    Rectangle {
+    // ── Brightness ────────────────────────────────────────────────────────
+    Text {
+        text: "Brightness  ·  " + RogService.ledLevelNames[RogService.ledBrightness]
+        font.family: root.theme ? root.theme.fontMain : "Inter"
+        font.pixelSize: 12
+        color: root.theme ? root.theme.textMain : "#FFF"
+    }
+
+    CC.ThickSlider {
+        id: brightnessSlider
         Layout.fillWidth: true
-        implicitHeight: brightnessRow.implicitHeight + 28
-        radius: 12
-        color: Qt.rgba(255, 255, 255, 0.02)
-        border.width: 1
-        border.color: Qt.rgba(255, 255, 255, 0.05)
-
-        RowLayout {
-            id: brightnessRow
-            anchors {
-                fill: parent
-                leftMargin: 16
-                rightMargin: 16
-                topMargin: 14
-                bottomMargin: 14
-            }
-            spacing: 14
-
-            Text {
-                text: "keyboard"
-                font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                font.pixelSize: 22
-                color: brightnessSlider.pressed
-                    ? (root.theme ? root.theme.accentPrimary : "#FFC66D")
-                    : (root.theme ? root.theme.textSub : "#888")
-                Behavior on color { ColorAnimation { duration: 200 } }
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 4
-
-                Text {
-                    text: "Brightness"
-                    font.family: root.theme ? root.theme.fontMain : "Inter"
-                    font.pixelSize: 13
-                    font.weight: Font.Medium
-                    color: root.theme ? root.theme.textMain : "#FFF"
-                }
-
-                Slider {
-                    id: brightnessSlider
-                    Layout.fillWidth: true
-                    value: 0.5 // Placeholder
-
-                    background: Rectangle {
-                        x: parent.leftPadding
-                        y: parent.topPadding + parent.availableHeight / 2 - height / 2
-                        implicitWidth: 200
-                        implicitHeight: 4
-                        width: parent.availableWidth
-                        height: implicitHeight
-                        radius: 2
-                        color: Qt.rgba(255, 255, 255, 0.1)
-
-                        Rectangle {
-                            width: parent.parent.visualPosition * parent.width
-                            height: parent.height
-                            radius: 2
-                            color: brightnessSlider.pressed
-                                ? (root.theme ? root.theme.accentPrimary : "#FFC66D")
-                                : Qt.rgba(255, 255, 255, 0.4)
-                            Behavior on color { ColorAnimation { duration: 200 } }
-                        }
-                    }
-
-                    handle: Rectangle {
-                        x: parent.leftPadding + parent.visualPosition * (parent.availableWidth - width)
-                        y: parent.topPadding + parent.availableHeight / 2 - height / 2
-                        implicitWidth: 14
-                        implicitHeight: 14
-                        radius: 7
-                        color: brightnessSlider.pressed
-                            ? (root.theme ? root.theme.accentPrimary : "#FFC66D")
-                            : "#FFF"
-                        border.width: 2
-                        border.color: Qt.rgba(0, 0, 0, 0.3)
-                        Behavior on color { ColorAnimation { duration: 200 } }
-
-                        scale: brightnessSlider.pressed ? 1.2 : (brightnessSlider.hovered ? 1.1 : 1.0)
-                        Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
-                    }
-                }
-            }
-
-            Text {
-                text: Math.round(brightnessSlider.value * 100) + "%"
-                font.family: root.theme ? root.theme.fontMain : "Inter"
-                font.pixelSize: 12
-                color: root.theme ? root.theme.textSub : "#888"
-                Layout.preferredWidth: 32
-                horizontalAlignment: Text.AlignRight
-            }
+        theme: root.theme
+        icon: "keyboard"
+        value: RogService.ledBrightness * 33.33
+        valueText: RogService.ledLevelNames[RogService.ledBrightness]
+        onValueChangedByUser: newValue => {
+            // Map 0-100 slider range to 0-3 LED levels
+            var level = Math.round(newValue / 33.33);
+            RogService.setLedBrightness(level);
         }
     }
 
@@ -146,7 +72,7 @@ ColumnLayout {
                     Layout.preferredHeight: 64
                     radius: 10
 
-                    property bool isCurrent: index === 0 // Placeholder
+                    property bool isCurrent: index === RogService.auraEffect
 
                     color: isCurrent
                         ? Qt.rgba(
@@ -200,7 +126,7 @@ ColumnLayout {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: {}
+                        onClicked: RogService.setAuraEffect(index)
                     }
                 }
             }

@@ -10,21 +10,21 @@ import "../../../core/services/system"
 import "../../components" as Components
 
 Scope {
-    id: assistantScope
+    id: ciderStudioScope
 
     IpcHandler {
-        target: "assistant"
+        target: "ciderStudio"
 
         function open() {
-            State.GlobalStates.openAssistantWorkspace();
+            State.GlobalStates.openCiderStudioWorkspace();
         }
 
         function close() {
-            State.GlobalStates.closeAssistantWorkspace();
+            State.GlobalStates.closeCiderStudioWorkspace();
         }
 
         function toggle() {
-            State.GlobalStates.toggleAssistantWorkspace();
+            State.GlobalStates.toggleCiderStudioWorkspace();
         }
     }
 
@@ -32,18 +32,18 @@ Scope {
         model: MonitorService.anchorScreens
 
         delegate: PanelWindow {
-            id: assistantWindow
+            id: ciderStudioWindow
 
             required property var modelData
             screen: modelData
 
             Core.Theme { id: theme }
 
-            property bool wantsVisible: State.GlobalStates.assistantWorkspaceOpen
+            property bool wantsVisible: State.GlobalStates.ciderStudioWorkspaceOpen
             visible: wantsVisible || closeTimer.running
             color: "transparent"
 
-            WlrLayershell.namespace: "quickshell:assistant"
+            WlrLayershell.namespace: "quickshell:ciderStudio"
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.keyboardFocus: wantsVisible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
@@ -71,14 +71,14 @@ Scope {
             Shortcut {
                 sequence: "Escape"
                 context: Qt.WindowShortcut
-                enabled: assistantWindow.wantsVisible
-                onActivated: State.GlobalStates.closeAssistantWorkspace()
+                enabled: ciderStudioWindow.wantsVisible
+                onActivated: State.GlobalStates.closeCiderStudioWorkspace()
             }
 
             Rectangle {
                 anchors.fill: parent
                 color: theme ? theme.bgBase : "#09090d"
-                opacity: assistantWindow.wantsVisible ? 0.97 : 0
+                opacity: ciderStudioWindow.wantsVisible ? 0.97 : 0
                 Behavior on opacity { NumberAnimation { duration: 260; easing.type: Easing.InOutQuad } }
 
                 Image {
@@ -102,7 +102,7 @@ Scope {
                         orientation: Gradient.Horizontal
                         GradientStop {
                             position: 0
-                            color: theme ? Qt.rgba(theme.accentPrimary.r, theme.accentPrimary.g, theme.accentPrimary.b, 0.035) : "transparent"
+                            color: theme ? Qt.rgba(theme.accentMusic.r, theme.accentMusic.g, theme.accentMusic.b, 0.035) : "transparent"
                         }
                         GradientStop { position: 0.42; color: "transparent" }
                         GradientStop {
@@ -116,10 +116,10 @@ Scope {
             Item {
                 id: contentRoot
                 anchors.fill: parent
-                opacity: assistantWindow.wantsVisible ? 1 : 0
-                scale: assistantWindow.wantsVisible ? 1 : 0.985
+                opacity: ciderStudioWindow.wantsVisible ? 1 : 0
+                scale: ciderStudioWindow.wantsVisible ? 1 : 0.985
                 transform: Translate {
-                    y: assistantWindow.wantsVisible ? 0 : 16
+                    y: ciderStudioWindow.wantsVisible ? 0 : 16
                     Behavior on y { NumberAnimation { duration: 360; easing.type: Easing.OutExpo } }
                 }
                 Behavior on opacity { NumberAnimation { duration: 240; easing.type: Easing.OutQuad } }
@@ -148,7 +148,7 @@ Scope {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: "auto_awesome"
+                                text: "music_note"
                                 font.family: theme ? theme.fontIcon : "Material Symbols Rounded"
                                 font.pixelSize: 20
                                 color: theme ? theme.accentPrimary : "#8c8cff"
@@ -169,7 +169,7 @@ Scope {
                             }
 
                             Text {
-                                text: "Assistant workspace"
+                                text: "Cider Studio"
                                 font.family: theme ? theme.fontMain : "Inter"
                                 font.pixelSize: 14
                                 font.weight: Font.DemiBold
@@ -177,7 +177,7 @@ Scope {
                             }
                         }
                     }
-//
+
                     Rectangle {
                         anchors.right: parent.right
                         anchors.rightMargin: 24
@@ -213,7 +213,7 @@ Scope {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: State.GlobalStates.closeAssistantWorkspace()
+                            onClicked: State.GlobalStates.closeCiderStudioWorkspace()
                         }
                     }
 
@@ -226,13 +226,12 @@ Scope {
                     }
                 }
 
-                AssistantWorkspace {
+                CiderStudioWorkspace {
                     anchors.top: topLane.bottom
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
-                    // Use the entire immersive canvas. Individual conversation
-                    // content can still constrain its own readable line length.
+                    // Use the entire immersive canvas.
                     anchors.leftMargin: 24
                     anchors.rightMargin: 24
                     anchors.topMargin: 24

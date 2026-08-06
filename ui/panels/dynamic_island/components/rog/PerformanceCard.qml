@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import "../../../../../core/services/system"
 
 ColumnLayout {
     id: root
@@ -46,7 +47,7 @@ ColumnLayout {
                     Layout.preferredHeight: 72
                     radius: 10
 
-                    property bool isCurrent: index === 1 // Placeholder: Balanced selected
+                    property bool isCurrent: index === RogService.performanceProfile
 
                     // Translucent tint when active instead of solid fill
                     color: isCurrent
@@ -111,9 +112,7 @@ ColumnLayout {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            // Action to set mode will go here
-                        }
+                        onClicked: RogService.setPerformanceProfile(index)
                     }
                 }
             }
