@@ -5,7 +5,7 @@ Item {
     id: root
     
     property bool isPlaying: true
-    property color accentColor: "#A6E3A1"
+    property color accentColor: '#afa1e3'
     property var colorPalette: []
     
     clip: true

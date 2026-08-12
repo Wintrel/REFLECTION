@@ -128,7 +128,7 @@ Item {
             textMain: "#E2E8F0",
             textSub: "#94A3B8",
             accentNotification: "#111827",
-            accentMusic: "#1F2937",
+            accentMusic: '#2e2274',
             accentWorkspace: "#111827",
             accentPrimary: '#5151ad',
             colorSystemShimmer: '#aba4e7',
