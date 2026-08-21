@@ -57,6 +57,40 @@ Item {
         CiderService.cycleFallbackPlayer();
     }
 
+    // Debug & Timing utilities for transition testing
+    property real transitionStartTime: 0
+    property int lastState: -1
+
+    function getStateName(st) {
+        switch (st) {
+            case State.IslandState.idle: return "idle";
+            case State.IslandState.hover: return "hover";
+            case State.IslandState.expanded: return "expanded";
+            case State.IslandState.notification: return "notification";
+            case State.IslandState.notificationHistory: return "notificationHistory";
+            case State.IslandState.osd: return "osd";
+            case State.IslandState.prompt: return "prompt";
+            case State.IslandState.actionProgress: return "actionProgress";
+            case State.IslandState.reflectionGrid: return "reflectionGrid";
+            case State.IslandState.battery: return "battery";
+            case State.IslandState.polkitAuth: return "polkitAuth";
+            case State.IslandState.settingsHub: return "settingsHub";
+            case State.IslandState.filePicker: return "filePicker";
+            case State.IslandState.ciderExpanded: return "ciderExpanded";
+            case State.IslandState.clipboard: return "clipboard";
+            default: return "state(" + st + ")";
+        }
+    }
+
+    onIslandStateChanged: {
+        var now = Date.now();
+        var fromName = getStateName(lastState);
+        var toName = getStateName(islandState);
+        transitionStartTime = now;
+        console.log("[DynamicIsland DEBUG] State swap triggered: " + fromName + " -> " + toName + " (t=" + now + "ms)");
+        lastState = islandState;
+    }
+
     // Outer Frosty Glow
     RectangularGlow {
         anchors.fill: islandShape
@@ -214,11 +248,29 @@ Item {
         Behavior on border.color { ColorAnimation { duration: theme.animDuration; easing.type: Easing.OutSine } }
         
         Behavior on width {
-            NumberAnimation { duration: theme.animDuration; easing.type: Easing.OutExpo }
+            NumberAnimation {
+                id: widthAnim
+                duration: theme.animDuration
+                easing.type: Easing.OutExpo
+            }
         }
         
         Behavior on height {
-            NumberAnimation { duration: theme.animDuration; easing.type: Easing.OutExpo }
+            NumberAnimation {
+                id: heightAnim
+                duration: theme.animDuration
+                easing.type: Easing.OutExpo
+            }
+        }
+
+        property bool isAnimating: widthAnim.running || heightAnim.running
+        onIsAnimatingChanged: {
+            if (isAnimating) {
+                console.log("[DynamicIsland DEBUG] Animation started -> target size: " + Math.round(islandShape.width) + "x" + Math.round(islandShape.height));
+            } else if (islandWidget.transitionStartTime > 0) {
+                var duration = Date.now() - islandWidget.transitionStartTime;
+                console.log("[DynamicIsland DEBUG] Transition completed in " + duration + "ms (" + islandWidget.getStateName(islandWidget.islandState) + ") -> final size: " + Math.round(islandShape.width) + "x" + Math.round(islandShape.height));
+            }
         }
         
         // The inner inset content area

@@ -264,11 +264,11 @@ Item {
         }
     }
 
-    MediaPlayer {
-        id: popSound
-        source: "file:///usr/share/sounds/freedesktop/stereo/message.oga"
-        audioOutput: AudioOutput { volume: 0.5 }
-    }
+    // MediaPlayer {
+    //     id: popSound
+    //     source: "file:///usr/share/sounds/freedesktop/stereo/message.oga"
+    //     audioOutput: AudioOutput { volume: 0.5 }
+    // }
 
     NotificationServer {
         id: notificationServer
