@@ -70,19 +70,20 @@ Item {
         theme: root.theme
     }
     
-    // Main Content
+    // Media Zone (info + controls, centered above progress bar)
     Item {
         anchors.top: topSliver.bottom
-        anchors.topMargin: 10
+        anchors.topMargin: 8
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        anchors.bottom: progressBar.top
+        anchors.bottomMargin: 2
         
         Media.MediaInfo {
             id: mediaInfo
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            
+            anchors.leftMargin: 8
             islandState: root.islandState
             mprisPlayer: root.mprisPlayer
             theme: root.theme
@@ -122,19 +123,19 @@ Item {
                 }
             }
         }
+    }
+    
+    Media.MediaProgressBar {
+        id: progressBar
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.leftMargin: 8
+        anchors.rightMargin: 8
+        anchors.bottomMargin: 2
         
-        Media.MediaProgressBar {
-            id: progressBar
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: 8
-            anchors.rightMargin: 8
-            anchors.bottomMargin: 4
-            
-            islandState: root.islandState
-            mprisPlayer: root.mprisPlayer
-            theme: root.theme
-        }
+        islandState: root.islandState
+        mprisPlayer: root.mprisPlayer
+        theme: root.theme
     }
 }

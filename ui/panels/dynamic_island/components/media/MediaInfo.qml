@@ -10,23 +10,21 @@ Item {
     property var theme: null
 
     width: childrenRect.width
-    height: 60
+    height: 64
     
     Rectangle {
         id: albumArt
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
-        width: 60
-        height: 60
-        radius: root.theme ? root.theme.radiusIsland : 8
-        color: root.theme ? root.theme.surfaceOverlay : "#313244"
-        border.width: root.theme ? root.theme.islandBorderWidth : 0
-        border.color: root.theme ? root.theme.accentPrimary : "transparent"
+        width: 82
+        height: 82
+        radius: 22
+        color: coverImg.visible ? "transparent" : (root.theme ? root.theme.surfaceOverlay : "#313244")
         
         property bool isVisible: root.islandState === State.IslandState.expanded
         opacity: (root.islandState === State.IslandState.expanded) ? 1 : 0
         transform: Scale {
-            origin.x: 30; origin.y: 30
+            origin.x: 32; origin.y: 32
             xScale: (root.islandState === State.IslandState.expanded) ? 1 : 0.8
             yScale: (root.islandState === State.IslandState.expanded) ? 1 : 0.8
             Behavior on xScale { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 400; easing.type: Easing.OutBack } } }
@@ -42,7 +40,12 @@ Item {
             visible: source != ""
             layer.enabled: true
             layer.effect: OpacityMask {
-                maskSource: Rectangle { width: 60; height: 60; radius: root.theme ? root.theme.radiusIsland : 8 }
+                maskSource: Image {
+                    source: Qt.resolvedUrl("../../../../../assets/m3_badge.svg")
+                    width: 64
+                    height: 64
+                    fillMode: Image.PreserveAspectFit
+                }
             }
         }
         
@@ -85,13 +88,32 @@ Item {
             width: 250
             elide: Text.ElideRight
         }
+        // Spacer to push the source button down slightly
+        Item { 
+            height: 6 
+            width: 1 
+            visible: root.mprisPlayer && root.mprisPlayer.identity 
+        }
+        
         // Source Indicator
         Item {
-            width: sourceRow.width
-            height: sourceRow.height
+            width: sourceRow.width + 16
+            height: sourceRow.height + 10
             visible: root.mprisPlayer && root.mprisPlayer.identity
             
+            Rectangle {
+                anchors.fill: parent
+                radius: height / 2
+                color: maSource.containsMouse ? 
+                       (root.theme ? Qt.lighter(root.theme.surfaceOverlay, 1.2) : Qt.rgba(255, 255, 255, 0.12)) : 
+                       (root.theme ? root.theme.surfaceOverlay : Qt.rgba(255, 255, 255, 0.06))
+                border.color: root.theme ? Qt.lighter(root.theme.surfaceOverlay, 1.5) : Qt.rgba(255, 255, 255, 0.1)
+                border.width: 1
+                Behavior on color { ColorAnimation { duration: 150 } }
+            }
+            
             MouseArea {
+                id: maSource
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 hoverEnabled: true
@@ -99,14 +121,6 @@ Item {
                     if (typeof islandWidget !== "undefined") {
                         islandWidget.cyclePlayer();
                     }
-                }
-                
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: -4
-                    radius: 4
-                    color: parent.containsMouse ? Qt.rgba(255,255,255,0.1) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 150 } }
                 }
             }
 

@@ -16,9 +16,9 @@ Item {
     
     // Dynamically calculate height based on content, clamped to max height
     property real computedHeight: {
-        var h = 50 + 16; // Header height + margins
+        var h = 60 + 16; // Header height + margins
         if (State.GlobalStates.notificationHistory.count === 0) {
-            h += 120; // Empty state height
+            h += 200; // Empty state height
         } else {
             h += listView.contentHeight + 16;
         }
@@ -176,12 +176,20 @@ Item {
                 anchors.centerIn: parent
                 spacing: 12
                 
-                Text {
+                Rectangle {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "notifications_off"
-                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                    font.pixelSize: 48
-                    color: root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.3) : "#40A6ADC8"
+                    width: 96
+                    height: 96
+                    radius: 48 // Perfect circle for the empty state
+                    color: root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.1) : "#10A6ADC8"
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: "notifications_off"
+                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                        font.pixelSize: 48
+                        color: root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.4) : "#60A6ADC8"
+                    }
                 }
                 
                 Text {
@@ -284,6 +292,7 @@ Item {
                             height: 16
                             
                             Text {
+                                id: appNameText
                                 anchors.left: parent.left
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: (model.appName || "Notification").toUpperCase()
@@ -292,6 +301,23 @@ Item {
                                 font.letterSpacing: 0.8
                                 font.bold: true
                                 color: root.theme ? root.theme.textSub : "#A6ADC8"
+                            }
+                            
+                            // Timestamp
+                            Text {
+                                anchors.left: appNameText.right
+                                anchors.leftMargin: 8
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: {
+                                    if (model.time) {
+                                        var d = new Date(model.time);
+                                        return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+                                    }
+                                    return "Just now";
+                                }
+                                font.family: root.theme ? root.theme.fontMain : "Inter"
+                                font.pixelSize: 10
+                                color: root.theme ? Qt.rgba(root.theme.textSub.r, root.theme.textSub.g, root.theme.textSub.b, 0.5) : "#80A6ADC8"
                             }
                             
                             // Close single button (only visible on hover)
@@ -350,7 +376,11 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        State.GlobalStates.notificationHistory.remove(index);
+                        if (typeof State.GlobalStates.notificationHistory.invoke === "function") {
+                            State.GlobalStates.notificationHistory.invoke(index);
+                        } else {
+                            State.GlobalStates.notificationHistory.remove(index);
+                        }
                     }
                     
                     // Allow the close button to receive clicks

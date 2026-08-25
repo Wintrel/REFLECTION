@@ -47,11 +47,11 @@ Item {
     property int islandProgressW: 450
     property int islandProgressH: 80
     
-    property int islandBatteryW: 600
-    property int islandBatteryH: 270 + (BatteryService.peripheralCount * 28)
+    property int islandBatteryW: 1080
+    property int islandBatteryH: 380
     
     property int islandHistoryW: 600
-    property int islandHistoryH: 400
+    property int islandHistoryH: 500
     
     property int islandCiderW: 1300
     property int islandCiderH: 600

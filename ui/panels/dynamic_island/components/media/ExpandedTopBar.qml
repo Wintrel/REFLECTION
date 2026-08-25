@@ -22,9 +22,16 @@ Item {
     
     Item {
         anchors.left: parent.left
-        width: 32
-        height: 24
+        width: 28
+        height: 28
         anchors.verticalCenter: parent.verticalCenter
+        
+        Rectangle {
+            anchors.fill: parent
+            radius: 14
+            color: notifMa.containsMouse ? (root.theme ? root.theme.surfaceOverlay : Qt.rgba(255,255,255,0.08)) : "transparent"
+            Behavior on color { ColorAnimation { duration: 150 } }
+        }
         
         Text {
             id: notifIcon
@@ -33,9 +40,7 @@ Item {
             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
             font.pixelSize: 18
             color: notifMa.containsMouse ? (root.theme ? root.theme.textMain : "#FFF") : (root.theme ? root.theme.textSub : "#A6ADC8")
-            scale: notifMa.pressed ? 0.9 : (notifMa.containsMouse ? 1.1 : 1)
-            opacity: notifMa.pressed ? 0.7 : 1
-            Behavior on scale { NumberAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: 150 } }
         }
         
         MouseArea {
@@ -64,20 +69,25 @@ Item {
             
             Item {
                 id: expandBtn
-                width: 24
-                height: 24
+                width: 28
+                height: 28
                 anchors.verticalCenter: parent.verticalCenter
                 visible: root.mprisPlayer && root.mprisPlayer.identity === "Cider"
+                
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 14
+                    color: expandMa.containsMouse ? (root.theme ? root.theme.surfaceOverlay : Qt.rgba(255,255,255,0.08)) : "transparent"
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                }
                 
                 Text {
                     anchors.centerIn: parent
                     text: "open_in_full"
                     font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
                     font.pixelSize: 18
-                    color: root.theme ? root.theme.textSub : "#A6ADC8"
-                    scale: expandMa.pressed ? 0.9 : (expandMa.containsMouse ? 1.1 : 1)
-                    opacity: expandMa.pressed ? 0.7 : 1
-                    Behavior on scale { NumberAnimation { duration: 150 } }
+                    color: expandMa.containsMouse ? (root.theme ? root.theme.textMain : "#FFF") : (root.theme ? root.theme.textSub : "#A6ADC8")
+                    Behavior on color { ColorAnimation { duration: 150 } }
                 }
                 
                 MouseArea {
@@ -94,11 +104,21 @@ Item {
             }
             
             Item {
-                width: batteryRow.width
-                height: batteryRow.height
+                width: batteryRow.width + 16
+                height: 28
                 anchors.verticalCenter: parent.verticalCenter
                 
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 14
+                    color: batteryMa.containsMouse ? (root.theme ? Qt.lighter(root.theme.surfaceOverlay, 1.2) : Qt.rgba(255, 255, 255, 0.12)) : (root.theme ? root.theme.surfaceOverlay : Qt.rgba(255, 255, 255, 0.06))
+                    border.color: root.theme ? Qt.lighter(root.theme.surfaceOverlay, 1.5) : Qt.rgba(255, 255, 255, 0.1)
+                    border.width: 1
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                }
+                
                 MouseArea {
+                    id: batteryMa
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
@@ -112,27 +132,53 @@ Item {
                 Row {
                     id: batteryRow
                     spacing: 6
+                    anchors.centerIn: parent
+                    
                     Text {
                         text: BatteryService.percentage + "%"
                         font.family: root.theme ? root.theme.fontMain : "Inter"
-                        font.pixelSize: 13
+                        font.pixelSize: 11
                         color: root.theme ? root.theme.textMain : "#FFF"
                         anchors.verticalCenter: parent.verticalCenter
                     }
-                    Text {
-                        text: {
-                            if (BatteryService.isCharging) return "battery_charging_full";
-                            if (BatteryService.percentage > 80) return "battery_full";
-                            if (BatteryService.percentage > 60) return "battery_5_bar";
-                            if (BatteryService.percentage > 40) return "battery_4_bar";
-                            if (BatteryService.percentage > 20) return "battery_3_bar";
-                            if (BatteryService.percentage > 10) return "battery_1_bar";
-                            return "battery_alert";
-                        }
-                        font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                        font.pixelSize: 18
-                        color: BatteryService.percentage > 20 || BatteryService.isCharging ? (root.theme ? root.theme.textMain : "#FFF") : "#F38BA8"
+                    Item {
+                        width: 22
+                        height: 10
                         anchors.verticalCenter: parent.verticalCenter
+                        
+                        // Battery Body (Outline)
+                        Rectangle {
+                            width: 20
+                            height: 10
+                            radius: 3
+                            color: "transparent"
+                            border.color: root.theme ? root.theme.textSub : "#A6ADC8"
+                            border.width: 1
+                            
+                            // Battery Fill (The juice)
+                            Rectangle {
+                                anchors.left: parent.left
+                                anchors.top: parent.top
+                                anchors.bottom: parent.bottom
+                                anchors.margins: 2
+                                width: Math.max(0, (16 * BatteryService.percentage) / 100)
+                                radius: 1.5
+                                color: BatteryService.isCharging ? (root.theme ? root.theme.accentPrimary : "#00FFCC") : 
+                                      (BatteryService.percentage > 20 ? (root.theme ? root.theme.textMain : "#FFF") : "#F38BA8")
+                                Behavior on width { NumberAnimation { duration: 300 } }
+                            }
+                        }
+                        
+                        // Battery Tip
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 20
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 2
+                            height: 4
+                            radius: 1
+                            color: root.theme ? root.theme.textSub : "#A6ADC8"
+                        }
                     }
                 }
             }
