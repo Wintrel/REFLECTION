@@ -94,13 +94,13 @@ Item {
     // Outer Frosty Glow
     RectangularGlow {
         anchors.fill: islandShape
-        glowRadius: 16
-        spread: 0.1
+        glowRadius: 20
+        spread: 0.05
         color: theme.accentPrimary
         cornerRadius: islandShape.radius + glowRadius
         
         property bool isActive: islandWidget.islandState !== State.IslandState.idle
-        opacity: isActive ? 0.25 : 0.0
+        opacity: isActive ? 0.32 : 0.0
         Behavior on opacity { NumberAnimation { duration: theme.durationMorph; easing.type: theme.easingStandard } }
         Behavior on color { ColorAnimation { duration: 300 } }
     }

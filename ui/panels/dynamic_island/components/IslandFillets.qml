@@ -16,7 +16,7 @@ Item {
     property int drawnBorderWidth: borderWidth > 0 ? 1 : 0
     property int animDuration: 400
     
-    // Left Fillet (Concave swoop connecting to screen).
+    // Left Fillet (Concave swoop connecting island to top screen bezel)
     Item {
         width: root.radiusIsland
         height: root.radiusIsland
@@ -24,18 +24,7 @@ Item {
         y: 0
         clip: true
         
-        Glow {
-            anchors.fill: leftFilletShape
-            source: leftFilletShape
-            radius: 16
-            spread: 0.1
-            color: root.glowColor
-            opacity: root.isActive ? 0.25 : 0.0
-            
-            Behavior on opacity { NumberAnimation { duration: root.animDuration; easing.type: Easing.OutSine } }
-            Behavior on color { ColorAnimation { duration: 300 } }
-        }
-        
+        // Solid black bezel concave fill
         Rectangle {
             id: leftFilletShape
             width: 4 * root.radiusIsland
@@ -48,6 +37,7 @@ Item {
             y: -root.radiusIsland
         }
         
+        // 1px Shimmer / Glass Border Curve
         Rectangle {
             width: 2 * root.radiusIsland
             height: 2 * root.radiusIsland
@@ -62,7 +52,7 @@ Item {
         }
     }
     
-    // Right Fillet (Concave swoop connecting to screen)
+    // Right Fillet (Concave swoop connecting island to top screen bezel)
     Item {
         width: root.radiusIsland
         height: root.radiusIsland
@@ -70,18 +60,7 @@ Item {
         y: 0
         clip: true
         
-        Glow {
-            anchors.fill: rightFilletShape
-            source: rightFilletShape
-            radius: 16
-            spread: 0.1
-            color: root.glowColor
-            opacity: root.isActive ? 0.25 : 0.0
-            
-            Behavior on opacity { NumberAnimation { duration: root.animDuration; easing.type: Easing.OutSine } }
-            Behavior on color { ColorAnimation { duration: 300 } }
-        }
-        
+        // Solid black bezel concave fill
         Rectangle {
             id: rightFilletShape
             width: 4 * root.radiusIsland
@@ -94,6 +73,7 @@ Item {
             y: -root.radiusIsland
         }
         
+        // 1px Shimmer / Glass Border Curve
         Rectangle {
             width: 2 * root.radiusIsland
             height: 2 * root.radiusIsland
