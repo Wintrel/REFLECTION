@@ -21,8 +21,8 @@ Item {
     Core.Theme { id: theme }
 
     // Dynamically bind the container size to exactly the visible bounding box of the island
-    width: islandShape.width + (2 * theme.radiusIsland)
-    height: islandShape.height - theme.radiusIsland
+    width: theme.floatingIsland ? islandShape.width : (islandShape.width + (2 * theme.radiusIsland))
+    height: theme.floatingIsland ? islandShape.height : (islandShape.height - theme.radiusIsland)
     
     onHeightChanged: {
         State.GlobalStates.currentIslandHeight = height;
@@ -94,13 +94,13 @@ Item {
     // Outer Frosty Glow
     RectangularGlow {
         anchors.fill: islandShape
-        glowRadius: 20
-        spread: 0.05
+        glowRadius: theme.floatingIsland ? 18 : 20
+        spread: theme.floatingIsland ? 0.08 : 0.05
         color: theme.accentPrimary
         cornerRadius: islandShape.radius + glowRadius
         
         property bool isActive: islandWidget.islandState !== State.IslandState.idle
-        opacity: isActive ? 0.32 : 0.0
+        opacity: isActive ? (theme.floatingIsland ? 0.38 : 0.32) : (theme.floatingIsland ? 0.08 : 0.0)
         Behavior on opacity { NumberAnimation { duration: theme.durationMorph; easing.type: theme.easingStandard } }
         Behavior on color { ColorAnimation { duration: 300 } }
     }
@@ -181,8 +181,8 @@ Item {
         // Center horizontally in the widget
         anchors.horizontalCenter: parent.horizontalCenter
         
-        // Position negatively to hide the top rounded corners
-        y: -theme.radiusIsland
+        // Position negatively to hide the top rounded corners when docked
+        y: theme.floatingIsland ? 0 : -theme.radiusIsland
         
         // Smooth sizing based on state
         width: {
@@ -233,10 +233,19 @@ Item {
             else if (islandState === State.IslandState.battery) targetH = theme.islandBatteryH;
             else if (islandState === State.IslandState.expanded) targetH = theme.islandMaxH;
             else if (islandState === State.IslandState.hover) targetH = theme.islandHoverH;
-            return targetH + theme.radiusIsland;
+            return targetH + (theme.floatingIsland ? 0 : theme.radiusIsland);
         }
         
-        radius: theme.radiusIsland
+        radius: {
+            if (!theme.floatingIsland) return theme.radiusIsland;
+            if (islandState === State.IslandState.idle) {
+                return Math.round(theme.islandMinH / 2);
+            }
+            if (islandState === State.IslandState.hover || islandState === State.IslandState.osd) {
+                return Math.round(theme.islandHoverH / 2);
+            }
+            return theme.radiusIslandFloating;
+        }
         color: theme.bgBezel
         
         // Glass edge look (1px frosty border)
@@ -263,7 +272,15 @@ Item {
             }
         }
 
-        property bool isAnimating: widthAnim.running || heightAnim.running
+        Behavior on radius {
+            NumberAnimation {
+                id: radiusAnim
+                duration: theme.durationMorph
+                easing.type: theme.easingMorph
+            }
+        }
+
+        property bool isAnimating: widthAnim.running || heightAnim.running || radiusAnim.running
         onIsAnimatingChanged: {
             if (isAnimating) {
                 console.log("[DynamicIsland DEBUG] Animation started -> target size: " + Math.round(islandShape.width) + "x" + Math.round(islandShape.height));
@@ -280,7 +297,7 @@ Item {
             anchors.leftMargin: theme.islandBorderWidth
             anchors.rightMargin: theme.islandBorderWidth
             anchors.bottomMargin: theme.islandBorderWidth
-            anchors.topMargin: theme.radiusIsland + 4
+            anchors.topMargin: theme.floatingIsland ? theme.islandBorderWidth : (theme.radiusIsland + 4)
             clip: true
             
             Item {
@@ -291,12 +308,13 @@ Item {
                 
                 Rectangle {
                     anchors.fill: parent
-                    radius: islandShape.radius - theme.islandBorderWidth
+                    radius: Math.max(0, islandShape.radius - theme.islandBorderWidth)
                     color: theme.bgInner
                 }
                 
-                // Square off top corners to seamlessly connect to the black bezel above
+                // Square off top corners to seamlessly connect to the black bezel above (docked mode only)
                 Rectangle {
+                    visible: !theme.floatingIsland
                     height: islandShape.radius
                     anchors.top: parent.top
                     anchors.left: parent.left
@@ -484,6 +502,7 @@ Item {
     }
     
     IslandComponents.IslandFillets {
+        visible: !theme.floatingIsland
         islandShape: islandShape
         radiusIsland: theme.radiusIsland
         bgBezel: theme.bgBezel

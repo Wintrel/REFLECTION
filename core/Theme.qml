@@ -30,6 +30,9 @@ Item {
     
     // Geometry
     property int radiusIsland: ThemeService.radiusIsland
+    property bool floatingIsland: ShellService.floatingIsland
+    property int islandTopMargin: ShellService.islandTopMargin
+    property int radiusIslandFloating: ShellService.radiusIslandFloating
     
     // Island States Sizing
     property int islandMinW: 220

@@ -115,7 +115,7 @@ Scope {
                 property real progress: 0
                 property real bloomOpacity: 0
                 readonly property real originX: width / 2
-                readonly property real originY: Math.max(20, widget.height / 2)
+                readonly property real originY: Math.max(20, (theme.floatingIsland ? theme.islandTopMargin : 0) + widget.height / 2)
                 readonly property real maximumDiameter: Math.sqrt(width * width + (height * 2) * (height * 2)) * 1.12
 
                 opacity: bloomOpacity
@@ -319,7 +319,7 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 
                 anchors.top: parent.top
-                anchors.topMargin: 0
+                anchors.topMargin: theme.floatingIsland ? theme.islandTopMargin : 0
 
                 // Ambient hide: shimmer sweep → nod → slide away
                 SequentialAnimation {
@@ -346,7 +346,7 @@ Scope {
                     NumberAnimation {
                         target: widget
                         property: "anchors.topMargin"
-                        to: 3
+                        to: (theme.floatingIsland ? theme.islandTopMargin : 0) + 3
                         duration: 150
                         easing.type: Easing.OutQuad
                     }
@@ -355,7 +355,7 @@ Scope {
                     NumberAnimation {
                         target: widget
                         property: "anchors.topMargin"
-                        to: -widget.height - 20
+                        to: -widget.height - (theme.floatingIsland ? theme.islandTopMargin + 20 : 20)
                         duration: 500
                         easing.type: Easing.InOutCubic
                     }
@@ -366,7 +366,7 @@ Scope {
                     id: ambientShowAnim
                     target: widget
                     property: "anchors.topMargin"
-                    to: 0
+                    to: theme.floatingIsland ? theme.islandTopMargin : 0
                     duration: 700
                     easing.type: Easing.OutExpo
                 }

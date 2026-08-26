@@ -13,6 +13,9 @@ Item {
     property bool islandMediaActivity: true
     property bool islandNotificationPreviews: true
     property real holdIndicatorIntensity: 1.0
+    property bool floatingIsland: true
+    property int islandTopMargin: 12
+    property int radiusIslandFloating: 22
 
     // 0: intelligent, 1: always visible, 2: edge reveal
     property bool taskbarEnabled: true
@@ -35,6 +38,9 @@ Item {
     function setIslandMediaActivity(value) { islandMediaActivity = value; queueSave(); }
     function setIslandNotificationPreviews(value) { islandNotificationPreviews = value; queueSave(); }
     function setHoldIndicatorIntensity(value) { holdIndicatorIntensity = clamp(value, 0, 1); queueSave(); }
+    function setFloatingIsland(value) { floatingIsland = value; queueSave(); }
+    function setIslandTopMargin(value) { islandTopMargin = Math.round(clamp(value, 0, 64)); queueSave(); }
+    function setRadiusIslandFloating(value) { radiusIslandFloating = Math.round(clamp(value, 8, 36)); queueSave(); }
     function setTaskbarEnabled(value) { taskbarEnabled = value; queueSave(); }
     function setTaskbarVisibilityMode(value) { taskbarVisibilityMode = Math.round(clamp(value, 0, 2)); queueSave(); }
     function setTaskbarHeight(value) { taskbarHeight = Math.round(clamp(value, 44, 68)); queueSave(); }
@@ -50,6 +56,9 @@ Item {
         islandMediaActivity = true;
         islandNotificationPreviews = true;
         holdIndicatorIntensity = 1.0;
+        floatingIsland = true;
+        islandTopMargin = 12;
+        radiusIslandFloating = 22;
         taskbarEnabled = true;
         taskbarVisibilityMode = 0;
         taskbarHeight = 52;
@@ -73,6 +82,9 @@ Item {
             islandMediaActivity: islandMediaActivity,
             islandNotificationPreviews: islandNotificationPreviews,
             holdIndicatorIntensity: holdIndicatorIntensity,
+            floatingIsland: floatingIsland,
+            islandTopMargin: islandTopMargin,
+            radiusIslandFloating: radiusIslandFloating,
             taskbarEnabled: taskbarEnabled,
             taskbarVisibilityMode: taskbarVisibilityMode,
             taskbarHeight: taskbarHeight,
@@ -129,6 +141,9 @@ Item {
                     if (cfg.islandMediaActivity !== undefined) root.islandMediaActivity = !!cfg.islandMediaActivity;
                     if (cfg.islandNotificationPreviews !== undefined) root.islandNotificationPreviews = !!cfg.islandNotificationPreviews;
                     if (cfg.holdIndicatorIntensity !== undefined) root.holdIndicatorIntensity = root.clamp(cfg.holdIndicatorIntensity, 0, 1);
+                    if (cfg.floatingIsland !== undefined) root.floatingIsland = !!cfg.floatingIsland;
+                    if (cfg.islandTopMargin !== undefined) root.islandTopMargin = Math.round(root.clamp(cfg.islandTopMargin, 0, 64));
+                    if (cfg.radiusIslandFloating !== undefined) root.radiusIslandFloating = Math.round(root.clamp(cfg.radiusIslandFloating, 8, 36));
                     if (cfg.taskbarEnabled !== undefined) root.taskbarEnabled = !!cfg.taskbarEnabled;
                     if (cfg.taskbarVisibilityMode !== undefined) root.taskbarVisibilityMode = Math.round(root.clamp(cfg.taskbarVisibilityMode, 0, 2));
                     if (cfg.taskbarHeight !== undefined) root.taskbarHeight = Math.round(root.clamp(cfg.taskbarHeight, 44, 68));

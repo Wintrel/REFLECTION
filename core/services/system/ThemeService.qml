@@ -294,11 +294,12 @@ Item {
         }
         if (duration >= 0) {
             root.animDuration = duration;
+            root.durationMorph = duration;
         }
         root.saveConfig();
     }
 
-    function updateEdgeLighting(intensity) {
+    function updateEdLighting(intensity) {
         if (intensity >= 0.0 && intensity <= 1.0) {
             root.edgeLightingIntensity = intensity;
             root.saveConfig();

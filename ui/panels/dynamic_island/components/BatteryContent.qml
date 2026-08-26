@@ -219,10 +219,10 @@ Item {
                         height: parent.height
                         theme: root.theme
                         title: "CPU"
-                        subtitle: "AMD Ryzen 5 5600H with Radeon Graphics"
+                        subtitle: "AMD Ryzen 7 6800H with Radeon Graphics"
                         icon: "memory"
                         usageText: "8%"
-                        tempText: "67°C"
+                        tempText: "58°C"
                         usageFraction: 0.08
                         accentColor: "#79D6A1"
                     }
@@ -232,7 +232,7 @@ Item {
                         height: parent.height
                         theme: root.theme
                         title: "GPU"
-                        subtitle: "NVIDIA GeForce RTX 3050 Laptop GPU"
+                        subtitle: "NVIDIA GeForce RTX 3060 Laptop GPU"
                         icon: "developer_board"
                         usageText: "4%"
                         tempText: "55°C"
