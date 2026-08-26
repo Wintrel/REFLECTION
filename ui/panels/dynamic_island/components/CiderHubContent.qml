@@ -34,6 +34,66 @@ Item {
             easing.type: root.isCider ? Easing.OutQuad : Easing.InQuad 
         } 
     }
+    // Background click/drag handlers that don't block UI buttons
+    TapHandler {
+        onTapped: {
+            if (typeof islandWidget !== "undefined") {
+                islandWidget.islandState = State.IslandState.idle;
+            }
+        }
+    }
+
+    DragHandler {
+        target: null
+        xAxis.enabled: true
+        yAxis.enabled: true
+        onActiveChanged: {
+            if (!active) {
+                var dx = translation.x;
+                var dy = translation.y;
+                var absX = Math.abs(dx);
+                var absY = Math.abs(dy);
+                
+                if (absY > absX && absY > 30) {
+                    if (dy < 0) {
+                        // Swipe Up -> Return to Expanded Media
+                        if (typeof islandWidget !== "undefined") {
+                            islandWidget.islandState = State.IslandState.expanded;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    MouseArea {
+        id: spatialGestureArea
+        anchors.fill: parent
+        z: -1
+        acceptedButtons: Qt.NoButton
+        
+        property real lastWheelGestureTime: 0
+        
+        onWheel: function(wheel) {
+            var now = Date.now();
+            if (now - lastWheelGestureTime < 320) return;
+            
+            var dy = wheel.pixelDelta.y !== 0 ? wheel.pixelDelta.y : wheel.angleDelta.y;
+            var absY = Math.abs(dy);
+            var absX = Math.abs(wheel.pixelDelta.x !== 0 ? wheel.pixelDelta.x : wheel.angleDelta.x);
+            
+            if (absY > absX && absY > 25) {
+                if (dy < 0) {
+                    lastWheelGestureTime = now;
+                    // Two-finger trackpad swipe up -> Return to Expanded Media
+                    if (typeof islandWidget !== "undefined") {
+                        islandWidget.islandState = State.IslandState.expanded;
+                    }
+                }
+            }
+        }
+    }
+    
     Behavior on scale {
         NumberAnimation {
             duration: root.theme ? root.theme.durationMorph : 360

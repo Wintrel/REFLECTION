@@ -54,6 +54,82 @@ Item {
             easing.type: root.panelOpen ? Easing.OutQuad : Easing.InQuad
         }
     }
+    // Background click/drag handlers that don't block UI buttons
+    TapHandler {
+        onTapped: {
+            if (typeof islandWidget !== "undefined") {
+                islandWidget.islandState = State.IslandState.idle;
+            }
+        }
+    }
+
+    DragHandler {
+        target: null
+        xAxis.enabled: true
+        yAxis.enabled: true
+        onActiveChanged: {
+            if (!active) {
+                var dx = translation.x;
+                var dy = translation.y;
+                var absX = Math.abs(dx);
+                var absY = Math.abs(dy);
+                
+                if (absX > absY && absX > 35) {
+                    if (dx > 0) {
+                        // Swipe Right -> Back to Media
+                        if (typeof islandWidget !== "undefined") {
+                            islandWidget.islandState = State.IslandState.expanded;
+                        }
+                    }
+                } else if (absY > absX && absY > 30) {
+                    if (dy < 0) {
+                        // Swipe Up -> Collapse to Pill
+                        if (typeof islandWidget !== "undefined") {
+                            islandWidget.islandState = State.IslandState.idle;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    MouseArea {
+        id: spatialGestureArea
+        anchors.fill: parent
+        z: -1
+        acceptedButtons: Qt.NoButton
+        
+        property real lastWheelGestureTime: 0
+        
+        onWheel: function(wheel) {
+            var now = Date.now();
+            if (now - lastWheelGestureTime < 320) return;
+            
+            var dx = wheel.pixelDelta.x !== 0 ? wheel.pixelDelta.x : wheel.angleDelta.x;
+            var dy = wheel.pixelDelta.y !== 0 ? wheel.pixelDelta.y : wheel.angleDelta.y;
+            var absX = Math.abs(dx);
+            var absY = Math.abs(dy);
+            
+            if (absX > absY && absX > 25) {
+                lastWheelGestureTime = now;
+                if (dx > 0) {
+                    // Two-finger trackpad swipe right -> Return to Media
+                    if (typeof islandWidget !== "undefined") {
+                        islandWidget.islandState = State.IslandState.expanded;
+                    }
+                }
+            } else if (absY > absX && absY > 25) {
+                if (dy < 0) {
+                    lastWheelGestureTime = now;
+                    // Two-finger trackpad swipe up -> Collapse to Pill
+                    if (typeof islandWidget !== "undefined") {
+                        islandWidget.islandState = State.IslandState.idle;
+                    }
+                }
+            }
+        }
+    }
+    
     Behavior on scale {
         NumberAnimation {
             duration: root.theme ? root.theme.durationMorph : 360

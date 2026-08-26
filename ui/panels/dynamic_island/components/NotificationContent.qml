@@ -29,6 +29,76 @@ Item {
             easing.type: root.isNotif ? Easing.OutQuad : Easing.InQuad 
         } 
     }
+    MouseArea {
+        id: spatialGestureArea
+        anchors.fill: parent
+        z: -1
+        
+        property real startX: 0
+        property real startY: 0
+        property bool isDragging: false
+        
+        onPressed: function(mouse) {
+            startX = mouse.x;
+            startY = mouse.y;
+            isDragging = false;
+        }
+        
+        onPositionChanged: function(mouse) {
+            var dx = mouse.x - startX;
+            var dy = mouse.y - startY;
+            if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
+                isDragging = true;
+            }
+        }
+        
+        onReleased: function(mouse) {
+            if (isDragging) {
+                var dx = mouse.x - startX;
+                var dy = mouse.y - startY;
+                var absX = Math.abs(dx);
+                var absY = Math.abs(dy);
+                
+                if (absX > absY && absX > 35 && dx > 0) {
+                    // Swipe Right -> Dismiss Notification
+                    root.dismissRequested();
+                } else if (absY > absX && absY > 25 && dy < 0) {
+                    // Swipe Up -> Dismiss Notification
+                    root.dismissRequested();
+                }
+            }
+        }
+        
+        onClicked: function(mouse) {
+            if (!isDragging) {
+                // Click dismisses notification
+                root.dismissRequested();
+            }
+        }
+        
+        property real lastWheelGestureTime: 0
+        
+        onWheel: function(wheel) {
+            var now = Date.now();
+            if (now - lastWheelGestureTime < 320) return;
+            
+            var dx = wheel.pixelDelta.x !== 0 ? wheel.pixelDelta.x : wheel.angleDelta.x;
+            var dy = wheel.pixelDelta.y !== 0 ? wheel.pixelDelta.y : wheel.angleDelta.y;
+            var absX = Math.abs(dx);
+            var absY = Math.abs(dy);
+            
+            if (absX > absY && absX > 25 && dx > 0) {
+                lastWheelGestureTime = now;
+                // Two-finger trackpad swipe right -> Dismiss Notification
+                root.dismissRequested();
+            } else if (absY > absX && absY > 25 && dy < 0) {
+                lastWheelGestureTime = now;
+                // Two-finger trackpad swipe up -> Dismiss Notification
+                root.dismissRequested();
+            }
+        }
+    }
+    
     Behavior on scale {
         NumberAnimation {
             duration: root.theme ? root.theme.durationMorph : 360
