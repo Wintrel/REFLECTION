@@ -72,24 +72,45 @@ Item {
         z: -1
         acceptedButtons: Qt.NoButton
         
-        property real lastWheelGestureTime: 0
+        property real accumulatedX: 0
+        property real accumulatedY: 0
+        property real lastWheelEventTime: 0
+        property real lastGestureActionTime: 0
         
         onWheel: function(wheel) {
             var now = Date.now();
-            if (now - lastWheelGestureTime < 320) return;
             
+            if (now - lastGestureActionTime < 400) {
+                lastWheelEventTime = now;
+                return;
+            }
+            
+            if (now - lastWheelEventTime > 250) {
+                accumulatedX = 0;
+                accumulatedY = 0;
+            }
+            lastWheelEventTime = now;
+            
+            var dx = wheel.pixelDelta.x !== 0 ? wheel.pixelDelta.x : wheel.angleDelta.x;
             var dy = wheel.pixelDelta.y !== 0 ? wheel.pixelDelta.y : wheel.angleDelta.y;
-            var absY = Math.abs(dy);
-            var absX = Math.abs(wheel.pixelDelta.x !== 0 ? wheel.pixelDelta.x : wheel.angleDelta.x);
             
-            if (absY > absX && absY > 25) {
-                if (dy < 0) {
-                    lastWheelGestureTime = now;
+            accumulatedX += dx;
+            accumulatedY += dy;
+            
+            var absX = Math.abs(accumulatedX);
+            var absY = Math.abs(accumulatedY);
+            var threshold = 60;
+            
+            if (absY > absX && absY > threshold) {
+                if (accumulatedY < 0) {
+                    lastGestureActionTime = now;
                     // Two-finger trackpad swipe up -> Return to Expanded Media
                     if (typeof islandWidget !== "undefined") {
                         islandWidget.islandState = State.IslandState.expanded;
                     }
                 }
+                accumulatedX = 0;
+                accumulatedY = 0;
             }
         }
     }

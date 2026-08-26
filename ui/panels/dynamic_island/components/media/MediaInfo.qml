@@ -16,13 +16,16 @@ Item {
         id: albumArt
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
-        width: 82
-        height: 82
+        width: 92
+        height: 92
         radius: 22
-        color: coverImg.visible ? "transparent" : (root.theme ? root.theme.surfaceOverlay : "#313244")
+        color: (currentCoverImg.opacity > 0 || prevCoverImg.opacity > 0) ? "transparent" : (root.theme ? root.theme.surfaceOverlay : "#313244")
         
         property bool isVisible: root.islandState === State.IslandState.expanded
         opacity: (root.islandState === State.IslandState.expanded) ? 1 : 0
+        scale: albumArtMa.pressed ? 0.95 : (albumArtMa.containsMouse ? 1.04 : 1.0)
+        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+
         transform: Scale {
             origin.x: 32; origin.y: 32
             xScale: (root.islandState === State.IslandState.expanded) ? 1 : 0.8
@@ -32,30 +35,131 @@ Item {
         }
         Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 50 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
         
-        Image {
-            id: coverImg
+        // ── Rotating Mask Source ──────────────────────────────────────
+        Item {
+            id: maskContainer
             anchors.fill: parent
-            source: root.mprisPlayer ? (root.mprisPlayer.trackArtUrl || "") : ""
-            fillMode: Image.PreserveAspectCrop
-            visible: source != ""
-            layer.enabled: true
-            layer.effect: OpacityMask {
-                maskSource: Image {
-                    source: Qt.resolvedUrl("../../../../../assets/m3_badge.svg")
-                    width: 64
-                    height: 64
-                    fillMode: Image.PreserveAspectFit
+            visible: false
+
+            Image {
+                id: maskBadge
+                anchors.centerIn: parent
+                width: parent.width
+                height: parent.height
+                source: Qt.resolvedUrl("../../../../../assets/m3_badge.svg")
+                fillMode: Image.PreserveAspectFit
+
+                NumberAnimation on rotation {
+                    running: root.islandState === State.IslandState.expanded 
+                             && root.mprisPlayer 
+                             && root.mprisPlayer.isPlaying
+                    from: 0
+                    to: 360
+                    duration: 24000 // Smooth, continuous 24s revolution
+                    loops: Animation.Infinite
                 }
             }
         }
+
+        // ── Smooth Image Crossfading Logic ────────────────────────────
+        property string rawTrackArtUrl: root.mprisPlayer ? (root.mprisPlayer.trackArtUrl || "") : ""
+        property string activeArtUrl: ""
+        property string prevArtUrl: ""
+
+        onRawTrackArtUrlChanged: {
+            if (rawTrackArtUrl === activeArtUrl) return;
+            if (activeArtUrl !== "" && currentCoverImg.status === Image.Ready) {
+                prevArtUrl = activeArtUrl;
+                prevCoverImg.opacity = 1.0;
+            }
+            activeArtUrl = rawTrackArtUrl;
+            if (activeArtUrl === "") {
+                prevArtUrl = "";
+                prevCoverImg.opacity = 0.0;
+            }
+        }
+
+        // Previous Cover Image (fades out as new one finishes loading)
+        Image {
+            id: prevCoverImg
+            anchors.fill: parent
+            source: albumArt.prevArtUrl
+            fillMode: Image.PreserveAspectCrop
+            visible: opacity > 0 && source != ""
+            opacity: 0.0
+            layer.enabled: true
+            layer.effect: OpacityMask {
+                maskSource: maskContainer
+            }
+            Behavior on opacity { NumberAnimation { duration: 400; easing.type: Easing.InOutQuad } }
+        }
+
+        // Active / New Cover Image (smoothly fades in once loaded)
+        Image {
+            id: currentCoverImg
+            anchors.fill: parent
+            source: albumArt.activeArtUrl
+            fillMode: Image.PreserveAspectCrop
+            visible: opacity > 0 && source != ""
+            opacity: (status === Image.Ready && albumArt.activeArtUrl !== "") ? 1.0 : 0.0
+            
+            onStatusChanged: {
+                if (status === Image.Ready) {
+                    prevCoverImg.opacity = 0.0;
+                }
+            }
+
+            layer.enabled: true
+            layer.effect: OpacityMask {
+                maskSource: maskContainer
+            }
+            Behavior on opacity { NumberAnimation { duration: 400; easing.type: Easing.InOutQuad } }
+        }
         
+        // Fallback Icon if no album art is present
         Text {
             anchors.centerIn: parent
             text: "music_note"
             font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
             font.pixelSize: 24
             color: root.theme ? root.theme.textSub : "#A6ADC8"
-            visible: !coverImg.visible
+            visible: currentCoverImg.opacity === 0 && prevCoverImg.opacity === 0
+        }
+
+        // Hover Overlay with Play / Pause Indicator
+        Rectangle {
+            anchors.fill: parent
+            radius: parent.radius
+            color: Qt.rgba(0, 0, 0, 0.35)
+            opacity: albumArtMa.containsMouse ? 1.0 : 0.0
+            Behavior on opacity { NumberAnimation { duration: 150 } }
+            visible: opacity > 0 && root.mprisPlayer
+
+            layer.enabled: true
+            layer.effect: OpacityMask {
+                maskSource: maskContainer
+            }
+
+            Text {
+                anchors.centerIn: parent
+                text: root.mprisPlayer && root.mprisPlayer.isPlaying ? "pause" : "play_arrow"
+                font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
+                font.pixelSize: 32
+                color: "#FFFFFF"
+            }
+        }
+
+        // Click to Play / Pause MouseArea
+        MouseArea {
+            id: albumArtMa
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                if (root.mprisPlayer) {
+                    root.mprisPlayer.togglePlaying();
+                }
+            }
         }
     }
     

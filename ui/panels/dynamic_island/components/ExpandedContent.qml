@@ -112,20 +112,40 @@ Item {
         z: -1
         acceptedButtons: Qt.NoButton
         
-        property real lastWheelGestureTime: 0
+        property real accumulatedX: 0
+        property real accumulatedY: 0
+        property real lastWheelEventTime: 0
+        property real lastGestureActionTime: 0
         
         onWheel: function(wheel) {
             var now = Date.now();
-            if (now - lastWheelGestureTime < 320) return;
+            
+            // Cooldown after triggering an action
+            if (now - lastGestureActionTime < 400) {
+                lastWheelEventTime = now;
+                return;
+            }
+            
+            // If it's been a while since the last event, reset accumulators
+            if (now - lastWheelEventTime > 250) {
+                accumulatedX = 0;
+                accumulatedY = 0;
+            }
+            lastWheelEventTime = now;
             
             var dx = wheel.pixelDelta.x !== 0 ? wheel.pixelDelta.x : wheel.angleDelta.x;
             var dy = wheel.pixelDelta.y !== 0 ? wheel.pixelDelta.y : wheel.angleDelta.y;
-            var absX = Math.abs(dx);
-            var absY = Math.abs(dy);
             
-            if (absX > absY && absX > 25) {
-                lastWheelGestureTime = now;
-                if (dx > 0) {
+            accumulatedX += dx;
+            accumulatedY += dy;
+            
+            var absX = Math.abs(accumulatedX);
+            var absY = Math.abs(accumulatedY);
+            var threshold = 60; // Enough for a single scroll wheel click (120) or a short trackpad swipe
+            
+            if (absX > absY && absX > threshold) {
+                lastGestureActionTime = now;
+                if (accumulatedX > 0) {
                     // Two-finger trackpad swipe right -> Notification History
                     if (typeof islandWidget !== "undefined") {
                         islandWidget.islandState = State.IslandState.notificationHistory;
@@ -136,9 +156,11 @@ Item {
                         islandWidget.islandState = State.IslandState.battery;
                     }
                 }
-            } else if (absY > absX && absY > 25) {
-                lastWheelGestureTime = now;
-                if (dy > 0) {
+                accumulatedX = 0;
+                accumulatedY = 0;
+            } else if (absY > absX && absY > threshold) {
+                lastGestureActionTime = now;
+                if (accumulatedY > 0) {
                     // Two-finger trackpad swipe down -> Cider Hub (Extended)
                     if (typeof islandWidget !== "undefined") {
                         islandWidget.islandState = State.IslandState.ciderExpanded;
@@ -149,6 +171,8 @@ Item {
                         islandWidget.islandState = State.IslandState.idle;
                     }
                 }
+                accumulatedX = 0;
+                accumulatedY = 0;
             }
         }
     }
