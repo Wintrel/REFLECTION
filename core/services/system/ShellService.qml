@@ -16,6 +16,7 @@ Item {
     property bool floatingIsland: true
     property int islandTopMargin: 12
     property int radiusIslandFloating: 22
+    property real islandBounceIntensity: 0.35
 
     // 0: intelligent, 1: always visible, 2: edge reveal
     property bool taskbarEnabled: true
@@ -41,6 +42,7 @@ Item {
     function setFloatingIsland(value) { floatingIsland = value; queueSave(); }
     function setIslandTopMargin(value) { islandTopMargin = Math.round(clamp(value, 0, 64)); queueSave(); }
     function setRadiusIslandFloating(value) { radiusIslandFloating = Math.round(clamp(value, 8, 36)); queueSave(); }
+    function setIslandBounceIntensity(value) { islandBounceIntensity = clamp(value, 0.0, 1.0); queueSave(); }
     function setTaskbarEnabled(value) { taskbarEnabled = value; queueSave(); }
     function setTaskbarVisibilityMode(value) { taskbarVisibilityMode = Math.round(clamp(value, 0, 2)); queueSave(); }
     function setTaskbarHeight(value) { taskbarHeight = Math.round(clamp(value, 44, 68)); queueSave(); }
@@ -59,6 +61,7 @@ Item {
         floatingIsland = true;
         islandTopMargin = 12;
         radiusIslandFloating = 22;
+        islandBounceIntensity = 0.35;
         taskbarEnabled = true;
         taskbarVisibilityMode = 0;
         taskbarHeight = 52;
@@ -85,6 +88,7 @@ Item {
             floatingIsland: floatingIsland,
             islandTopMargin: islandTopMargin,
             radiusIslandFloating: radiusIslandFloating,
+            islandBounceIntensity: islandBounceIntensity,
             taskbarEnabled: taskbarEnabled,
             taskbarVisibilityMode: taskbarVisibilityMode,
             taskbarHeight: taskbarHeight,
@@ -144,6 +148,7 @@ Item {
                     if (cfg.floatingIsland !== undefined) root.floatingIsland = !!cfg.floatingIsland;
                     if (cfg.islandTopMargin !== undefined) root.islandTopMargin = Math.round(root.clamp(cfg.islandTopMargin, 0, 64));
                     if (cfg.radiusIslandFloating !== undefined) root.radiusIslandFloating = Math.round(root.clamp(cfg.radiusIslandFloating, 8, 36));
+                    if (cfg.islandBounceIntensity !== undefined) root.islandBounceIntensity = root.clamp(cfg.islandBounceIntensity, 0.0, 1.0);
                     if (cfg.taskbarEnabled !== undefined) root.taskbarEnabled = !!cfg.taskbarEnabled;
                     if (cfg.taskbarVisibilityMode !== undefined) root.taskbarVisibilityMode = Math.round(root.clamp(cfg.taskbarVisibilityMode, 0, 2));
                     if (cfg.taskbarHeight !== undefined) root.taskbarHeight = Math.round(root.clamp(cfg.taskbarHeight, 44, 68));

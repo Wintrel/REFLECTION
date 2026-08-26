@@ -94,7 +94,8 @@ Item {
     property int durationFast: ThemeService.durationFast
 
     // Easing Curves (Material 3 Expressive)
-    property var easingMorph: Easing.OutCubic
+    property var easingMorph: Easing.OutBack
+    property real morphOvershoot: ShellService.islandBounceIntensity
     property var easingStandard: Easing.OutQuad
     property var easingEmphasized: Easing.OutBack
     property var easingExit: Easing.InQuad

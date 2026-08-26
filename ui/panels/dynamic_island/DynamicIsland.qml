@@ -4,6 +4,9 @@ import Quickshell.Wayland
 import "../../../core" as Core
 import "../../../core/monitors"
 import "../../../core/state" as State
+import "../../../core/services/system"
+import "../../../core/services/ai"
+import "./components" as IslandComponents
 
 // Scope container — Variants manages the PanelWindow lifecycle on monitor changes.
 // When the anchor screen disappears (unplug), the PanelWindow is destroyed.
@@ -91,6 +94,18 @@ Scope {
                 }
                 Region {
                     item: widget
+                }
+                Region {
+                    item: batteryOrb
+                }
+                Region {
+                    item: progressOrb
+                }
+                Region {
+                    item: mediaOrb
+                }
+                Region {
+                    item: aiAuraOrb
                 }
                 Region {
                     item: immersiveBloom
@@ -383,6 +398,105 @@ Scope {
                             widget.ambientShimmerPos = -0.3;
                             ambientShowAnim.start();
                         }
+                    }
+                }
+            }
+
+            // Companion Battery Orb (Right Side)
+            IslandComponents.BatteryOrb {
+                id: batteryOrb
+                z: 19
+                theme: theme
+                targetWidget: widget
+                onExpandRequested: {
+                    widget.islandState = State.IslandState.battery;
+                }
+            }
+
+            // Companion Progress Orb (Right Side - pops out during system actions & tasks)
+            IslandComponents.ProgressOrb {
+                id: progressOrb
+                z: 19
+                theme: theme
+                targetWidget: widget
+                rightNeighbor: batteryOrb
+                onExpandRequested: {
+                    widget.islandState = State.IslandState.actionProgress;
+                }
+            }
+
+            // Companion Media Orb (Left Side - pops out when music plays and island displays other states)
+            IslandComponents.MediaOrb {
+                id: mediaOrb
+                z: 19
+                theme: theme
+                targetWidget: widget
+                mprisPlayer: widget.mprisPlayer
+                active: {
+                    var isPlaying = widget.mprisPlayer && widget.mprisPlayer.isPlaying;
+                    var isMainShowingOther = widget.islandState !== State.IslandState.idle && 
+                                            widget.islandState !== State.IslandState.hover && 
+                                            widget.islandState !== State.IslandState.expanded && 
+                                            widget.islandState !== State.IslandState.ciderExpanded;
+                    return isPlaying && isMainShowingOther;
+                }
+                onExpandRequested: {
+                    widget.islandState = State.IslandState.expanded;
+                }
+            }
+
+            // Companion AI Aura Orb (Left Side - pops out when AI is thinking / generating)
+            IslandComponents.AiAuraOrb {
+                id: aiAuraOrb
+                z: 19
+                theme: theme
+                targetWidget: widget
+                leftNeighbor: mediaOrb
+            }
+
+            // Automatic Triggers for Action Progress Events
+            Connections {
+                target: ActionProgressService
+                function onActionRequested() {
+                    progressOrb.trigger();
+                }
+                function onInProgressChanged() {
+                    if (ActionProgressService.inProgress) {
+                        progressOrb.trigger();
+                    }
+                }
+            }
+
+            // Automatic Triggers for AI Generation Events
+            Connections {
+                target: AiDaemonService
+                function onIsGeneratingChanged() {
+                    if (AiDaemonService.isGenerating) {
+                        aiAuraOrb.trigger();
+                    }
+                }
+                function onGenerationFinished() {
+                    aiAuraOrb.trigger();
+                }
+                function onGenerationError() {
+                    aiAuraOrb.trigger();
+                }
+            }
+
+            // Automatic Triggers for Battery Events
+            Connections {
+                target: BatteryService
+                function onIsChargingChanged() {
+                    batteryOrb.trigger();
+                }
+                function onIsOnACChanged() {
+                    batteryOrb.trigger();
+                }
+                function onIsOneshotChargingChanged() {
+                    if (BatteryService.isOneshotCharging) {
+                        batteryOrb.trigger();
+                    } else {
+                        batteryOrb.dismiss();
                     }
                 }
             }

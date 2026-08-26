@@ -261,6 +261,7 @@ Item {
                 id: widthAnim
                 duration: theme.durationMorph
                 easing.type: theme.easingMorph
+                easing.overshoot: theme.morphOvershoot !== undefined ? theme.morphOvershoot : 0.35
             }
         }
         
@@ -269,6 +270,7 @@ Item {
                 id: heightAnim
                 duration: theme.durationMorph
                 easing.type: theme.easingMorph
+                easing.overshoot: theme.morphOvershoot !== undefined ? theme.morphOvershoot : 0.35
             }
         }
 
@@ -277,6 +279,15 @@ Item {
                 id: radiusAnim
                 duration: theme.durationMorph
                 easing.type: theme.easingMorph
+                easing.overshoot: theme.morphOvershoot !== undefined ? theme.morphOvershoot : 0.35
+            }
+        }
+
+        scale: (ma.pressed && !islandWidget.isLocked) ? 0.98 : (controller.isHovered && islandWidget.islandState === State.IslandState.idle ? 1.015 : 1.0)
+        Behavior on scale {
+            NumberAnimation {
+                duration: 160
+                easing.type: Easing.OutQuad
             }
         }
 

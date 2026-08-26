@@ -5,6 +5,7 @@ import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
 import "../about" as About
+import "../../../../../core/services/system"
 
 Item {
     id: root
@@ -13,6 +14,7 @@ Item {
     Layout.fillHeight: true
 
     function runCheckUpdates() {
+        ActionProgressService.actionStarted("Checking System Updates...", "system_update", "updates");
         var procStr = 'import QtQuick; import Quickshell.Io; Process { command: ["checkupdates"] }';
         var proc = Qt.createQmlObject(procStr, root);
         var parserStr = 'import QtQuick; import Quickshell.Io; SplitParser { }';
@@ -54,6 +56,13 @@ Item {
             systemUpdateHeader.updatePackages = tempPackages;
             // checkupdates exits with 2 if no updates, 0 if updates found (or vice-versa in some versions)
             systemUpdateHeader.updateState = tempPackages.length > 0 ? 2 : 0;
+            
+            if (tempPackages.length > 0) {
+                ActionProgressService.actionFinished(tempPackages.length + " Updates Available", "system_update", true);
+            } else {
+                ActionProgressService.actionFinished("System Up to Date", "check", true);
+            }
+            
             proc.destroy();
         });
         

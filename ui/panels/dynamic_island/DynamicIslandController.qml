@@ -27,6 +27,7 @@ Item {
     
     // Notifications
     property var currentNotif: null
+    signal notificationReceived(var notif)
     
     // Used by timers to restore state correctly based on hover
     property bool isHovered: false
@@ -36,6 +37,7 @@ Item {
     property var _bri: BrightnessService
     property var _net: NetworkService
     property var _bt: BluetoothService
+    property var _pac: PacmanWatcherService
 
     onIslandStateChanged: {
         console.log("Island state changed to:", islandState);
@@ -174,15 +176,8 @@ Item {
 
     Connections {
         target: ActionProgressService
-        function onActionRequested() {
-            actionSuccessTimer.stop();
-            if (controller.islandState !== State.IslandState.actionProgress && controller.islandState !== State.IslandState.prompt && controller.islandState !== State.IslandState.notification) {
-                controller.previousState = controller.islandState;
-            }
-            controller.islandState = State.IslandState.actionProgress;
-        }
         function onIsResolvingChanged() {
-            if (ActionProgressService.isResolving) {
+            if (ActionProgressService.isResolving && controller.islandState === State.IslandState.actionProgress) {
                 actionSuccessTimer.restart();
             }
         }
@@ -315,6 +310,7 @@ Item {
                     popSound.play();
                 
                 State.GlobalStates.notificationTriggered();
+                controller.notificationReceived(notifCopy);
             }
         }
     }

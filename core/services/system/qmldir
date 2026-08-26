@@ -16,3 +16,4 @@ singleton ClipboardService ClipboardService.qml
 singleton BehaviorService BehaviorService.qml
 singleton ShellService ShellService.qml
 singleton RogService RogService.qml
+singleton PacmanWatcherService PacmanWatcherService.qml

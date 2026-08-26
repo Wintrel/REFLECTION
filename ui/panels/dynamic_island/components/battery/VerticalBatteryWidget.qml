@@ -45,6 +45,8 @@ Item {
     }
 
     readonly property color standardBarColor: {
+        if (BatteryService.isOneshotCharging)
+            return "#FFB800";
         if (BatteryService.isCharging)
             return "#79D6A1";
         if (BatteryService.isOnAC)
@@ -58,21 +60,60 @@ Item {
     // Momentarily switches to profile color, then fades smoothly back
     readonly property color barColor: isFlashingProfile ? flashColor : standardBarColor
 
+    // Hold-to-Charge One-Shot physics
+    property real holdProgress: 0.0
+    property real burstProgress: 0.0
+
+    SequentialAnimation {
+        id: oneshotBurstAnim
+        NumberAnimation { target: rootItem; property: "burstProgress"; from: 1.0; to: 0.0; duration: 450; easing.type: Easing.OutQuad }
+    }
+
+    NumberAnimation {
+        id: holdAnim
+        target: rootItem
+        property: "holdProgress"
+        to: cardMa.pressed ? 1.0 : 0.0
+        duration: cardMa.pressed ? 750 : 180
+        easing.type: cardMa.pressed ? Easing.InQuad : Easing.OutQuad
+        running: true
+    }
+
     implicitWidth: 174
     implicitHeight: 296
+
+    // Outer Hold & Burst Glow
+    RectangularGlow {
+        anchors.fill: cardBg
+        glowRadius: 16 + (rootItem.holdProgress * 12) + (rootItem.burstProgress * 20)
+        spread: 0.10 + (rootItem.holdProgress * 0.15)
+        color: BatteryService.isOneshotCharging ? "#FFB800" : (rootItem.holdProgress > 0 ? "#FFB800" : rootItem.barColor)
+        cornerRadius: cardBg.radius + glowRadius
+        opacity: Math.max(rootItem.holdProgress * 0.85, Math.max(rootItem.burstProgress * 0.95, (BatteryService.isOneshotCharging ? 0.45 : 0.0)))
+        
+        Behavior on opacity { NumberAnimation { duration: 150 } }
+        Behavior on color { ColorAnimation { duration: 250 } }
+    }
 
     // Card background
     Rectangle {
         id: cardBg
         anchors.fill: parent
         radius: 20
-        color: rootItem.theme ? rootItem.theme.surfaceOverlay : Qt.rgba(1, 1, 1, 0.05)
-        border.color: cardMa.containsMouse 
-                      ? Qt.rgba(rootItem.barColor.r, rootItem.barColor.g, rootItem.barColor.b, 0.4) 
-                      : (rootItem.theme ? Qt.lighter(rootItem.theme.surfaceOverlay, 1.2) : Qt.rgba(1, 1, 1, 0.08))
-        border.width: 1
+        scale: 1.0 - (rootItem.holdProgress * 0.03) + (rootItem.burstProgress * 0.04)
+        Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
 
-        Behavior on border.color { ColorAnimation { duration: 250 } }
+        color: rootItem.theme ? rootItem.theme.surfaceOverlay : Qt.rgba(1, 1, 1, 0.05)
+        border.color: BatteryService.isOneshotCharging
+                      ? Qt.rgba(1.0, 0.72, 0.0, 0.7)
+                      : (rootItem.holdProgress > 0
+                         ? Qt.rgba(1.0, 0.72, 0.0, rootItem.holdProgress)
+                         : (cardMa.containsMouse 
+                            ? Qt.rgba(rootItem.barColor.r, rootItem.barColor.g, rootItem.barColor.b, 0.4) 
+                            : (rootItem.theme ? Qt.lighter(rootItem.theme.surfaceOverlay, 1.2) : Qt.rgba(1, 1, 1, 0.08))))
+        border.width: (BatteryService.isOneshotCharging || rootItem.holdProgress > 0) ? 2 : 1
+
+        Behavior on border.color { ColorAnimation { duration: 180 } }
 
         // Mask shape for rounded corners
         Rectangle {
@@ -298,12 +339,23 @@ Item {
             }
         }
 
-        // ── Interactive MouseArea to cycle profiles on click ──────────
+        // ── Interactive MouseArea to cycle profiles on click or Hold to toggle One-Shot ──
         MouseArea {
             id: cardMa
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            pressAndHoldInterval: 750
+
+            onPressAndHold: {
+                if (BatteryService.isOneshotCharging) {
+                    BatteryService.cancelOneshot();
+                } else {
+                    BatteryService.chargeFullOnce();
+                }
+                oneshotBurstAnim.restart();
+            }
+
             onClicked: rootItem.cycleProfile()
         }
     }

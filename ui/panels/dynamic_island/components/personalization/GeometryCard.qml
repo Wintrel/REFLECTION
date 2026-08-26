@@ -237,5 +237,31 @@ ColumnLayout {
                 }
             }
         }
+
+        // Spring Micro-Bounce (Overshoot)
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 8
+            
+            Text {
+                text: "Spring Micro-Bounce: " + Math.round(ShellService.islandBounceIntensity * 100) + "%"
+                font.family: root.theme ? root.theme.fontMain : "Inter"
+                font.pixelSize: 14
+                color: root.theme ? root.theme.textMain : "#FFF"
+            }
+            
+            CC.ThickSlider {
+                Layout.fillWidth: true
+                theme: root.theme
+                icon: "speed"
+                valueText: Math.round(ShellService.islandBounceIntensity * 100) + "%"
+                value: (ShellService.islandBounceIntensity / 0.8) * 100
+                
+                onValueChangedByUser: (val) => {
+                    var bounce = (val / 100.0) * 0.8;
+                    ShellService.setIslandBounceIntensity(bounce);
+                }
+            }
+        }
     }
 }
