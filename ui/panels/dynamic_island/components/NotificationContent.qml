@@ -18,10 +18,23 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.topMargin: (islandNotifH - height) / 2
     
-    opacity: root.islandState === State.IslandState.notification ? 1 : 0
+    property bool isNotif: root.islandState === State.IslandState.notification
+    opacity: isNotif ? 1 : 0
     visible: opacity > 0
+    scale: isNotif ? 1.0 : 0.94
     layer.enabled: true
-    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.isNotif ? (root.theme ? root.theme.durationContentIn : 220) : (root.theme ? root.theme.durationContentOut : 120)
+            easing.type: root.isNotif ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.theme ? root.theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
     
     property bool isLocked: false
     property var currentNotif: null

@@ -13,9 +13,23 @@ Item {
     property int islandClipboardW
     property int islandClipboardH
     
+    property bool isClip: islandState === State.IslandState.clipboard
     visible: opacity > 0
-    opacity: islandState === State.IslandState.clipboard ? 1 : 0
-    Behavior on opacity { NumberAnimation { duration: theme.animDuration; easing.type: Easing.OutExpo } }
+    opacity: isClip ? 1 : 0
+    scale: isClip ? 1.0 : 0.95
+    layer.enabled: true
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.isClip ? (theme ? theme.durationContentIn : 220) : (theme ? theme.durationContentOut : 120)
+            easing.type: root.isClip ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: theme ? theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
     
     width: islandClipboardW
     height: islandClipboardH

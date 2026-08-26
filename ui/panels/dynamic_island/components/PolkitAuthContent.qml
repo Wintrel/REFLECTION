@@ -18,8 +18,20 @@ Item {
     property bool isActive: islandState === State.IslandState.polkitAuth
     opacity: isActive ? 1 : 0
     visible: opacity > 0
+    scale: isActive ? 1.0 : 0.95
     layer.enabled: true
-    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.isActive ? (root.theme ? root.theme.durationContentIn : 220) : (root.theme ? root.theme.durationContentOut : 120)
+            easing.type: root.isActive ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.theme ? root.theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
 
     onOpacityChanged: {
         if (opacity === 1 && PolkitAuthService.authState === 1) {

@@ -101,7 +101,7 @@ Item {
         
         property bool isActive: islandWidget.islandState !== State.IslandState.idle
         opacity: isActive ? 0.25 : 0.0
-        Behavior on opacity { NumberAnimation { duration: theme.animDuration; easing.type: Easing.OutSine } }
+        Behavior on opacity { NumberAnimation { duration: theme.durationMorph; easing.type: theme.easingStandard } }
         Behavior on color { ColorAnimation { duration: 300 } }
     }
 
@@ -245,21 +245,21 @@ Item {
                       ? Qt.rgba(theme.colorSystemShimmer.r, theme.colorSystemShimmer.g, theme.colorSystemShimmer.b, 0.4)
                       : "transparent"
         
-        Behavior on border.color { ColorAnimation { duration: theme.animDuration; easing.type: Easing.OutSine } }
+        Behavior on border.color { ColorAnimation { duration: theme.durationMorph; easing.type: theme.easingStandard } }
         
         Behavior on width {
             NumberAnimation {
                 id: widthAnim
-                duration: theme.animDuration
-                easing.type: Easing.OutExpo
+                duration: theme.durationMorph
+                easing.type: theme.easingMorph
             }
         }
         
         Behavior on height {
             NumberAnimation {
                 id: heightAnim
-                duration: theme.animDuration
-                easing.type: Easing.OutExpo
+                duration: theme.durationMorph
+                easing.type: theme.easingMorph
             }
         }
 
@@ -492,7 +492,7 @@ Item {
         glowColor: theme.accentPrimary
         shimmerColor: Qt.rgba(theme.colorSystemShimmer.r, theme.colorSystemShimmer.g, theme.colorSystemShimmer.b, 0.4)
         borderWidth: theme.islandBorderWidth
-        animDuration: theme.animDuration
+        animDuration: theme.durationMorph
     }
 
     // Global Wayland Shortcut Hook for Super key1

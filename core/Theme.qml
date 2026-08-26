@@ -83,8 +83,18 @@ Item {
     property int reflectionAssistantW: 700
     property int reflectionAssistantH: 420
     
-    // Animation Durations.
+    // Animation Durations & Motion Tokens
     property int animDuration: ThemeService.animDuration
+    property int durationMorph: ThemeService.durationMorph
+    property int durationContentIn: ThemeService.durationContentIn
+    property int durationContentOut: ThemeService.durationContentOut
+    property int durationFast: ThemeService.durationFast
+
+    // Easing Curves (Material 3 Expressive)
+    property var easingMorph: Easing.OutCubic
+    property var easingStandard: Easing.OutQuad
+    property var easingEmphasized: Easing.OutBack
+    property var easingExit: Easing.InQuad
     
     // Effects
     property real edgeLightingIntensity: ThemeService.edgeLightingIntensity

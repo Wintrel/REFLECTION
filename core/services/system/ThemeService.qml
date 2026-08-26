@@ -29,7 +29,11 @@ Item {
     // Geometry & Motion
     property int radiusIsland: 12
     property int taskbarRadius: 16
-    property int animDuration: 600
+    property int animDuration: 360
+    property int durationMorph: 360
+    property int durationContentIn: 220
+    property int durationContentOut: 120
+    property int durationFast: 150
     
     // Effects
     property real edgeLightingIntensity: 0.6

@@ -32,7 +32,20 @@ Item {
     
     opacity: isActive ? 1 : 0
     visible: opacity > 0
-    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
+    scale: isActive ? 1.0 : 0.95
+    layer.enabled: true
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.isActive ? (theme ? theme.durationContentIn : 220) : (theme ? theme.durationContentOut : 120)
+            easing.type: root.isActive ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: theme ? theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
     
     // State to track selected category
     property int currentCategory: 0

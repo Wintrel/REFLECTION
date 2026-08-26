@@ -23,10 +23,23 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.topMargin: 8
     
-    opacity: root.islandState === State.IslandState.osd ? 1 : 0
+    property bool isOsd: root.islandState === State.IslandState.osd
+    opacity: isOsd ? 1 : 0
     visible: opacity > 0
+    scale: isOsd ? 1.0 : 0.94
     layer.enabled: true
-    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.isOsd ? (root.theme ? root.theme.durationContentIn : 220) : (root.theme ? root.theme.durationContentOut : 120)
+            easing.type: root.isOsd ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.theme ? root.theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
     
     // Bar Layout (Mode 0 & 1)
     Row {

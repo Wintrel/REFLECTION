@@ -13,8 +13,20 @@ Item {
     
     opacity: root.islandState < 2 ? 1 : 0
     visible: opacity > 0
+    scale: root.islandState < 2 ? 1.0 : 0.9
     layer.enabled: true
-    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.islandState < 2 ? (root.theme ? root.theme.durationContentIn : 220) : (root.theme ? root.theme.durationContentOut : 120)
+            easing.type: root.islandState < 2 ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.theme ? root.theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
     
     property bool isPlaying: ShellService.islandMediaActivity && root.mprisPlayer && root.mprisPlayer.isPlaying
     property bool hasNotifs: ShellService.islandNotificationPreviews && State.GlobalStates.notificationHistory.count > 0

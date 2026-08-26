@@ -46,11 +46,18 @@ Item {
 
     opacity: panelOpen ? 1 : 0
     visible: opacity > 0
+    scale: panelOpen ? 1.0 : 0.95
 
     Behavior on opacity {
         NumberAnimation {
-            duration: root.motionFast
-            easing.type: Easing.OutSine
+            duration: root.panelOpen ? (root.theme ? root.theme.durationContentIn : 220) : (root.theme ? root.theme.durationContentOut : 120)
+            easing.type: root.panelOpen ? Easing.OutQuad : Easing.InQuad
+        }
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.theme ? root.theme.durationMorph : 360
+            easing.type: Easing.OutCubic
         }
     }
 
@@ -78,19 +85,22 @@ Item {
         }
     }
 
-    // ── Content Column (TopBar + Dashboard Grid) ──────────────────
+    // ── Content Column (TopBar + Dashboard Grid) 
     Column {
         anchors.centerIn: parent
         spacing: 12
 
         // Top Navigation & Quick Switcher Bar
-        BatteryComponents.BatteryTopBar {
+        IslandTopBar {
             width: dashboardRow.width
             theme: root.theme
             islandState: root.islandState
+            title: "System & Battery"
+            showWattagePill: true
+            showCloseButton: true
         }
 
-        // ── Main Dashboard Layout (Grid + Vertical Battery Card) ──
+        // ── Main Dashboard Layout (Grid + Vertical Battery Card)
         Row {
             id: dashboardRow
             spacing: 16

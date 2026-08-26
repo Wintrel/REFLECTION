@@ -20,9 +20,22 @@ Item {
     property string selectedFile: ""
     property var callback: State.GlobalStates.filePickerCallback
 
-    visible: isActive
+    visible: opacity > 0
     opacity: isActive ? 1 : 0
-    Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
+    scale: isActive ? 1.0 : 0.95
+    layer.enabled: true
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.isActive ? (theme ? theme.durationContentIn : 220) : (theme ? theme.durationContentOut : 120)
+            easing.type: root.isActive ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: theme ? theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
 
     Timer {
         id: startTimer

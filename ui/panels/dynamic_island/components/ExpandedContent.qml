@@ -46,10 +46,23 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.topMargin: (islandMaxH - height) / 2
     
-    opacity: root.islandState === State.IslandState.expanded ? 1 : 0
+    property bool isExpanded: root.islandState === State.IslandState.expanded
+    opacity: isExpanded ? 1 : 0
     visible: opacity > 0
+    scale: isExpanded ? 1.0 : 0.94
     layer.enabled: true
-    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.isExpanded ? (root.theme ? root.theme.durationContentIn : 220) : (root.theme ? root.theme.durationContentOut : 120)
+            easing.type: root.isExpanded ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.theme ? root.theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
     
     Media.MediaBackground {
         anchors.fill: parent
@@ -59,7 +72,7 @@ Item {
         isSwitchingTracks: root.isSwitchingTracks
     }
     
-    Media.ExpandedTopBar {
+    IslandTopBar {
         id: topSliver
         anchors.top: parent.top
         anchors.left: parent.left
@@ -68,6 +81,10 @@ Item {
         islandState: root.islandState
         mprisPlayer: root.mprisPlayer
         theme: root.theme
+        title: "Now Playing"
+        showBatteryPill: true
+        showCiderExpandButton: true
+        showCloseButton: true
     }
     
     // Media Zone (info + controls, centered above progress bar)

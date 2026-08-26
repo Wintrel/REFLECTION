@@ -14,11 +14,23 @@ Item {
     property int islandState: State.IslandState.idle
     property var theme: null
 
-    // Only visible and active when in State 8 (Reflection)
+    property bool isReflection: islandState === State.IslandState.reflectionGrid
     visible: opacity > 0
     layer.enabled: true
-    opacity: islandState === State.IslandState.reflectionGrid ? 1 : 0
-    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
+    opacity: isReflection ? 1 : 0
+    scale: isReflection ? 1.0 : 0.95
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.isReflection ? (root.theme ? root.theme.durationContentIn : 220) : (root.theme ? root.theme.durationContentOut : 120)
+            easing.type: root.isReflection ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.theme ? root.theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
 
     // Ambient Void Background
     Components.Starfield {

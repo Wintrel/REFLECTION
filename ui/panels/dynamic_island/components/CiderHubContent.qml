@@ -23,10 +23,23 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.topMargin: (islandCiderH - height) / 2
     
-    opacity: root.islandState === State.IslandState.ciderExpanded ? 1 : 0
+    property bool isCider: root.islandState === State.IslandState.ciderExpanded
+    opacity: isCider ? 1 : 0
     visible: opacity > 0
+    scale: isCider ? 1.0 : 0.95
     layer.enabled: true
-    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.isCider ? (root.theme ? root.theme.durationContentIn : 220) : (root.theme ? root.theme.durationContentOut : 120)
+            easing.type: root.isCider ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.theme ? root.theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
     
     // Starfield Voidy
     Components.Starfield {

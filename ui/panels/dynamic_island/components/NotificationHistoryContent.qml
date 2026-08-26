@@ -16,7 +16,7 @@ Item {
     
     // Dynamically calculate height based on content, clamped to max height
     property real computedHeight: {
-        var h = 60 + 16; // Header height + margins
+        var h = 28 + 16 + 16; // Header height (28) + margins
         if (State.GlobalStates.notificationHistory.count === 0) {
             h += 200; // Empty state height
         } else {
@@ -31,10 +31,23 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.topMargin: 16
     
-    opacity: root.islandState === State.IslandState.notificationHistory ? 1 : 0
+    property bool isHistory: root.islandState === State.IslandState.notificationHistory
+    opacity: isHistory ? 1 : 0
     visible: opacity > 0
+    scale: isHistory ? 1.0 : 0.95
     layer.enabled: true
-    Behavior on opacity { enabled: false; NumberAnimation { duration: 0 } }
+    Behavior on opacity { 
+        NumberAnimation { 
+            duration: root.isHistory ? (root.theme ? root.theme.durationContentIn : 220) : (root.theme ? root.theme.durationContentOut : 120)
+            easing.type: root.isHistory ? Easing.OutQuad : Easing.InQuad 
+        } 
+    }
+    Behavior on scale {
+        NumberAnimation {
+            duration: root.theme ? root.theme.durationMorph : 360
+            easing.type: Easing.OutCubic
+        }
+    }
     
     // Ambient Void Background
     Components.Starfield {
@@ -44,100 +57,23 @@ Item {
         opacity: 0.5 // Subtle so it doesn't distract from notifications
     }
     
-    // Header
-    Item {
+    // Universal TopBar
+    IslandTopBar {
         id: header
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        height: 50
         
-        property bool isVisible: root.islandState === State.IslandState.notificationHistory
-        opacity: (root.islandState === State.IslandState.notificationHistory) ? 1 : 0
-        transform: Translate {
-            y: (root.islandState === State.IslandState.notificationHistory) ? 0 : -5
-            Behavior on y { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 400; easing.type: Easing.OutExpo } } }
-        }
-        Behavior on opacity { SequentialAnimation { PauseAnimation { duration: 0 } NumberAnimation { duration: 300; easing.type: Easing.OutSine } } }
+        islandState: root.islandState
+        theme: root.theme
+        title: "Notifications"
+        showClearAllButton: true
+        showCloseButton: true
         
-        Text {
-            anchors.left: parent.left
-            anchors.leftMargin: 8
-            anchors.verticalCenter: parent.verticalCenter
-            text: "Notifications"
-            font.family: root.theme ? root.theme.fontMain : "Inter"
-            font.pixelSize: 20
-            font.bold: true
-            font.letterSpacing: -0.5
-            color: root.theme ? root.theme.textMain : "#FFF"
-        }
-        
-        Row {
-            anchors.right: parent.right
-            anchors.rightMargin: 8
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: 8
-            
-            // Music State Return Button
-            Rectangle {
-                width: 32
-                height: 32
-                radius: 16
-                visible: root.mprisPlayer !== null
-                color: musicMa.containsMouse ? (root.theme ? Qt.rgba(root.theme.accentMusic.r, root.theme.accentMusic.g, root.theme.accentMusic.b, 0.2) : "#305611f8") : "transparent"
-                Behavior on color { ColorAnimation { duration: 150 } }
-                
-                Text {
-                    anchors.centerIn: parent
-                    text: "music_note"
-                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                    font.pixelSize: 20
-                    color: musicMa.containsMouse ? (root.theme ? root.theme.accentMusic : "#5611f8") : (root.theme ? root.theme.textSub : "#A6ADC8")
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                }
-                
-                MouseArea {
-                    id: musicMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (typeof islandWidget !== "undefined") {
-                            islandWidget.islandState = State.IslandState.expanded; // Return to expanded music state
-                        }
-                    }
-                }
-            }
-            
-            // Clear All Button (sleek icon button)
-            Rectangle {
-                width: 32
-                height: 32
-                radius: 16
-                color: clearMa.containsMouse ? (root.theme ? Qt.rgba(root.theme.accentNotification.r, root.theme.accentNotification.g, root.theme.accentNotification.b, 0.2) : "#30710cee") : "transparent"
-                Behavior on color { ColorAnimation { duration: 150 } }
-                
-                Text {
-                    anchors.centerIn: parent
-                    text: "delete_sweep"
-                    font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                    font.pixelSize: 20
-                    color: clearMa.containsMouse ? (root.theme ? root.theme.accentNotification : "#710cee") : (root.theme ? root.theme.textSub : "#A6ADC8")
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                }
-                
-                MouseArea {
-                    id: clearMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        State.GlobalStates.notificationHistory.clear();
-                        if (typeof islandWidget !== "undefined") {
-                            islandWidget.islandState = State.IslandState.idle;
-                        }
-                    }
-                }
+        onClearAllClicked: {
+            State.GlobalStates.notificationHistory.clear();
+            if (typeof islandWidget !== "undefined") {
+                islandWidget.islandState = State.IslandState.idle;
             }
         }
     }
