@@ -44,6 +44,9 @@ Scope {
                     item: clickawayMask
                 }
                 Region {
+                    item: edgeTrigger
+                }
+                Region {
                     item: taskbarWrapper
                 }
                 Region {
@@ -53,6 +56,15 @@ Scope {
 
             property var theme: Core.Theme { id: theme }
             
+            // Dedicated bottom edge trigger strip for 100% reliable auto-hide reveal
+            Item {
+                id: edgeTrigger
+                width: parent.width
+                height: 6
+                anchors.bottom: parent.bottom
+                HoverHandler { id: edgeHover }
+            }
+
             // Clickaway handler for closing Control Center
             Item {
                 id: clickawayMask
@@ -69,10 +81,33 @@ Scope {
 
             Item {
                 id: taskbarWrapper
-                width: taskbarContainer.width + (2 * theme.taskbarRadius)
-                height: taskbarContainer.height - theme.taskbarRadius
+                width: taskbarContainer.width + (theme.floatingTaskbar ? 0 : (2 * theme.taskbarRadius))
+                height: theme.floatingTaskbar ? (theme.taskbarHeight + theme.taskbarBottomMargin) : (taskbarContainer.height - theme.taskbarRadius)
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
+
+                readonly property bool rawHovered: taskbarHover.hovered || edgeHover.hovered
+                property bool isRevealed: false
+
+                onRawHoveredChanged: {
+                    if (rawHovered) {
+                        hideDebounceTimer.stop();
+                        isRevealed = true;
+                    } else {
+                        hideDebounceTimer.restart();
+                    }
+                }
+
+                Timer {
+                    id: hideDebounceTimer
+                    interval: 350
+                    repeat: false
+                    onTriggered: {
+                        if (!taskbarWrapper.rawHovered && !State.GlobalStates.controlCenterOpen) {
+                            taskbarWrapper.isRevealed = false;
+                        }
+                    }
+                }
 
                 property bool isHidden: {
                     if (State.GlobalStates.anyAmbientActive)
@@ -80,12 +115,12 @@ Scope {
                     if (ShellService.taskbarVisibilityMode === 1)
                         return false;
                     if (ShellService.taskbarVisibilityMode === 2)
-                        return !taskbarHover.hovered && !State.GlobalStates.controlCenterOpen;
-                    return !HyprlandService.isWorkspaceEmpty && !taskbarHover.hovered && !State.GlobalStates.controlCenterOpen;
+                        return !isRevealed && !State.GlobalStates.controlCenterOpen;
+                    return !HyprlandService.isWorkspaceEmpty && !isRevealed && !State.GlobalStates.controlCenterOpen;
                 }
 
-                anchors.bottomMargin: isHidden ? -(height - 2) : 0
-                Behavior on anchors.bottomMargin { NumberAnimation { duration: 700; easing.type: Easing.OutExpo } }
+                anchors.bottomMargin: isHidden ? -(height + 20) : 0
+                Behavior on anchors.bottomMargin { NumberAnimation { duration: 600; easing.type: Easing.OutExpo } }
 
                 HoverHandler { id: taskbarHover }
 
@@ -93,13 +128,18 @@ Scope {
                         id: taskbarContainer
 
                         width: taskbarWindow.width * theme.taskbarWidthPercent
-                        height: theme.taskbarHeight + theme.taskbarRadius
+                        Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+
+                        height: theme.floatingTaskbar ? theme.taskbarHeight : (theme.taskbarHeight + theme.taskbarRadius)
+                        Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
 
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.bottom: parent.bottom
-                        anchors.bottomMargin: -theme.taskbarRadius
+                        anchors.bottomMargin: theme.floatingTaskbar ? theme.taskbarBottomMargin : -theme.taskbarRadius
+                        Behavior on anchors.bottomMargin { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
 
                         radius: theme.taskbarRadius
+                        Behavior on radius { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
                         color: theme.bgBezel
 
                         // Inner inset area
@@ -108,9 +148,10 @@ Scope {
                             anchors.leftMargin: theme.taskbarBorderWidth
                             anchors.rightMargin: theme.taskbarBorderWidth
                             anchors.topMargin: theme.taskbarBorderWidth
-                            anchors.bottomMargin: theme.taskbarRadius + theme.taskbarBorderWidth
+                            anchors.bottomMargin: theme.floatingTaskbar ? theme.taskbarBorderWidth : (theme.taskbarRadius + theme.taskbarBorderWidth)
 
-                            radius: parent.radius - theme.taskbarBorderWidth
+                            radius: Math.max(0, parent.radius - theme.taskbarBorderWidth)
+                            Behavior on radius { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
                             color: theme.bgInner
                             clip: true
                             
@@ -122,12 +163,13 @@ Scope {
                             }
                         }
                         
-                        // Patch to square off the top-right corner when Control Center is open
+                        // Patch to square off the top-right corner when Control Center is fused in docked mode
                         Item {
                             width: theme.taskbarRadius
                             height: theme.taskbarRadius
                             anchors.top: parent.top
                             anchors.right: parent.right
+                            visible: !theme.floatingTaskbar
                             
                             opacity: State.GlobalStates.controlCenterOpen ? 1 : 0
                             Behavior on opacity { NumberAnimation { duration: 500 } }
@@ -152,7 +194,7 @@ Scope {
                             anchors.fill: parent
                             anchors.leftMargin: 24
                             anchors.rightMargin: 24
-                            anchors.bottomMargin: theme.taskbarRadius // Push bottom up so vertical center is correct
+                            anchors.bottomMargin: theme.floatingTaskbar ? 0 : theme.taskbarRadius // Push bottom up so vertical center is correct
 
                             // Left: Workspaces
                             WorkspaceDots {
@@ -177,6 +219,7 @@ Scope {
                     }
 
                     TaskbarFillets {
+                        visible: !theme.floatingTaskbar
                         taskbarShape: taskbarContainer
                         radiusTaskbar: theme.taskbarRadius
                         bgBezel: theme.bgBezel
@@ -194,12 +237,12 @@ Scope {
                         anchors.right: taskbarContainer.right
                         
                         // --- VERTICAL PLACEMENT ---
-                        // We anchor the bottom of the Control Center to the TOP of the taskbar.
                         anchors.bottom: taskbarContainer.top
+                        anchors.bottomMargin: theme.floatingTaskbar ? 10 : 0
+                        Behavior on anchors.bottomMargin { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
                         
                         // Set to 0 so it sits perfectly behind the flat top edge of the taskbar
                         property bool isOpen: State.GlobalStates.controlCenterOpen
-                        anchors.bottomMargin: 0
                         
                         transform: Translate {
                             y: ccContainer.isOpen ? 0 : ccContainer.height + taskbarContainer.height
@@ -219,6 +262,7 @@ Scope {
                             height: theme.taskbarRadius
                             anchors.bottom: parent.bottom
                             anchors.right: parent.left
+                            visible: !theme.floatingTaskbar
                             clip: true
                             
                             Rectangle {

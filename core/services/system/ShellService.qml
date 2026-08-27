@@ -23,6 +23,10 @@ Item {
     property int taskbarVisibilityMode: 0
     property int taskbarHeight: 52
     property int taskbarIconSize: 28
+    property bool floatingTaskbar: true
+    property int taskbarBottomMargin: 12
+    property int radiusTaskbarFloating: 22
+    property real taskbarWidthPercent: 0.85
     property bool workspaceNumbers: false
 
     property bool overviewEnabled: true
@@ -47,6 +51,10 @@ Item {
     function setTaskbarVisibilityMode(value) { taskbarVisibilityMode = Math.round(clamp(value, 0, 2)); queueSave(); }
     function setTaskbarHeight(value) { taskbarHeight = Math.round(clamp(value, 44, 68)); queueSave(); }
     function setTaskbarIconSize(value) { taskbarIconSize = Math.round(clamp(value, 22, 36)); queueSave(); }
+    function setFloatingTaskbar(value) { floatingTaskbar = value; queueSave(); }
+    function setTaskbarBottomMargin(value) { taskbarBottomMargin = Math.round(clamp(value, 0, 64)); queueSave(); }
+    function setRadiusTaskbarFloating(value) { radiusTaskbarFloating = Math.round(clamp(value, 8, 36)); queueSave(); }
+    function setTaskbarWidthPercent(value) { taskbarWidthPercent = clamp(value, 0.40, 0.98); queueSave(); }
     function setWorkspaceNumbers(value) { workspaceNumbers = value; queueSave(); }
     function setOverviewEnabled(value) { overviewEnabled = value; queueSave(); }
     function setClipboardEnabled(value) { clipboardEnabled = value; queueSave(); }
@@ -66,6 +74,10 @@ Item {
         taskbarVisibilityMode = 0;
         taskbarHeight = 52;
         taskbarIconSize = 28;
+        floatingTaskbar = true;
+        taskbarBottomMargin = 12;
+        radiusTaskbarFloating = 22;
+        taskbarWidthPercent = 0.85;
         workspaceNumbers = false;
         overviewEnabled = true;
         clipboardEnabled = true;
@@ -93,6 +105,10 @@ Item {
             taskbarVisibilityMode: taskbarVisibilityMode,
             taskbarHeight: taskbarHeight,
             taskbarIconSize: taskbarIconSize,
+            floatingTaskbar: floatingTaskbar,
+            taskbarBottomMargin: taskbarBottomMargin,
+            radiusTaskbarFloating: radiusTaskbarFloating,
+            taskbarWidthPercent: taskbarWidthPercent,
             workspaceNumbers: workspaceNumbers,
             overviewEnabled: overviewEnabled,
             clipboardEnabled: clipboardEnabled,
@@ -153,6 +169,10 @@ Item {
                     if (cfg.taskbarVisibilityMode !== undefined) root.taskbarVisibilityMode = Math.round(root.clamp(cfg.taskbarVisibilityMode, 0, 2));
                     if (cfg.taskbarHeight !== undefined) root.taskbarHeight = Math.round(root.clamp(cfg.taskbarHeight, 44, 68));
                     if (cfg.taskbarIconSize !== undefined) root.taskbarIconSize = Math.round(root.clamp(cfg.taskbarIconSize, 22, 36));
+                    if (cfg.floatingTaskbar !== undefined) root.floatingTaskbar = !!cfg.floatingTaskbar;
+                    if (cfg.taskbarBottomMargin !== undefined) root.taskbarBottomMargin = Math.round(root.clamp(cfg.taskbarBottomMargin, 0, 64));
+                    if (cfg.radiusTaskbarFloating !== undefined) root.radiusTaskbarFloating = Math.round(root.clamp(cfg.radiusTaskbarFloating, 8, 36));
+                    if (cfg.taskbarWidthPercent !== undefined) root.taskbarWidthPercent = root.clamp(cfg.taskbarWidthPercent, 0.40, 0.98);
                     if (cfg.workspaceNumbers !== undefined) root.workspaceNumbers = !!cfg.workspaceNumbers;
                     if (cfg.overviewEnabled !== undefined) root.overviewEnabled = !!cfg.overviewEnabled;
                     if (cfg.clipboardEnabled !== undefined) root.clipboardEnabled = !!cfg.clipboardEnabled;

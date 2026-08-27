@@ -104,10 +104,11 @@ Item {
     property real edgeLightingIntensity: ThemeService.edgeLightingIntensity
     
     // Taskbar Sizing
-    property int taskbarRadius: ThemeService.taskbarRadius
+    property bool floatingTaskbar: ShellService.floatingTaskbar
+    property int taskbarRadius: ShellService.floatingTaskbar ? ShellService.radiusTaskbarFloating : ThemeService.taskbarRadius
     property int taskbarHeight: ShellService.taskbarHeight
-    property real taskbarWidthPercent: 0.97 // 85% width
-    property int taskbarBottomMargin: 0
+    property real taskbarWidthPercent: ShellService.taskbarWidthPercent
+    property int taskbarBottomMargin: ShellService.floatingTaskbar ? ShellService.taskbarBottomMargin : 0
     property int taskbarBorderWidth: 1
     property int islandBorderWidth: 1
 }
