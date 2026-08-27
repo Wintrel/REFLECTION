@@ -10,27 +10,32 @@ Item {
 
     property var theme: null
     property var targetWidget: null
-    property var rightNeighbor: null
-    property bool active: false
+    property var batteryNeighbor: null
+    property var progressNeighbor: null
+
+    readonly property bool active: PrivacyService.isPrivacyActive
     property real popProgress: 0
     readonly property bool isHovered: ma.containsMouse
 
-    readonly property bool inProgress: ActionProgressService.inProgress
-    readonly property bool isResolving: ActionProgressService.isResolving
-    readonly property bool isSuccess: ActionProgressService.isSuccess
+    readonly property color activeColor: PrivacyService.primaryColor
+    readonly property string activeIcon: PrivacyService.primaryIcon
 
     signal expandRequested()
 
     width: theme ? theme.islandMinH : 45
     height: theme ? theme.islandMinH : 45
 
-    // Right-emergence geometry: accommodates right neighbor if active (e.g. BatteryOrb)
+    // Right-emergence geometry: stacks dynamically with battery and progress neighbors
     readonly property real baseRightX: {
         if (!targetWidget) return 0;
-        if (rightNeighbor && rightNeighbor.active && rightNeighbor.popProgress > 0.5) {
-            return targetWidget.x + targetWidget.width + rightNeighbor.width + 10;
+        var offset = targetWidget.x + targetWidget.width;
+        if (batteryNeighbor && batteryNeighbor.active && batteryNeighbor.popProgress > 0.5) {
+            offset += batteryNeighbor.width + 10;
         }
-        return targetWidget.x + targetWidget.width;
+        if (progressNeighbor && progressNeighbor.active && progressNeighbor.popProgress > 0.5) {
+            offset += progressNeighbor.width + 10;
+        }
+        return offset;
     }
 
     x: targetWidget ? (baseRightX - (width + 6) + (popProgress * (width + 16))) : 0
@@ -39,21 +44,6 @@ Item {
     opacity: Math.min(1.0, popProgress * 1.4)
     visible: popProgress > 0
 
-    readonly property color activeColor: {
-        if (root.isResolving) {
-            return root.isSuccess ? "#79D6A1" : "#FF5555";
-        }
-        return root.theme ? root.theme.accentPrimary : "#00F5FF";
-    }
-
-    function trigger() {
-        active = true;
-    }
-
-    function dismiss() {
-        active = false;
-    }
-
     onActiveChanged: {
         if (active) {
             retractAnim.stop();
@@ -61,24 +51,6 @@ Item {
         } else {
             popAnim.stop();
             retractAnim.restart();
-        }
-    }
-
-    // Auto-dismiss 2.2s after task completes / resolves
-    Timer {
-        id: resolveTimer
-        interval: 2200
-        repeat: false
-        onTriggered: {
-            if (!root.inProgress) {
-                root.dismiss();
-            }
-        }
-    }
-
-    onIsResolvingChanged: {
-        if (isResolving) {
-            resolveTimer.restart();
         }
     }
 
@@ -182,7 +154,6 @@ Item {
         }
     }
 
-
     // Orb Circular Container
     Rectangle {
         id: orbBackground
@@ -221,79 +192,32 @@ Item {
                 opacity: 0.35
             }
 
-            // Spinning Progress Ring Arc (while in progress)
-            Canvas {
-                id: progressRing
-                anchors.fill: parent
-                anchors.margins: 4
-                visible: root.inProgress && !root.isResolving
-
-                onPaint: {
-                    var ctx = getContext("2d");
-                    ctx.reset();
-                    ctx.clearRect(0, 0, width, height);
-
-                    var cx = width / 2;
-                    var cy = height / 2;
-                    var radius = (width / 2) - 2;
-
-                    ctx.lineWidth = 2.5;
-                    ctx.lineCap = "round";
-                    ctx.strokeStyle = root.activeColor.toString();
-
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, radius, 0, 1.5 * Math.PI, false);
-                    ctx.stroke();
-                }
-
-                RotationAnimation on rotation {
-                    loops: Animation.Infinite
-                    running: root.inProgress && !root.isResolving && root.active
-                    from: 0
-                    to: 360
-                    duration: 1100
-                }
-            }
-
-            // Completed Ring Outline (on success / resolve)
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: 4
-                radius: width / 2
-                color: "transparent"
-                border.width: 2
-                border.color: root.activeColor
-                visible: root.isResolving
-                opacity: root.isResolving ? 1.0 : 0.0
-                Behavior on opacity { NumberAnimation { duration: 200 } }
-            }
-
-            // Dynamic Action / Resolution Icon
+            // Clean Static Sensor Glyph
             Text {
-                id: actionIcon
+                id: sensorIcon
                 anchors.centerIn: parent
-                text: {
-                    if (root.isResolving) {
-                        return root.isSuccess ? "check" : "close";
-                    }
-                    return ActionProgressService.statusIcon || "progress_activity";
-                }
+                text: root.activeIcon
                 font.family: root.theme ? root.theme.fontIcon : "Material Symbols Rounded"
-                font.pixelSize: 18
+                font.pixelSize: 19
                 color: root.activeColor
                 Behavior on color { ColorAnimation { duration: 250 } }
             }
         }
 
-        // Interactive Click Area (Expands full action card)
+        // Interactive Click Area (Single tap toggles mic mute, Right-click expands audio card)
         MouseArea {
             id: ma
             anchors.fill: parent
             hoverEnabled: true
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
             cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                root.dismiss();
-                root.expandRequested();
+
+            onClicked: (mouse) => {
+                if (mouse.button === Qt.RightButton) {
+                    root.expandRequested();
+                } else {
+                    PrivacyService.toggleMicMute();
+                }
             }
         }
     }

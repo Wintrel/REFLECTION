@@ -102,6 +102,9 @@ Scope {
                     item: progressOrb
                 }
                 Region {
+                    item: privacyOrb
+                }
+                Region {
                     item: mediaOrb
                 }
                 Region {
@@ -422,6 +425,19 @@ Scope {
                 rightNeighbor: batteryOrb
                 onExpandRequested: {
                     widget.islandState = State.IslandState.actionProgress;
+                }
+            }
+
+            // Companion Privacy & Sensor Orb (Right Side - pops out when mic/cam is recording)
+            IslandComponents.PrivacyOrb {
+                id: privacyOrb
+                z: 19
+                theme: theme
+                targetWidget: widget
+                batteryNeighbor: batteryOrb
+                progressNeighbor: progressOrb
+                onExpandRequested: {
+                    widget.islandState = State.IslandState.settingsHub;
                 }
             }
 

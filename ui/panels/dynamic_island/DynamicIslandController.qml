@@ -38,6 +38,7 @@ Item {
     property var _net: NetworkService
     property var _bt: BluetoothService
     property var _pac: PacmanWatcherService
+    property var _priv: PrivacyService
 
     onIslandStateChanged: {
         console.log("Island state changed to:", islandState);

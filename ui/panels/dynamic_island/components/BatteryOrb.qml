@@ -163,22 +163,22 @@ Item {
         }
     }
 
-    // Outer Glow / Charging Aura (ignites as the orb detaches)
-    RectangularGlow {
-        anchors.fill: orbBackground
-        glowRadius: BatteryService.isOneshotCharging ? 18 : 14
-        spread: BatteryService.isOneshotCharging ? 0.12 : 0.08
-        color: BatteryService.isOneshotCharging 
-               ? "#FFB800" 
-               : (BatteryService.isCharging 
-                  ? "#79D6A1" 
-                  : (BatteryService.percentage <= 20 ? "#FF5555" : (root.theme ? root.theme.accentPrimary : "#00FFCC")))
-        cornerRadius: orbBackground.radius + glowRadius
-        opacity: Math.max(0, (root.popProgress - 0.2) / 0.8) * (root.isHovered ? 0.65 : (BatteryService.isOneshotCharging ? 0.55 : 0.40))
+    // // Outer Glow / Charging Aura (ignites as the orb detaches)
+    // RectangularGlow {
+    //     anchors.fill: orbBackground
+    //     glowRadius: BatteryService.isOneshotCharging ? 18 : 14
+    //     spread: BatteryService.isOneshotCharging ? 0.12 : 0.08
+    //     color: BatteryService.isOneshotCharging 
+    //            ? "#FFB800" 
+    //            : (BatteryService.isCharging 
+    //               ? "#79D6A1" 
+    //               : (BatteryService.percentage <= 20 ? "#FF5555" : (root.theme ? root.theme.accentPrimary : "#00FFCC")))
+    //     cornerRadius: orbBackground.radius + glowRadius
+    //     opacity: Math.max(0, (root.popProgress - 0.2) / 0.8) * (root.isHovered ? 0.65 : (BatteryService.isOneshotCharging ? 0.55 : 0.40))
         
-        Behavior on opacity { NumberAnimation { duration: 180 } }
-        Behavior on color { ColorAnimation { duration: 300 } }
-    }
+    //     Behavior on opacity { NumberAnimation { duration: 180 } }
+    //     Behavior on color { ColorAnimation { duration: 300 } }
+    // }
 
     // Orb Pill Container
     Rectangle {

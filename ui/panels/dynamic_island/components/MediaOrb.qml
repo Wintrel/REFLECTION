@@ -145,18 +145,7 @@ Item {
         }
     }
 
-    // Outer Glow / Music Accent Aura
-    RectangularGlow {
-        anchors.fill: orbBackground
-        glowRadius: 14
-        spread: 0.08
-        color: root.theme ? root.theme.accentMusic : "#7C9CFF"
-        cornerRadius: orbBackground.radius + glowRadius
-        opacity: Math.max(0, (root.popProgress - 0.2) / 0.8) * (root.isHovered ? 0.60 : 0.35)
 
-        Behavior on opacity { NumberAnimation { duration: 180 } }
-        Behavior on color { ColorAnimation { duration: 300 } }
-    }
 
     // Orb Circular Container
     Rectangle {
