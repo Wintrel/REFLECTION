@@ -228,7 +228,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        height: 80
+        height: 84
         theme: root.theme
         mprisPlayer: root.mprisPlayer
         

@@ -30,8 +30,9 @@ Item {
         theme: root.theme
         currentTab: root.currentTab
 
-        // We don't need the close button from CiderTopNav here since the
-        // main TopLane of CiderStudio.qml has it, but it's safe to leave.
+        onCloseClicked: {
+            State.GlobalStates.closeCiderStudioWorkspace();
+        }
 
         onTabSelected: (index) => {
             root.currentTab = index;
@@ -100,7 +101,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        height: 80
+        height: 84
         theme: root.theme
         mprisPlayer: root.mprisPlayer
     }
