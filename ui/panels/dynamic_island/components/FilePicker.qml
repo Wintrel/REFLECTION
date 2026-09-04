@@ -46,7 +46,7 @@ Item {
     onIsActiveChanged: {
         if (isActive) {
             if (currentPath === "") {
-                currentPath = AccountService.homeDir || "/home/" + (Quickshell.env("USER") || "fuyumi");
+                currentPath = AccountService.homeDir || Quickshell.env("HOME") || ("/home/" + (Quickshell.env("USER") || "koyumi"));
             } else {
                 procLister.running = false;
                 startTimer.restart();
@@ -70,7 +70,7 @@ Item {
     // Process to run the python directory lister
     Process {
         id: procLister
-        command: ["/home/fuyumi/.config/quickshell/reflection/scripts/settings/dir_lister.py", root.currentPath, root.filterMode]
+        command: [Quickshell.env("HOME") + "/.config/quickshell/reflection/scripts/settings/dir_lister.py", root.currentPath, root.filterMode]
         stdout: SplitParser {
             onRead: data => {
                 try {

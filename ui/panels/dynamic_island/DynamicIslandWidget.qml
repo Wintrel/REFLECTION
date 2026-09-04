@@ -525,9 +525,16 @@ Item {
         animDuration: theme.durationMorph
     }
 
-    // Global Wayland Shortcut Hook for Super key1
+    // Global Wayland Shortcut Hook for Super key
     GlobalShortcut {
-        name: "quickshell:searchToggleRelease"
+        name: "searchToggleRelease"
+        onPressed: {
+            State.ReflectionState.toggle()
+        }
+    }
+
+    GlobalShortcut {
+        name: "searchToggle"
         onPressed: {
             State.ReflectionState.toggle()
         }
@@ -542,7 +549,7 @@ Item {
     }
 
     GlobalShortcut {
-        name: "quickshell:mediaControlsToggle"
+        name: "mediaControlsToggle"
         onPressed: {
             if (islandWidget.islandState === State.IslandState.expanded || islandWidget.islandState === State.IslandState.ciderExpanded) {
                 islandWidget.islandState = State.IslandState.idle;
